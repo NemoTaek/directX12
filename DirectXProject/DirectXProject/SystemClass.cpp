@@ -33,7 +33,7 @@ bool SystemClass::initialize()
 	}
 
 	// m_Graphics °´Ã¼ ÃÊ±âÈ­
-	m_Graphics->Initialize(screenWidth, screenHeight, m_hwnd);
+	return m_Graphics->Initialize(screenWidth, screenHeight, m_hwnd);
 }
 
 void SystemClass::Shutdown()
