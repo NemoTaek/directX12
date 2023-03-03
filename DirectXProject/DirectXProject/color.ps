@@ -3,14 +3,13 @@
 // ÇÈ¼¿ ¼ÎÀÌ´õ
 // Á¤Á¡ ¼ÎÀÌ´õÀÇ °á°ú¹°À» ÇÈ¼¿ ¼ÎÀÌ´õ¿¡¼­ »ç¿ëÇÑ´Ù
 
-
 struct PixelInputType
 {
-	float4 position: SV_POSITION;
-	float4 color: COLOR;
+	float4 position : SV_POSITION;
+	float4 color : COLOR;
 };
 
-float4 ColorPixelShader(PixelInputType input) : SV_Target
+float4 ColorPixelShader(PixelInputType input) : SV_TARGET
 {
-	return input.color;
+	return input.color * 0.5f;
 }

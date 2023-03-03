@@ -38,7 +38,7 @@ void CameraClass::Render()
 	// 위쪽을 가리키는 벡터
 	up.x = 0.0f;
 	up.y = 1.0f;
-	up.z = 1.0f;
+	up.z = 0.0f;
 	upVector = XMLoadFloat3(&up);
 
 	// 카메라 위치 설정

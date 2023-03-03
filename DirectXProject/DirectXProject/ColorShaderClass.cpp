@@ -39,7 +39,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	 
 	// 정점셰이더 코드 컴파일
 	ID3D10Blob* vertexShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "ColorVertexShader123436543", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
+	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "ColorVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, vsFilename); }
 		else { MessageBox(hwnd, vsFilename, L"Missing Vertex Shader File", MB_OK); }
 		return false; 
@@ -47,9 +47,9 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 
 	// 픽셀셰이더 코드 컴파일
 	ID3D10Blob* pixelShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "ColorPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
-		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, vsFilename); }
-		else { MessageBox(hwnd, vsFilename, L"Missing Pixel Shader File", MB_OK); }
+	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "ColorPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
+		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, psFilename); }
+		else { MessageBox(hwnd, psFilename, L"Missing Pixel Shader File", MB_OK); }
 		return false;  
 	}
 
@@ -138,28 +138,29 @@ void ColorShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 {
 	// 에러메세지 출력창에 표시
 	OutputDebugStringA(reinterpret_cast<const char*>(errorMessage->GetBufferPointer()));
-	char* compileErrors;
-	unsigned long bufferSize, i;
-	std::ofstream fout;
+
+	//char* compileErrors;
+	//unsigned long bufferSize, i;
+	//std::ofstream fout;
 
 
-	// 에러 메세지를 담고 있는 문자열 버퍼의 포인터를 가져옵니다.
-	compileErrors = (char*)(errorMessage->GetBufferPointer());
+	//// 에러 메세지를 담고 있는 문자열 버퍼의 포인터를 가져옵니다.
+	//compileErrors = (char*)(errorMessage->GetBufferPointer());
 
-	// 메세지의 길이를 가져옵니다.
-	bufferSize = errorMessage->GetBufferSize();
+	//// 메세지의 길이를 가져옵니다.
+	//bufferSize = errorMessage->GetBufferSize();
 
-	// 파일을 열고 안에 메세지를 기록합니다.
-	fout.open("shader-error.txt");
+	//// 파일을 열고 안에 메세지를 기록합니다.
+	//fout.open("shader-error.txt");
 
-	// 에러 메세지를 씁니다.
-	for (i = 0; i < bufferSize; i++)
-	{
-		fout << compileErrors[i];
-	}
+	//// 에러 메세지를 씁니다.
+	//for (i = 0; i < bufferSize; i++)
+	//{
+	//	fout << compileErrors[i];
+	//}
 
-	// 파일을 닫습니다.
-	fout.close();
+	//// 파일을 닫습니다.
+	//fout.close();
 
 	errorMessage->Release();
 	errorMessage = 0;

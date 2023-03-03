@@ -129,7 +129,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 
 	// 백버퍼 get
 	ID3D11Texture2D* backBufferPtr = nullptr;
-	if (FAILED(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr)))	return false;
+	if (FAILED(m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<LPVOID*>(&(backBufferPtr)))))	return false;
 
 	// 백버퍼 포인터로 RTV 생성
 	if (FAILED(m_device->CreateRenderTargetView(backBufferPtr, NULL, &m_renderTargetView))) return false;

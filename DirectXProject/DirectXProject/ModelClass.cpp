@@ -25,10 +25,12 @@ int ModelClass::GetIndexCount() { return m_indexCount; }
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
 	// 정점 배열의 정점 수
-	m_vertexCount = 3;
+	m_vertexCount = 3;	// 삼각형
+	m_vertexCount = 4;	// 사각형
 
 	// 인덱스 배열의 인덱스 수
-	m_indexCount = 3;
+	m_indexCount = 3;	// 삼각형
+	m_indexCount = 6;	// 사각형(정점 버퍼로 그릴 기본형이 삼각형이기 때문에 삼각형 2개를 놓으면 사각형이 된다)
 
 	// 정점 배열 생성
 	VertexType* vertices = new VertexType[m_vertexCount];
@@ -38,6 +40,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	unsigned long* indices = new unsigned long[m_indexCount];
 	if (!indices)	return false;
 
+	// 삼각형
 	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);
 	vertices[0].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);
@@ -48,6 +51,23 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	indices[0] = 0;
 	indices[1] = 1;
 	indices[2] = 2;
+
+	// 사각형
+	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);
+	vertices[0].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[1].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);
+	vertices[1].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[2].position = XMFLOAT3(1.0f, 1.0f, 0.0f);
+	vertices[2].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);
+	vertices[3].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+
+	indices[0] = 0;
+	indices[1] = 1;
+	indices[2] = 2;
+	indices[3] = 0;
+	indices[4] = 2;
+	indices[5] = 3;
 
 	// 정점 버퍼 서술자 설정
 	D3D11_BUFFER_DESC vertexBufferDesc;
@@ -78,7 +98,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 
 	// 인덱스 초기화용 자료를 담은 시스템 메모리 배열을 가리키는 포인터
 	D3D11_SUBRESOURCE_DATA indexData;
-	indexData.pSysMem = vertices;
+	indexData.pSysMem = indices;
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
@@ -87,9 +107,9 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 
 	// 생성 후 정점 및 인덱스 버퍼 해제
 	delete[] vertices;
-	vertices = 0;
+	vertices = nullptr;
 	delete[] indices;
-	indices = 0;
+	indices = nullptr;
 
 	return true;
 }
@@ -99,13 +119,13 @@ void ModelClass::ShutdownBuffers()
 	//  인덱스 버퍼 해제
 	if (m_indexBuffer) {
 		m_indexBuffer->Release();
-		m_indexBuffer = 0;
+		m_indexBuffer = nullptr;
 	}
 
 	// 정점셰이더 해제
 	if (m_vertexBuffer) {
 		m_vertexBuffer->Release();
-		m_vertexBuffer = 0;
+		m_vertexBuffer = nullptr;
 	}
 }
 

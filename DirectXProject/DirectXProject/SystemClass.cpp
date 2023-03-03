@@ -168,6 +168,9 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	ShowWindow(m_hwnd, SW_SHOW);
 	SetForegroundWindow(m_hwnd);
 	SetFocus(m_hwnd);
+
+	// 마우스 커서 표시설정
+	ShowCursor(true);
 }
 
 void SystemClass::ShutdownWindows()

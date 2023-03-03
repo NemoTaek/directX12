@@ -1,3 +1,2 @@
-﻿  ColorShaderClass.cpp
-C:\Users\nemo1\OneDrive\바탕 화면\내꺼\github\directX12\DirectXProject\DirectXProject\ColorShaderClass.cpp(150,42): warning C4244: '=': 'SIZE_T'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+﻿  ModelTextureClass.cpp
   DirectXProject.vcxproj -> C:\Users\nemo1\OneDrive\바탕 화면\내꺼\github\directX12\DirectXProject\x64\Debug\DirectXProject.exe
