@@ -97,7 +97,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="light.vs" />
-    <None Include="light.ps" />
+    <None Include="VertexShader.vs" />
+    <None Include="PixelShader.ps" />
   </ItemGroup>
 </Project>

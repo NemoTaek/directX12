@@ -15,7 +15,7 @@ bool LightShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	//WCHAR ps[] = L"PS.hlsl";
 	//result = InitializeShader(device, hwnd, vs, ps);
 	//return result;
-	return InitializeShader(device, hwnd, L"./light.vs", L"./light.ps");
+	return InitializeShader(device, hwnd, L"./VertexShader.vs", L"./PixelShader.ps");
 }
 
 void LightShaderClass::Shutdown()
@@ -39,8 +39,9 @@ bool LightShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	ID3D10Blob* errorMessage = nullptr;
 
 	// 정점셰이더 코드 컴파일
+	// D3DCompileFromFile 의 4번째 매개변수(pEntryPoint)가 해당 셰이더 파일의 진입점이 같아야 통과함. 다르면 그냥 무조건 오류띄워버림
 	ID3D10Blob* vertexShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
+	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, vsFilename); }
 		else { MessageBox(hwnd, vsFilename, L"Missing Vertex Shader File", MB_OK); }
 		return false;
@@ -48,7 +49,7 @@ bool LightShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 
 	// 픽셀셰이더 코드 컴파일
 	ID3D10Blob* pixelShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
+	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, psFilename); }
 		else { MessageBox(hwnd, psFilename, L"Missing Pixel Shader File", MB_OK); }
 		return false;

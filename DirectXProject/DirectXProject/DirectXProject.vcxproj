@@ -49,12 +49,12 @@
     <ClCompile Include="TextureClass.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="light.ps">
+    <None Include="PixelShader.ps">
       <FileType>Document</FileType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </None>
-    <None Include="light.vs">
+    <None Include="VertexShader.vs">
       <FileType>Document</FileType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
