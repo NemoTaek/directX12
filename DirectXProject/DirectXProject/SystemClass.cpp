@@ -65,13 +65,12 @@ void SystemClass::Run()
 	while (true) {
 		// 윈도우 메세지 처리
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-			// 종료 메세지를 받을 경우 break
-			if (msg.message == WM_QUIT)	break;
-
 			// 메세지가 없으면 즉시 제어권 반환
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		// 종료 메세지를 받을 경우 break
+		if (msg.message == WM_QUIT)	break;
 		else {
 			if (!Frame())	break;
 		}

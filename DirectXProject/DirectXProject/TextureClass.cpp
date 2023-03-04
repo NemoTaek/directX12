@@ -2,13 +2,12 @@
 #include "TextureClass.h"
 #include <stdio.h>
 
-#include "DDSTextureLoader.h"
-
 TextureClass::TextureClass() {}
 TextureClass::TextureClass(const TextureClass& other) {}
 TextureClass::~TextureClass() {}
 
-bool TextureClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const WCHAR* filename)
+//bool TextureClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const WCHAR* filename)
+bool TextureClass::Initialize(ID3D11Device* device, const WCHAR* filename)
 {
 	// 이부분은 targa 파일을 텍스쳐로 사용 할 시 사용
 	/*

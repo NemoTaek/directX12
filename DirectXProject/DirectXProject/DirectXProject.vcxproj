@@ -21,58 +21,43 @@
   <ItemGroup>
     <ClInclude Include="AlignedAllocationPolicy.h" />
     <ClInclude Include="CameraClass.h" />
-    <ClInclude Include="ColorShaderClass.h" />
     <ClInclude Include="D3DClass.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DxDefine.h" />
     <ClInclude Include="GraphicsClass.h" />
     <ClInclude Include="InputClass.h" />
-    <ClInclude Include="ModelClass.h" />
-    <ClInclude Include="ModelTextureClass.h" />
+    <ClInclude Include="LightClass.h" />
+    <ClInclude Include="LightShaderClass.h" />
+    <ClInclude Include="ModelLightClass.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />
     <ClInclude Include="Targetver.h" />
     <ClInclude Include="TextureClass.h" />
-    <ClInclude Include="TextureShaderClass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp" />
-    <ClCompile Include="ColorShaderClass.cpp" />
     <ClCompile Include="D3DClass.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="GraphicsClass.cpp" />
     <ClCompile Include="InputClass.cpp" />
+    <ClCompile Include="LightClass.cpp" />
+    <ClCompile Include="LightShaderClass.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="ModelClass.cpp" />
-    <ClCompile Include="ModelTextureClass.cpp" />
+    <ClCompile Include="ModelLightClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
     <ClCompile Include="TextureClass.cpp" />
-    <ClCompile Include="TextureShaderClass.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="color.ps">
+    <None Include="light.ps">
       <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </None>
-    <None Include="color.vs">
+    <None Include="light.vs">
       <FileType>Document</FileType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ColorVertexShader</EntryPointName>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-    </None>
-    <None Include="Texture.vs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Texture.ps">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">

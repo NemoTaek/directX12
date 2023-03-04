@@ -39,25 +39,22 @@
     <ClInclude Include="D3DClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ColorShaderClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="CameraClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="TextureClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ModelTextureClass.h">
+    <ClInclude Include="DDSTextureLoader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="DDSTextureLoader.h">
+    <ClInclude Include="LightShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelLightClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LightClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -80,40 +77,27 @@
     <ClCompile Include="D3DClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="ColorShaderClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="CameraClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="TextureClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="ModelTextureClass.cpp">
+    <ClCompile Include="DDSTextureLoader.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="DDSTextureLoader.cpp">
+    <ClCompile Include="LightShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelLightClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LightClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="color.vs">
-      <Filter>리소스 파일</Filter>
-    </None>
-    <None Include="color.ps">
-      <Filter>리소스 파일</Filter>
-    </None>
-    <None Include="Texture.vs">
-      <Filter>리소스 파일</Filter>
-    </None>
-    <None Include="Texture.ps">
-      <Filter>리소스 파일</Filter>
-    </None>
+    <None Include="light.vs" />
+    <None Include="light.ps" />
   </ItemGroup>
 </Project>
