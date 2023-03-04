@@ -11,6 +11,7 @@ class CameraClass;
 //class ColorShaderClass;
 //class ModelTextureClass;
 //class TextureShaderClass;
+class Model3DClass;
 class ModelLightClass;
 class LightShaderClass;
 class LightClass;
@@ -37,6 +38,7 @@ private:
 	//ColorShaderClass* m_ColorShader = nullptr;
 	//ModelTextureClass* m_ModelTexture = nullptr;
 	//TextureShaderClass* m_TextureShader = nullptr;
+	Model3DClass* m_model3D = nullptr;
 	ModelLightClass* m_ModelLight = nullptr;
 	LightShaderClass* m_LightShader = nullptr;
 	LightClass* m_Light = nullptr;

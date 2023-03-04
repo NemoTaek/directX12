@@ -6,7 +6,8 @@
 //#include "ColorShaderClass.h"
 //#include "ModelTextureClass.h"
 //#include "TextureShaderClass.h"
-#include "ModelLightClass.h"
+//#include "ModelLightClass.h"
+#include "Model3DClass.h"
 #include "LightShaderClass.h"
 #include "LightClass.h"
 
@@ -66,9 +67,16 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	m_ModelLight = new ModelLightClass;
-	if (!m_ModelLight) { return false; }
-	if (!m_ModelLight->Initialize(m_Direct3D->GetDevice(), L"./Textures/checkboard.dds")) {
+	//m_ModelLight = new ModelLightClass;
+	//if (!m_ModelLight) { return false; }
+	//if (!m_ModelLight->Initialize(m_Direct3D->GetDevice(), L"./Textures/checkboard.dds")) {
+	//	MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	m_model3D = new Model3DClass;
+	if (!m_model3D) { return false; }
+	if (!m_model3D->Initialize(m_Direct3D->GetDevice(), "./data/cube.txt", L"./Textures/checkboard.dds")) {
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
@@ -99,7 +107,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	m_Light = new LightClass;
 	if (!m_Light) { return false; }
-	m_Light->SetDiffuseColor(0.0f, 1.0f, 0.0f, 1.0f);
+	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
 
 	return true;
@@ -122,10 +130,10 @@ void GraphicsClass::Shutdown()
 	}
 
 	// 모델 객체 반환
-	if (m_ModelLight) {
-		m_ModelLight->Shutdown();
-		delete m_ModelLight;
-		m_ModelLight = 0;
+	if (m_model3D) {
+		m_model3D->Shutdown();
+		delete m_model3D;
+		m_model3D = 0;
 	}
 
 	// 카메라 객체 반환
@@ -174,7 +182,7 @@ bool GraphicsClass::Render(float rotation)
 	// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
 	//m_Model->Render(m_Direct3D->GetDeviceContext());
 	//m_ModelTexture->Render(m_Direct3D->GetDeviceContext());
-	m_ModelLight->Render(m_Direct3D->GetDeviceContext());
+	m_model3D->Render(m_Direct3D->GetDeviceContext());
 
 	//// 셰이더를 사용하여 모델 렌더링
 	//if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
@@ -183,7 +191,7 @@ bool GraphicsClass::Render(float rotation)
 	// if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_ModelTexture->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_ModelTexture->GetTexture()))	return false;
 
 	// 빛 셰이더를 사용하여 모델 렌더링
-	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_ModelLight->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_ModelLight->GetTexture(), 
+	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model3D->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetDiffuseColor()))	return false;
 
 	// 버퍼의 내용을 화면에 출력
