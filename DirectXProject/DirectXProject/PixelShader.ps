@@ -3,9 +3,11 @@ SamplerState SampleType;	// 텍스쳐 자원에서 표본을 추출할 때 어�
 
 cbuffer LightBuffer
 {
+	float4 ambientColor;	// 주변광
 	float4 diffuseColor;	// 분산조명
 	float3 lightDirection;	// 빛 방향
-	float padding;
+	float specularPower;	// 반사 강도
+	float4 specularColor;	// 반영광 색
 };
 
 struct PixelInputType
@@ -14,27 +16,52 @@ struct PixelInputType
 	// float4 color : COLOR;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
+	float3 viewDirection : TEXCOORD1;
 };
 
 float4 PS(PixelInputType input) : SV_TARGET
 {
 	float4 textureColor;
-	float3 lightDir;
-	float lightIntensity;
+	float3 lightDir;		// 시야 방향
+	float lightIntensity;	// 조명값
 	float4 color;
+	float3 reflection;		// 반사벡터
+	float4 specular;		// 반영광
 
 	// 이 텍스쳐 좌표 위치에서 샘플러를 사용하여 텍스쳐에서 픽셀 색상을 샘플링
 	textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+	// 기본 출력 색을 주변광으로 설정
+	color = ambientColor;
+
+	// 반영광 색 초기화
+	specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// 빛 벡터는 입사광 진행방향과 반대이다
 	lightDir = -lightDirection;
 
 	// 픽셀의 빛의 양 계산
+	// saturate(x): 주어진 인수를 [0, 1] 구간으로 한정하는 함수
 	lightIntensity = saturate(dot(input.normal, lightDir));
 
-	// 빛의 강도와 결합된 분산조명 색을 기준으로 최종 색상을 계산
-	color = saturate(diffuseColor * lightIntensity);
+	// 법선벡터와 빛벡터의 내적이 0보다 클 때
+	if(lightIntensity > 0.0f) {
+		// 조명값을 주변광에 더해줌
+		color += (diffuseColor * lightIntensity);
+		color = saturate(color);
+
+		// 조명값, 법선벡터, 시야 방향을 기준으로 반사벡터 계산
+		reflection = normalize(2 * lightIntensity * input.normal - lightDir);
+
+		// 반사벡터, 시야 방향, 반사 강도를 기준으로 반영광 계산
+		specular = pow(saturate(dot(reflection, input.viewDirection)), specularPower);
+	}
+
+	// 최종 빛 색상 설정
 	color = color * textureColor;
+
+	// 정반사 효과 적용, 이로 인해 더욱 입체적이게 될 것
+	color = saturate(color + specular);
 
 	return color;
 }

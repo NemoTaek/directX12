@@ -1,9 +1,19 @@
-cbuffer MatrixBuffer
+// 콜론 뒤에 register(b0)는 논리 레지스터 공간 내의 가상 레지스터에 바인딩 한다는 의미이다.
+// t: SRV(Shader Resource View), s: sampler, u: UAV(Unordered Access View), b: CBV(Constant Buffer View)
+// 여기서는 버퍼 0번슬롯에 할당한다는 뜻이다.
+cbuffer MatrixBuffer : register(b0)
 {
 	matrix worldMatrix;
 	matrix viewMatrix;
 	matrix projectionMatrix;
 };
+
+// 정반사 계산을 위한 카메라 위치 정보
+cbuffer CameraBuffer : register(b1)
+{
+	float3 cameraPosition;
+	float padding;
+}
 
 struct VertexInputType
 {
@@ -27,11 +37,13 @@ struct PixelInputType
 	// float4 color : COLOR;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
+	float3 viewDirection : TEXCOORD1;	// 시야 방향
 };
 
 PixelInputType VS(VertexInputType input)
 {
 	PixelInputType output;
+	float4 worldPosition;
 
 	// 적절한 행렬 계산을 위해 위치벡터를 4단위로 변경
 	input.position.w = 1.0f;
@@ -52,6 +64,15 @@ PixelInputType VS(VertexInputType input)
 
 	// 법선벡터 정규화
 	output.normal = normalize(output.normal);
+
+	// 세계 정점 위치 계산
+	worldPosition = mul(input.position, worldMatrix);
+
+	// 카메라 위치와 세계 정점 위치를 기준으로 시야 방향 계산
+	output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
+
+	// 시야 방향벡터 정규화
+	output.viewDirection = normalize(output.viewDirection);
 
 	return output;
 }
