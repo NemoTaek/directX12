@@ -28,18 +28,21 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	if (FAILED(adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL)))	return false;
 
 	// 가능한 모든 모니터와 그래픽카드 조합을 저장할 리스트를 생성
-	DXGI_MODE_DESC* displayModeList = new DXGI_MODE_DESC[numModes];
-	if (!displayModeList) return false;
+	DXGI_MODE_DESC* displayModelList = new DXGI_MODE_DESC[numModes];
+	if (!displayModelList) return false;
+
+	// 디스플레이 모드에 대한 리스트 설정
+	if (FAILED(adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, displayModelList)))	return false;
 
 	// 모든 디스플레이 모드에 대해 화면 너비, 높이에 맞는 디스플레이 모드를 탐색
 	// 적절한 모드를 찾으면 모니터의 새로고침 비율의 분모 분자 값을 저장
 	unsigned int numerator = 0;
 	unsigned int denominator = 0;
 	for (unsigned int i = 0; i < numModes; i++) {
-		if (displayModeList[i].Width == (unsigned int)screenWidth) {
-			if (displayModeList[i].Height == (unsigned int)screenHeight) {
-				numerator = displayModeList[i].RefreshRate.Numerator;
-				denominator = displayModeList[i].RefreshRate.Denominator;
+		if (displayModelList[i].Width == (unsigned int)screenWidth) {
+			if (displayModelList[i].Height == (unsigned int)screenHeight) {
+				numerator = displayModelList[i].RefreshRate.Numerator;
+				denominator = displayModelList[i].RefreshRate.Denominator;
 			}
 		}
 	}
@@ -56,12 +59,16 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	if (wcstombs_s(&stringLength, m_videoCardDescription, 128, adapterDesc.Description, 128) != 0)	return false;
 
 	// 디스플레이 모드 리스트 해제
-	delete[] displayModeList;
-	displayModeList = 0;
+	delete[] displayModelList;
+	displayModelList = 0;
 
 	// 출력 어댑터 해제
 	adapterOutput->Release();
 	adapterOutput = 0;
+
+	// 어댑터 해제
+	adapter->Release();
+	adapter = 0;
 
 	// 팩토리 객체 해제
 	factory->Release();
@@ -234,7 +241,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	m_deviceContext->RSSetViewports(1, &viewport);
 
 	// 투영행렬 설정
-	float fieldOfView = 3.141592654f / 4.0f;
+	float fieldOfView = XM_PI / 4.0f;
 	float screenAspect = (float)screenWidth / (float)screenHeight;
 
 	// 3D 렌더링을 위한 투영행렬
@@ -246,6 +253,32 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// 2D 렌더링을 위한 직교 투영행렬
 	m_orthoMatrix = XMMatrixOrthographicLH((float)screenWidth, (float)screenHeight, screenNear, screenDepth);
 
+	// 2D 렌더링을 위한 Z 버퍼를 비활성화 하는 2번째 깊이 스탠실 상태 구조체 생성
+	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
+	ZeroMemory(&depthDisabledStencilDesc, sizeof(depthDisabledStencilDesc));
+
+	// z버퍼 비활성화 스텐실 상태 구조체 작성
+	// 상단에 작성한 스탠실 상태 구조체와 같지만 여기는 비활성화기 때문에 DepthEnable를 false로 변경
+	depthDisabledStencilDesc.DepthEnable = false;
+	depthDisabledStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthDisabledStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthDisabledStencilDesc.StencilEnable = true;
+	depthDisabledStencilDesc.StencilReadMask = 0xFF;
+	depthDisabledStencilDesc.StencilWriteMask = 0xFF;
+
+	depthDisabledStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+	depthDisabledStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	depthDisabledStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+	depthDisabledStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	// DSS 생성
+	if (FAILED(m_device->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState)))	return false;
+
 	return true;
 }
 
@@ -254,6 +287,11 @@ void D3DClass::Shutdown()
 	// 종료 전 윈도우모드로 설정하지 않으면 SwapChain을 해제할 때 예외가 발생한다.
 	if (m_swapChain) {
 		m_swapChain->SetFullscreenState(false, NULL);
+	}
+
+	if (m_depthDisabledStencilState) {
+		m_depthDisabledStencilState->Release();
+		m_depthDisabledStencilState = 0;
 	}
 
 	if (m_rasterState) {
@@ -352,4 +390,14 @@ void D3DClass::GetVideoCardInfo(char* cardName, int& memory)
 {
 	strcpy_s(cardName, 128, m_videoCardDescription);
 	memory = m_videoCardMemory;
+}
+
+void D3DClass::TurnZBufferOn()
+{
+	m_deviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
+}
+
+void D3DClass::TurnZBufferOff()
+{
+	m_deviceContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 }

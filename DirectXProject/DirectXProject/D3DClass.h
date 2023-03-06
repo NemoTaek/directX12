@@ -21,6 +21,10 @@ public:
 
 	void GetVideoCardInfo(char*, int&);
 
+	// 2D 렌더링을 위해 Z버퍼 on/off
+	void TurnZBufferOn();
+	void TurnZBufferOff();
+
 private:
 	bool m_vsync_enabled = false;
 	int m_videoCardMemory = 0;
@@ -36,4 +40,5 @@ private:
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;
 	XMMATRIX m_orthoMatrix;
+	ID3D11DepthStencilState* m_depthDisabledStencilState = nullptr;
 };
