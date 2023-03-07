@@ -1,0 +1,221 @@
+#include "Stdafx.h"
+#include "FontClass.h"
+#include "FontShaderClass.h"
+#include "TextClass.h"
+
+TextClass::TextClass() {}
+TextClass::TextClass(const TextClass& other) {}
+TextClass:: ~TextClass() {}
+
+bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, HWND hwnd, int screenWidth, int screenHeight, XMMATRIX baseViewMatrix)
+{
+	// 화면 크기를 멤버 변수에 저장
+	m_screenWidth = screenWidth;
+	m_screenHeight = screenHeight;
+	m_baseViewMatrix = baseViewMatrix;
+
+	// 폰트 객체 생성 및 초기화
+	m_font = new FontClass;
+	if (!m_font) return false;
+	if (!(m_font->Initialize(device, "./data/fontdata.txt", L"./Textures/font.dds"))) {
+		MessageBox(hwnd, L"Could not initialize font object", L"Error", MB_OK);
+		return false;
+	}
+
+	// 폰트 객체 생성 및 초기화
+	m_fontShader = new FontShaderClass;
+	if (!m_fontShader) return false;
+	if (!(m_fontShader->Initialize(device, hwnd))) {
+		MessageBox(hwnd, L"Could not initialize font shader object", L"Error", MB_OK);
+		return false;
+	}
+
+	// 첫번째 문장 초기화 및 업데이트
+	if (!(InitializeSentence(&m_sentence1, 16, device)))	return false;
+	if (!(UpdateSentence(m_sentence1, "fasdes", 200, 100, 1.0f, 0.0f, 1.0f, deviceContext)))	return false;
+
+	// 두번째 문장 초기화 및 업데이트
+	if (!(InitializeSentence(&m_sentence2, 16, device)))	return false;
+	if (!(UpdateSentence(m_sentence2, "6544658465", 300, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+
+	return true;
+}
+
+void TextClass::Shutdown()
+{
+	ReleaseSentence(&m_sentence1);
+	ReleaseSentence(&m_sentence2);
+
+	if (m_fontShader) {
+		m_fontShader->Shutdown();
+		delete m_fontShader;
+		m_fontShader = 0;
+	}
+
+	if (m_font) {
+		m_font->Shutdown();
+		delete m_font;
+		m_font = 0;
+	}
+}
+
+bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
+{
+	if (!RenderSentence(deviceContext, m_sentence1, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix))	return false;
+
+	return true;
+}
+
+bool TextClass::InitializeSentence(SentenceType** sentence, int maxLength, ID3D11Device* device)
+{
+	// SentenceType 객체 생성 및 초기화
+	*sentence = new SentenceType;
+	if (!*sentence)	return false;
+	(*sentence)->vertexBuffer = nullptr;
+	(*sentence)->indexBuffer = nullptr;
+	(*sentence)->maxLength = maxLength;
+	(*sentence)->vertexCount = 6 * maxLength;	// 한글자에 삼각형 2개 즉 정점 6개 필요
+	(*sentence)->indexCount = (*sentence)->vertexCount;
+
+	int vCount = (*sentence)->vertexCount;
+	int iCount = (*sentence)->indexCount;
+
+	// 정점 배열 생성 및 초기화
+	VertexType* vertices = new VertexType[vCount];
+	if (!vertices)	return false;
+	memset(vertices, 0, (sizeof(VertexType) * vCount));
+
+	// 인덱스 배열 생성
+	unsigned long* indices = new unsigned long[iCount];
+	if (!indices)	return false;
+	for (int i = 0; i < iCount; i++)	indices[i] = i;
+
+	// 정점 버퍼 서술자 설정
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	vertexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	vertexBufferDesc.ByteWidth = sizeof(VertexType) * vCount;
+	vertexBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	// 버퍼 초기화용 자료를 담은 시스템 메모리 배열을 가리키는 포인터
+	D3D11_SUBRESOURCE_DATA vertexData;
+	vertexData.pSysMem = vertices;
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
+
+	// 정점 버퍼 생성
+	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &(*sentence)->vertexBuffer)))	return false;
+
+	// 인덱스 버퍼 서술자 설정
+	D3D11_BUFFER_DESC indexBufferDesc;
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * iCount;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
+
+	// 인덱스 초기화용 자료를 담은 시스템 메모리 배열을 가리키는 포인터
+	D3D11_SUBRESOURCE_DATA indexData;
+	indexData.pSysMem = indices;
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
+
+	// 인덱스 버퍼 생성
+	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &(*sentence)->indexBuffer)))	return false;
+
+	// 생성 후 정점 및 인덱스 버퍼 해제
+	delete[] vertices;
+	vertices = nullptr;
+	delete[] indices;
+	indices = nullptr;
+
+	return true;
+}
+
+bool TextClass::UpdateSentence(SentenceType* sentence, const char* text, int positionX, int positionY, float red, float green, float blue, ID3D11DeviceContext* deviceContext)
+{
+	sentence->red = red;
+	sentence->green = green;
+	sentence->blue = blue;
+	int vCount = sentence->vertexCount;
+	int iCount = sentence->indexCount;
+	float drawX, drawY;
+
+	// 문장 길이
+	int numLetters = static_cast<int>(strlen(text));
+	if (numLetters > sentence->maxLength)	return true;
+
+	// 정점 버퍼 자원에 자료를 올릴 수 있도록 포인터 생성
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	VertexType* vertices;
+	VertexType* verticesPtr;
+
+	// 정점 배열 생성 및 초기화
+	vertices = new VertexType[vCount];
+	if (!vertices)	return false;
+	memset(vertices, 0, (sizeof(VertexType) * vCount));
+
+	// 비트맵 좌표 계산
+	// 정중앙을 (0, 0)으로 두어 상하좌우 계산
+	drawX = static_cast<float>((m_screenWidth / 2) * -1) + static_cast<float>(positionX);
+	drawY = static_cast<float>(m_screenHeight / 2) - static_cast<float>(positionY);
+
+	// 문장 텍스트와 위치를 사용하여 정점 배열을 빌드하기 위해 폰트 클래스 사용
+	m_font->BuildVertexArray(reinterpret_cast<void*>(vertices), text, drawX, drawY);
+
+	// 정점 버퍼 매핑
+	if (FAILED(deviceContext->Map(sentence->vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+
+	// 정점 버퍼에 데이터 복사
+	verticesPtr = reinterpret_cast<VertexType*>(mappedResource.pData);
+	memcpy(verticesPtr, (void*)vertices, (sizeof(VertexType) * vCount));
+
+	// 정점 버퍼 메모리 해제
+	deviceContext->Unmap(sentence->vertexBuffer, 0);
+	delete[] vertices;
+	vertices = 0;
+
+	return true;
+}
+
+void TextClass::ReleaseSentence(SentenceType** sentence)
+{
+	if (*sentence) {
+		if ((*sentence)->vertexBuffer) {
+			(*sentence)->vertexBuffer->Release();
+			(*sentence)->vertexBuffer = nullptr;
+		}
+		if ((*sentence)->indexBuffer) {
+			(*sentence)->indexBuffer->Release();
+			(*sentence)->indexBuffer = nullptr;
+		}
+		delete* sentence;
+		*sentence = nullptr;
+	}
+}
+
+bool TextClass::RenderSentence(ID3D11DeviceContext* deviceContext, SentenceType* sentence, XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
+{
+	// 정점 버퍼의 단위와 오프셋 설정
+	unsigned int stride = sizeof(VertexType);
+	unsigned int offset = 0;
+
+	// 렌더링 할 수 있도록 입력 어셈블러에서 정점 및 인덱스 버퍼를 활성으로 설정
+	deviceContext->IASetVertexBuffers(0, 1, &sentence->vertexBuffer, &stride, &offset);
+	deviceContext->IASetIndexBuffer(sentence->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	// 정점 버퍼로 그릴 기본형 설정
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// 픽셀 색상 벡터를 문장 색상으로 설정
+	XMFLOAT4 pixelColor = XMFLOAT4(sentence->red, sentence->green, sentence->blue, 1.0f);
+
+	// 폰트 쉐이더로 텍스트 렌더링
+	if (!(m_fontShader->Render(deviceContext, sentence->indexCount, worldMatrix, m_baseViewMatrix, orthoMatrix, m_font->GetTexture(), pixelColor)))	return false;
+
+	return true;
+}

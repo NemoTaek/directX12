@@ -1,0 +1,47 @@
+#pragma once
+
+class FontClass;
+class FontShaderClass;
+
+// 문자열을 그리는 클래스
+class TextClass
+{
+private:
+	// 문장 렌더링에 필요한 정보
+	struct SentenceType
+	{
+		ID3D11Buffer* vertexBuffer, * indexBuffer;
+		int vertexCount, indexCount, maxLength;
+		float red, green, blue;
+	};
+
+	struct VertexType
+	{
+		XMFLOAT3 position;
+		XMFLOAT2 texture;
+	};
+
+public:
+	TextClass();
+	TextClass(const TextClass&);
+	~TextClass();
+
+	bool Initialize(ID3D11Device*, ID3D11DeviceContext*, HWND, int, int, XMMATRIX);
+	void Shutdown();
+	bool Render(ID3D11DeviceContext*, XMMATRIX, XMMATRIX);
+
+private:
+	bool InitializeSentence(SentenceType**, int, ID3D11Device*);
+	bool UpdateSentence(SentenceType*, const char*, int, int, float, float, float, ID3D11DeviceContext*);
+	void ReleaseSentence(SentenceType**);
+	bool RenderSentence(ID3D11DeviceContext*, SentenceType*, XMMATRIX, XMMATRIX);
+
+private:
+	FontClass* m_font = nullptr;
+	FontShaderClass* m_fontShader = nullptr;
+	int m_screenWidth = 0;
+	int m_screenHeight = 0;
+	XMMATRIX m_baseViewMatrix;
+	SentenceType* m_sentence1 = nullptr;
+	SentenceType* m_sentence2 = nullptr;
+};

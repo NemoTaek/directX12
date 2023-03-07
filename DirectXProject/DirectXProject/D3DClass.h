@@ -25,6 +25,12 @@ public:
 	void TurnZBufferOn();
 	void TurnZBufferOff();
 
+	// 블렌딩 설정
+	// 블렌딩 on 상태면 font만 화면에 나타나고
+	// 블렌딩 off 상태면 font 뒤에 모델(사각형)이 나타난다.
+	void TurnOnAlphaBlending();
+	void TurnOffAlphaBlending();
+
 private:
 	bool m_vsync_enabled = false;
 	int m_videoCardMemory = 0;
@@ -41,4 +47,6 @@ private:
 	XMMATRIX m_worldMatrix;
 	XMMATRIX m_orthoMatrix;
 	ID3D11DepthStencilState* m_depthDisabledStencilState = nullptr;
+	ID3D11BlendState* m_alphaEnableBlendingState = nullptr;
+	ID3D11BlendState* m_alphaDisableBlendingState = nullptr;
 };
