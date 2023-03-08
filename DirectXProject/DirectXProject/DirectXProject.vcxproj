@@ -32,6 +32,7 @@
     <ClInclude Include="LightClass.h" />
     <ClInclude Include="LightShaderClass.h" />
     <ClInclude Include="Model3DClass.h" />
+    <ClInclude Include="SoundClass.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />
     <ClInclude Include="Targetver.h" />
@@ -53,6 +54,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model3DClass.cpp" />
     <ClCompile Include="ModelLightClass.cpp" />
+    <ClCompile Include="SoundClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
     <ClCompile Include="TextClass.cpp" />

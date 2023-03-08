@@ -72,6 +72,9 @@
     <ClInclude Include="TextClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="SoundClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -126,6 +129,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="TextClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

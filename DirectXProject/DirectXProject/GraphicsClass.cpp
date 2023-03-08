@@ -197,8 +197,10 @@ void GraphicsClass::Shutdown()
 	}
 }
 
-bool GraphicsClass::Frame()
+bool GraphicsClass::Frame(int mouseX, int mouseY, int keyCount)
 {
+	// 모델 회전용 코드
+	/*
 	static float rotation = 0.0f;
 
 	// 각 프레임의 회전을 업데이트
@@ -207,12 +209,18 @@ bool GraphicsClass::Frame()
 
 	// 그래픽 렌더링 처리
 	return Render(rotation);
+	*/
+
+	// Input 용 코드
+	if (!m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDeviceContext()))	return false;
+	if (!m_Text->SetKeyboardInput(keyCount, m_Direct3D->GetDeviceContext()))	return false;
+	return true;
 }
 
 bool GraphicsClass::Render(float rotation)
 {
 	// Scene을 그리기 위해 버퍼 삭제
-	m_Direct3D->BeginScene(0.0f, 0.0f, 1.0f, 1.0f);
+	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
 	// 카메라의 위치에 따라 뷰 행렬 생성
 	m_Camera->Render();

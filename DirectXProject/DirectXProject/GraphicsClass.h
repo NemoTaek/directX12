@@ -17,6 +17,7 @@ class CameraClass;
 //class LightClass;			// 조명 관련 값 설정 및 조회
 //class BitmapClass;		// 2D 모델
 class TextClass;			// 텍스트 모델
+class InputClass;
 
 // 이 프로젝트에서 사용되는 모든 그래픽 객체에 대한 호출을 담당하는 클래스
 class GraphicsClass
@@ -28,9 +29,7 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool Frame();
-
-private:
+	bool Frame(int, int, int);
 	bool Render(float);
 
 private:
@@ -46,4 +45,5 @@ private:
 	//LightClass* m_Light = nullptr;
 	//BitmapClass* m_Bitmap = nullptr;
 	TextClass* m_Text = nullptr;
+	InputClass* m_Input = nullptr;
 };

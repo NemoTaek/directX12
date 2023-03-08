@@ -1,6 +1,7 @@
 #include "Stdafx.h"
 #include "InputClass.h"
 #include "Graphicsclass.h"
+#include "SoundClass.h"
 #include "SystemClass.h"
 
 SystemClass::SystemClass() {}
@@ -23,7 +24,11 @@ bool SystemClass::initialize()
 	}
 
 	// m_Input 객체 초기화
-	m_Input->Initialize();
+	if (!(m_Input->Initialize(m_hinstance, m_hwnd, screenWidth, screenHeight)))
+	{
+		MessageBox(m_hwnd, L"Could not initialize the input object", L"Error", MB_OK);
+		return false;
+	}
 
 	// m_Graphics 객체 생성
 	// 그래픽 랜더링 처리 하기 위한 객체
@@ -33,11 +38,36 @@ bool SystemClass::initialize()
 	}
 
 	// m_Graphics 객체 초기화
-	return m_Graphics->Initialize(screenWidth, screenHeight, m_hwnd);
+	if (!(m_Graphics->Initialize(screenWidth, screenHeight, m_hwnd)))
+	{
+		MessageBox(m_hwnd, L"Could not initialize the graphic object", L"Error", MB_OK);
+		return false;
+	}
+
+	// m_Sound 객체 생성
+	m_Sound = new SoundClass;
+	if (!m_Sound) {
+		return false;
+	}
+
+	// m_Sound 객체 초기화
+	if (!(m_Sound->Initialize(m_hwnd)))
+	{
+		MessageBox(m_hwnd, L"Could not initialize the Direct Sound", L"Error", MB_OK);
+		return false;
+	}
+
+	return true;
 }
 
 void SystemClass::Shutdown()
 {
+	// m_Sound 객체 반환
+	if (m_Sound) {
+		delete m_Sound;
+		m_Sound = 0;
+	}
+
 	// m_Input 객체 반환
 	if (m_Input) {
 		delete m_Input;
@@ -72,36 +102,44 @@ void SystemClass::Run()
 		// 종료 메세지를 받을 경우 break
 		if (msg.message == WM_QUIT)	break;
 		else {
-			if (!Frame())	break;
+			if (!Frame()) {
+				MessageBox(m_hwnd, L"Frame Processing Failed", L"Error", MB_OK);
+				break;
+			}
 		}
+
+		// ESC키 입력 확인 후 눌렀다면 종료 처리
+		if (m_Input->IsEscapePressed())	break;
 	}
 }
 
 bool SystemClass::Frame()
 {
 	// ESC로 종료
-	if (m_Input->IsKeyDown(VK_ESCAPE))	return false;
-	return m_Graphics->Frame();
+	//if (m_Input->IsKeyDown(VK_ESCAPE))	return false;
+	//return m_Graphics->Frame();
+
+	// Direct Input 처리
+	int mouseX = 0;
+	int mouseY = 0;
+	int keyCount = 0;
+
+	// input 객체의 프레임 처리 수행
+	if (!m_Input->Frame())	return false;
+
+	// input 객체에서 마우스 위치 읽어옴
+	m_Input->GetMouseLocation(mouseX, mouseY);
+	m_Input->GetKeyCount(keyCount);
+
+	// graphic 객체의 프레임 처리 수행
+	if (!m_Graphics->Frame(mouseX, mouseY, keyCount))	return false;
+
+	return m_Graphics->Render(0.0f);
 }
 
 LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
-	switch (umsg) {
-		case WM_KEYDOWN:
-		{
-			m_Input->KeyDown((unsigned int)wparam);
-			return 0;
-		}
-		case WM_KEYUP:
-		{
-			m_Input->KeyUp((unsigned int)wparam);
-			return 0;
-		}
-		default:
-		{
-			return DefWindowProc(hwnd, umsg, wparam, lparam);
-		}
-	}
+	return DefWindowProc(hwnd, umsg, wparam, lparam);
 }
 
 void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)

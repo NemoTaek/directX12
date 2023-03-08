@@ -3,6 +3,8 @@
 #include "FontShaderClass.h"
 #include "TextClass.h"
 
+#define SENTENCE_MAX_LENGTH 16
+
 TextClass::TextClass() {}
 TextClass::TextClass(const TextClass& other) {}
 TextClass:: ~TextClass() {}
@@ -31,12 +33,16 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	}
 
 	// 첫번째 문장 초기화 및 업데이트
-	if (!(InitializeSentence(&m_sentence1, 16, device)))	return false;
+	if (!(InitializeSentence(&m_sentence1, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(UpdateSentence(m_sentence1, "fasdes", 200, 100, 1.0f, 0.0f, 1.0f, deviceContext)))	return false;
 
 	// 두번째 문장 초기화 및 업데이트
-	if (!(InitializeSentence(&m_sentence2, 16, device)))	return false;
+	if (!(InitializeSentence(&m_sentence2, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(UpdateSentence(m_sentence2, "6544658465", 300, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+
+	// 세번째 문장 초기화 및 업데이트
+	if (!(InitializeSentence(&m_sentence3, SENTENCE_MAX_LENGTH, device)))	return false;
+	if (!(UpdateSentence(m_sentence3, "6544658465", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
 
 	return true;
 }
@@ -45,6 +51,7 @@ void TextClass::Shutdown()
 {
 	ReleaseSentence(&m_sentence1);
 	ReleaseSentence(&m_sentence2);
+	ReleaseSentence(&m_sentence3);
 
 	if (m_fontShader) {
 		m_fontShader->Shutdown();
@@ -63,6 +70,53 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
 {
 	if (!RenderSentence(deviceContext, m_sentence1, worldMatrix, orthoMatrix))	return false;
 	if (!RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence3, worldMatrix, orthoMatrix))	return false;
+
+	return true;
+}
+
+bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[SENTENCE_MAX_LENGTH];
+	char mouseString[SENTENCE_MAX_LENGTH];
+
+	// 마우스 X위치 정수를 문자열로 변경
+	_itoa_s(mouseX, tempString, 10);
+
+	// 마우스 X 문자열 생성
+	strcpy_s(mouseString, "Mouse X: ");
+	strcat_s(mouseString, tempString);
+
+	// 문장을 마우스 문자열로 업데이트
+	if (!(UpdateSentence(m_sentence1, mouseString, 20, 20, 1.0f, 1.0f, 1.0f, deviceContext)))	return false;
+
+	// 마우스 Y위치 정수를 문자열로 변경
+	_itoa_s(mouseY, tempString, 10);
+
+	// 마우스 Y 문자열 생성
+	strcpy_s(mouseString, "Mouse Y: ");
+	strcat_s(mouseString, tempString);
+
+	// 문장을 마우스 문자열로 업데이트
+	if (!(UpdateSentence(m_sentence2, mouseString, 20, 40, 1.0f, 1.0f, 1.0f, deviceContext)))	return false;
+
+	return true;
+}
+
+bool TextClass::SetKeyboardInput(int keyCount, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[SENTENCE_MAX_LENGTH];
+	char keyboardString[SENTENCE_MAX_LENGTH];
+
+	// 카운트 정수를 문자열로 변경
+	_itoa_s(keyCount, tempString, 10);
+
+	// 마우스 Y 문자열 생성
+	strcpy_s(keyboardString, "count: ");
+	strcat_s(keyboardString, tempString);
+
+	// 문장을 키보드 카운트 문자열로 업데이트
+	if (!(UpdateSentence(m_sentence3, keyboardString, 20, 60, 1.0f, 1.0f, 1.0f, deviceContext)))	return false;
 
 	return true;
 }
