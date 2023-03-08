@@ -197,7 +197,7 @@ void GraphicsClass::Shutdown()
 	}
 }
 
-bool GraphicsClass::Frame(int mouseX, int mouseY, int keyCount)
+bool GraphicsClass::Frame(int mouseX, int mouseY, int keyCount, int fps, int cpu, float frameTime)
 {
 	// 모델 회전용 코드
 	/*
@@ -214,6 +214,11 @@ bool GraphicsClass::Frame(int mouseX, int mouseY, int keyCount)
 	// Input 용 코드
 	if (!m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDeviceContext()))	return false;
 	if (!m_Text->SetKeyboardInput(keyCount, m_Direct3D->GetDeviceContext()))	return false;
+
+	// fps, cpu, timer 용 코드
+	if(!m_Text->SetFps(fps, m_Direct3D->GetDeviceContext()))	return false;
+	if (!m_Text->SetCpu(cpu, m_Direct3D->GetDeviceContext()))	return false;
+
 	return true;
 }
 

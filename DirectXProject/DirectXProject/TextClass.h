@@ -31,6 +31,8 @@ public:
 	bool Render(ID3D11DeviceContext*, XMMATRIX, XMMATRIX);
 	bool SetMousePosition(int, int, ID3D11DeviceContext*);
 	bool SetKeyboardInput(int, ID3D11DeviceContext*);
+	bool SetFps(int, ID3D11DeviceContext*);
+	bool SetCpu(int, ID3D11DeviceContext*);
 
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);
@@ -47,4 +49,6 @@ private:
 	SentenceType* m_sentence1 = nullptr;
 	SentenceType* m_sentence2 = nullptr;
 	SentenceType* m_sentence3 = nullptr;
+	SentenceType* m_sentence4 = nullptr;
+	SentenceType* m_sentence5 = nullptr;
 };

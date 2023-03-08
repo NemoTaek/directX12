@@ -44,6 +44,14 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	if (!(InitializeSentence(&m_sentence3, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(UpdateSentence(m_sentence3, "6544658465", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
 
+	// 세번째 문장 초기화 및 업데이트
+	if (!(InitializeSentence(&m_sentence4, SENTENCE_MAX_LENGTH, device)))	return false;
+	if (!(UpdateSentence(m_sentence4, "4532342", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+
+	// 세번째 문장 초기화 및 업데이트
+	if (!(InitializeSentence(&m_sentence5, SENTENCE_MAX_LENGTH, device)))	return false;
+	if (!(UpdateSentence(m_sentence5, "12342", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+
 	return true;
 }
 
@@ -52,6 +60,8 @@ void TextClass::Shutdown()
 	ReleaseSentence(&m_sentence1);
 	ReleaseSentence(&m_sentence2);
 	ReleaseSentence(&m_sentence3);
+	ReleaseSentence(&m_sentence4);
+	ReleaseSentence(&m_sentence5);
 
 	if (m_fontShader) {
 		m_fontShader->Shutdown();
@@ -71,6 +81,8 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
 	if (!RenderSentence(deviceContext, m_sentence1, worldMatrix, orthoMatrix))	return false;
 	if (!RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix))	return false;
 	if (!RenderSentence(deviceContext, m_sentence3, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence4, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence5, worldMatrix, orthoMatrix))	return false;
 
 	return true;
 }
@@ -111,12 +123,72 @@ bool TextClass::SetKeyboardInput(int keyCount, ID3D11DeviceContext* deviceContex
 	// 카운트 정수를 문자열로 변경
 	_itoa_s(keyCount, tempString, 10);
 
-	// 마우스 Y 문자열 생성
+	// 카운트 문자열 생성
 	strcpy_s(keyboardString, "count: ");
 	strcat_s(keyboardString, tempString);
 
-	// 문장을 키보드 카운트 문자열로 업데이트
+	// 문장을 키보드 카운트 값으로 업데이트
 	if (!(UpdateSentence(m_sentence3, keyboardString, 20, 60, 1.0f, 1.0f, 1.0f, deviceContext)))	return false;
+
+	return true;
+}
+
+bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
+{
+	// FPS를 10000 미만으로 제한
+	if (fps > 9999)	fps = 9999;
+
+	char tempString[SENTENCE_MAX_LENGTH];
+	char fpsString[SENTENCE_MAX_LENGTH];
+	float red = 0;
+	float green = 0;
+	float blue = 0;
+
+	// FPS 정수를 문자열로 변경
+	_itoa_s(fps, tempString, 10);
+
+	// FPS 문자열 생성
+	strcpy_s(fpsString, "FPS: ");
+	strcat_s(fpsString, tempString);
+
+	// fps 값에 따른 폰트 색 설정
+	if (fps < 30) {
+		red = 1.0f;
+		green = 0.0f;
+		blue = 0.0f;
+	}
+	else if (fps < 60) {
+		red = 1.0f;
+		green = 1.0f;
+		blue = 0.0f;
+	}
+	else {
+		red = 0.0f;
+		green = 1.0f;
+		blue = 0.0f;
+	}
+
+	// 문장을 FPS 값으로 업데이트
+	if (!(UpdateSentence(m_sentence4, fpsString, 20, 80, red, green, blue, deviceContext)))	return false;
+
+	return true;
+}
+
+bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[SENTENCE_MAX_LENGTH];
+	char cpuString[SENTENCE_MAX_LENGTH];
+
+	// CPU 정수를 문자열로 변경
+	_itoa_s(cpu, tempString, 10);
+
+	// CPU 문자열 생성
+	strcpy_s(cpuString, "CPU: ");
+	strcat_s(cpuString, tempString);
+	strcat_s(cpuString, "%");
+
+	// 문장을 CPU 값으로 업데이트
+	if (!(UpdateSentence(m_sentence5, cpuString, 20, 100, 1.0f, 1.0f, 1.0f, deviceContext)))	return false;
 
 	return true;
 }

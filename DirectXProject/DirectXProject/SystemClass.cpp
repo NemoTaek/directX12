@@ -2,6 +2,9 @@
 #include "InputClass.h"
 #include "Graphicsclass.h"
 #include "SoundClass.h"
+#include "FpsClass.h"
+#include "CpuClass.h"
+#include "TimerClass.h"
 #include "SystemClass.h"
 
 SystemClass::SystemClass() {}
@@ -57,11 +60,60 @@ bool SystemClass::initialize()
 		return false;
 	}
 
+	// m_Fps °´Ã¼ »ı¼º
+	m_Fps = new FpsClass;
+	if (!m_Fps) {
+		return false;
+	}
+
+	// m_Fps °´Ã¼ ÃÊ±âÈ­
+	m_Fps->Initialize();
+
+	// m_Cpu °´Ã¼ »ı¼º
+	m_Cpu = new CpuClass;
+	if (!m_Cpu) {
+		return false;
+	}
+
+	// m_Cpu °´Ã¼ ÃÊ±âÈ­
+	m_Cpu->Initialize();
+
+	// m_Timer °´Ã¼ »ı¼º
+	m_Timer = new TimerClass;
+	if (!m_Timer) {
+		return false;
+	}
+
+	// m_Timer °´Ã¼ ÃÊ±âÈ­
+	if (!(m_Timer->Initialize()))
+	{
+		MessageBox(m_hwnd, L"Could not initialize the Timer Object", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 void SystemClass::Shutdown()
 {
+	// m_Timer °´Ã¼ ¹İÈ¯
+	if (m_Timer) {
+		delete m_Timer;
+		m_Timer = 0;
+	}
+
+	// m_Cpu °´Ã¼ ¹İÈ¯
+	if (m_Cpu) {
+		delete m_Cpu;
+		m_Cpu = 0;
+	}
+
+	// m_Fps °´Ã¼ ¹İÈ¯
+	if (m_Fps) {
+		delete m_Fps;
+		m_Fps = 0;
+	}
+
 	// m_Sound °´Ã¼ ¹İÈ¯
 	if (m_Sound) {
 		delete m_Sound;
@@ -119,6 +171,11 @@ bool SystemClass::Frame()
 	//if (m_Input->IsKeyDown(VK_ESCAPE))	return false;
 	//return m_Graphics->Frame();
 
+	// ½Ã½ºÅÛ Åë°è ¾÷µ¥ÀÌÆ®
+	m_Timer->Frame();
+	m_Fps->Frame();
+	m_Cpu->Frame();
+
 	// Direct Input Ã³¸®
 	int mouseX = 0;
 	int mouseY = 0;
@@ -132,7 +189,7 @@ bool SystemClass::Frame()
 	m_Input->GetKeyCount(keyCount);
 
 	// graphic °´Ã¼ÀÇ ÇÁ·¹ÀÓ Ã³¸® ¼öÇà
-	if (!m_Graphics->Frame(mouseX, mouseY, keyCount))	return false;
+	if (!m_Graphics->Frame(mouseX, mouseY, keyCount, m_Fps->GetFps(), m_Cpu->GetCpuPercentage(), m_Timer->GetTime()))	return false;
 
 	return m_Graphics->Render(0.0f);
 }
