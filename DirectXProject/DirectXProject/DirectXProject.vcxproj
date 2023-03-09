@@ -18,70 +18,10 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AlignedAllocationPolicy.h" />
-    <ClInclude Include="CameraClass.h" />
-    <ClInclude Include="D3DClass.h" />
-    <ClInclude Include="DDSTextureLoader.h" />
-    <ClInclude Include="DxDefine.h" />
-    <ClInclude Include="FontClass.h" />
-    <ClInclude Include="FontShaderClass.h" />
-    <ClInclude Include="FrustumClass.h" />
-    <ClInclude Include="GraphicsClass.h" />
-    <ClInclude Include="InputClass.h" />
-    <ClInclude Include="LightClass.h" />
-    <ClInclude Include="LightShaderClass.h" />
-    <ClInclude Include="Model3DClass.h" />
-    <ClInclude Include="ModelListClass.h" />
-    <ClInclude Include="PositionClass.h" />
-    <ClInclude Include="Stdafx.h" />
-    <ClInclude Include="SystemClass.h" />
-    <ClInclude Include="Targetver.h" />
-    <ClInclude Include="TextClass.h" />
-    <ClInclude Include="TextureClass.h" />
-    <ClInclude Include="TimerClass.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="CameraClass.cpp" />
-    <ClCompile Include="D3DClass.cpp" />
-    <ClCompile Include="DDSTextureLoader.cpp" />
-    <ClCompile Include="FontClass.cpp" />
-    <ClCompile Include="FontShaderClass.cpp" />
-    <ClCompile Include="FrustumClass.cpp" />
-    <ClCompile Include="GraphicsClass.cpp" />
-    <ClCompile Include="InputClass.cpp" />
-    <ClCompile Include="LightClass.cpp" />
-    <ClCompile Include="LightShaderClass.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Model3DClass.cpp" />
-    <ClCompile Include="ModelListClass.cpp" />
-    <ClCompile Include="PositionClass.cpp" />
-    <ClCompile Include="Stdafx.cpp" />
-    <ClCompile Include="SystemClass.cpp" />
-    <ClCompile Include="TextClass.cpp" />
-    <ClCompile Include="TextureClass.cpp" />
-    <ClCompile Include="TimeClass.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="font.ps" />
-    <None Include="font.vs" />
-    <None Include="PixelShader.ps">
-      <FileType>Document</FileType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-    </None>
-    <None Include="texture.ps" />
-    <None Include="texture.vs" />
-    <None Include="VertexShader.vs">
-      <FileType>Document</FileType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-    </None>
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{3ccc9924-f9e7-46e2-a926-823cbf732fe3}</ProjectGuid>
+    <ProjectGuid>{a463fe44-664f-4155-8394-79fa85b450f7}</ProjectGuid>
     <RootNamespace>DirectXProject</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -163,7 +103,8 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -186,6 +127,57 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="font.ps" />
+    <None Include="font.vs" />
+    <None Include="PixelShader.ps" />
+    <None Include="texture.ps" />
+    <None Include="texture.vs" />
+    <None Include="VertexShader.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CameraClass.cpp" />
+    <ClCompile Include="D3DClass.cpp" />
+    <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="FontClass.cpp" />
+    <ClCompile Include="FontShaderClass.cpp" />
+    <ClCompile Include="FrustumClass.cpp" />
+    <ClCompile Include="GraphicsClass.cpp" />
+    <ClCompile Include="InputClass.cpp" />
+    <ClCompile Include="LightClass.cpp" />
+    <ClCompile Include="LightShaderClass.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Model3DClass.cpp" />
+    <ClCompile Include="ModelListClass.cpp" />
+    <ClCompile Include="PositionClass.cpp" />
+    <ClCompile Include="Stdafx.cpp" />
+    <ClCompile Include="SystemClass.cpp" />
+    <ClCompile Include="TextClass.cpp" />
+    <ClCompile Include="TextureClass.cpp" />
+    <ClCompile Include="TimeClass.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CameraClass.h" />
+    <ClInclude Include="D3DClass.h" />
+    <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="DxDefine.h" />
+    <ClInclude Include="FontClass.h" />
+    <ClInclude Include="FontShaderClass.h" />
+    <ClInclude Include="FrustumClass.h" />
+    <ClInclude Include="GraphicsClass.h" />
+    <ClInclude Include="InputClass.h" />
+    <ClInclude Include="LightClass.h" />
+    <ClInclude Include="LightShaderClass.h" />
+    <ClInclude Include="Model3DClass.h" />
+    <ClInclude Include="ModelListClass.h" />
+    <ClInclude Include="PositionClass.h" />
+    <ClInclude Include="Stdafx.h" />
+    <ClInclude Include="SystemClass.h" />
+    <ClInclude Include="Targetver.h" />
+    <ClInclude Include="TextClass.h" />
+    <ClInclude Include="TextureClass.h" />
+    <ClInclude Include="TimerClass.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

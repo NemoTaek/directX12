@@ -9,7 +9,7 @@ Model3DClass::Model3DClass() {}
 Model3DClass::Model3DClass(const Model3DClass& other) {}
 Model3DClass:: ~Model3DClass() {}
 
-bool Model3DClass::Initialize(ID3D11Device* device, char* modelFilename, const WCHAR* textureFilename)
+bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename)
 {
 	if (!LoadModel(modelFilename))	return false;
 	if (!InitializeBuffers(device))	return false;
@@ -146,7 +146,7 @@ void Model3DClass::ReleaseTexture()
 	}
 }
 
-bool Model3DClass::LoadModel(char* filename)
+bool Model3DClass::LoadModel(const WCHAR* filename)
 {
 	ifstream fin;
 	fin.open(filename);

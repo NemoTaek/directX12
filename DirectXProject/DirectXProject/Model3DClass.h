@@ -24,7 +24,7 @@ public:
 	Model3DClass(const Model3DClass&);
 	~Model3DClass();
 
-	bool Initialize(ID3D11Device*, char*, const WCHAR*);
+	bool Initialize(ID3D11Device*, const WCHAR*, const WCHAR*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	int GetIndexCount();
@@ -38,7 +38,7 @@ private:
 	bool LoadTexture(ID3D11Device*, const WCHAR*);
 	void ReleaseTexture();
 
-	bool LoadModel(char*);
+	bool LoadModel(const WCHAR*);
 	void ReleaseModel();
 
 private:

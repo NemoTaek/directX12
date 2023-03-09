@@ -83,7 +83,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	m_Model3D = new Model3DClass;
 	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), "./data/sphere.txt", L"./Textures/checkboard.dds")) {
+	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/sphere.txt", L"./Textures/checkboard.dds")) {
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
