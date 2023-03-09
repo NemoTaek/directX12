@@ -1,6 +1,3 @@
-﻿  GraphicsClass.cpp
+﻿  PositionClass.cpp
   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\dinput.h: DIRECTINPUT_VERSION undefined. Defaulting to version 0x0800
-  SystemClass.cpp
-  C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\dinput.h: DIRECTINPUT_VERSION undefined. Defaulting to version 0x0800
-  코드를 생성하고 있습니다...
   DirectXProject.vcxproj -> C:\Users\nemo1\OneDrive\바탕 화면\내꺼\github\directX12\DirectXProject\x64\Debug\DirectXProject.exe

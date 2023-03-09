@@ -13,7 +13,10 @@ public:
 	bool IsEscapePressed();
 	void GetMouseLocation(int&, int&);
 	void GetKeyCount(int&);
-	bool IsUpPressed();
+	bool IsUpArrowPressed();
+	bool IsDownArrowPressed();
+	bool IsLeftArrowPressed();
+	bool IsRightArrowPressed();
 
 private:
 	bool ReadKeyboard();

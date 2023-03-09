@@ -3,7 +3,7 @@
 #include "FontShaderClass.h"
 #include "TextClass.h"
 
-#define SENTENCE_MAX_LENGTH 16
+#define SENTENCE_MAX_LENGTH 32
 
 TextClass::TextClass() {}
 TextClass::TextClass(const TextClass& other) {}
@@ -36,6 +36,7 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	if (!(InitializeSentence(&m_sentence1, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(UpdateSentence(m_sentence1, "fasdes", 200, 100, 1.0f, 0.0f, 1.0f, deviceContext)))	return false;
 
+	/*
 	// 두번째 문장 초기화 및 업데이트
 	if (!(InitializeSentence(&m_sentence2, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(UpdateSentence(m_sentence2, "6544658465", 300, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
@@ -44,13 +45,14 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	if (!(InitializeSentence(&m_sentence3, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(UpdateSentence(m_sentence3, "6544658465", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
 
-	// 세번째 문장 초기화 및 업데이트
+	// 네번째 문장 초기화 및 업데이트
 	if (!(InitializeSentence(&m_sentence4, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(UpdateSentence(m_sentence4, "4532342", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
 
-	// 세번째 문장 초기화 및 업데이트
+	// 다섯번째 문장 초기화 및 업데이트
 	if (!(InitializeSentence(&m_sentence5, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(UpdateSentence(m_sentence5, "12342", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+	*/
 
 	return true;
 }
@@ -58,10 +60,12 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 void TextClass::Shutdown()
 {
 	ReleaseSentence(&m_sentence1);
+	/*
 	ReleaseSentence(&m_sentence2);
 	ReleaseSentence(&m_sentence3);
 	ReleaseSentence(&m_sentence4);
 	ReleaseSentence(&m_sentence5);
+	*/
 
 	if (m_fontShader) {
 		m_fontShader->Shutdown();
@@ -79,10 +83,12 @@ void TextClass::Shutdown()
 bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
 {
 	if (!RenderSentence(deviceContext, m_sentence1, worldMatrix, orthoMatrix))	return false;
+	/*
 	if (!RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix))	return false;
 	if (!RenderSentence(deviceContext, m_sentence3, worldMatrix, orthoMatrix))	return false;
 	if (!RenderSentence(deviceContext, m_sentence4, worldMatrix, orthoMatrix))	return false;
 	if (!RenderSentence(deviceContext, m_sentence5, worldMatrix, orthoMatrix))	return false;
+	*/
 
 	return true;
 }
@@ -342,6 +348,24 @@ bool TextClass::RenderSentence(ID3D11DeviceContext* deviceContext, SentenceType*
 
 	// 폰트 쉐이더로 텍스트 렌더링
 	if (!(m_fontShader->Render(deviceContext, sentence->indexCount, worldMatrix, m_baseViewMatrix, orthoMatrix, m_font->GetTexture(), pixelColor)))	return false;
+
+	return true;
+}
+
+bool TextClass::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[SENTENCE_MAX_LENGTH];
+	char countString[SENTENCE_MAX_LENGTH];
+
+	// 텍스트 개수를 문자열로 변경
+	_itoa_s(count, tempString, 10);
+
+	// 텍스트 개수 문자열 생성
+	strcpy_s(countString, "Render Count: ");
+	strcat_s(countString, tempString);
+
+	// 문장을 텍스트 개수 값으로 업데이트
+	if (!(UpdateSentence(m_sentence1, countString, 20, 20, 1.0f, 1.0f, 1.0f, deviceContext)))	return false;
 
 	return true;
 }

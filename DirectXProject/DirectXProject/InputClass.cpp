@@ -134,13 +134,34 @@ void InputClass::ProcessInput()
 	if (m_mouseY > m_screenHeight)	m_mouseY = m_screenHeight;
 
 	// 위 화살표 누르면 카운트 증가, 아래 화살표 누르면 카운트 감소
-	if (IsUpPressed())		m_count++;
-	if (m_keyboardState[DIK_DOWN] & 0x80)	m_count--;
+	if (IsUpArrowPressed())		m_count++;
+	if (IsDownArrowPressed())	m_count--;
 }
 
-bool InputClass::IsUpPressed()
+bool InputClass::IsUpArrowPressed()
 {
 	// 위 화살표를 누르고 있는지 비트값을 계산하여 확인
 	if (m_keyboardState[DIK_UP] & 0x80)	return true;
+	return false;
+}
+
+bool InputClass::IsDownArrowPressed()
+{
+	// 위 화살표를 누르고 있는지 비트값을 계산하여 확인
+	if (m_keyboardState[DIK_DOWN] & 0x80)	return true;
+	return false;
+}
+
+bool InputClass::IsLeftArrowPressed()
+{
+	// 위 화살표를 누르고 있는지 비트값을 계산하여 확인
+	if (m_keyboardState[DIK_LEFT] & 0x80)	return true;
+	return false;
+}
+
+bool InputClass::IsRightArrowPressed()
+{
+	// 위 화살표를 누르고 있는지 비트값을 계산하여 확인
+	if (m_keyboardState[DIK_RIGHT] & 0x80)	return true;
 	return false;
 }

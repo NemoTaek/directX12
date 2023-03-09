@@ -1,10 +1,11 @@
 #include "Stdafx.h"
 #include "InputClass.h"
-#include "Graphicsclass.h"
-#include "SoundClass.h"
-#include "FpsClass.h"
-#include "CpuClass.h"
+#include "GraphicsClass.h"
+//#include "SoundClass.h"
+//#include "FpsClass.h"
+//#include "CpuClass.h"
 #include "TimerClass.h"
+#include "PositionClass.h"
 #include "SystemClass.h"
 
 SystemClass::SystemClass() {}
@@ -47,6 +48,7 @@ bool SystemClass::initialize()
 		return false;
 	}
 
+	/*
 	// m_Sound 객체 생성
 	m_Sound = new SoundClass;
 	if (!m_Sound) {
@@ -77,6 +79,7 @@ bool SystemClass::initialize()
 
 	// m_Cpu 객체 초기화
 	m_Cpu->Initialize();
+	*/
 
 	// m_Timer 객체 생성
 	m_Timer = new TimerClass;
@@ -91,17 +94,36 @@ bool SystemClass::initialize()
 		return false;
 	}
 
+	// m_Position 객체 생성
+	m_Position = new PositionClass;
+	if (!m_Position) {
+		return false;
+	}
+
+	// m_Position 객체 초기화
+	if (!(m_Position))
+	{
+		return false;
+	}
+
 	return true;
 }
 
 void SystemClass::Shutdown()
 {
+	// m_Position 객체 반환
+	if (m_Position) {
+		delete m_Position;
+		m_Position = 0;
+	}
+
 	// m_Timer 객체 반환
 	if (m_Timer) {
 		delete m_Timer;
 		m_Timer = 0;
 	}
 
+	/*
 	// m_Cpu 객체 반환
 	if (m_Cpu) {
 		delete m_Cpu;
@@ -119,6 +141,7 @@ void SystemClass::Shutdown()
 		delete m_Sound;
 		m_Sound = 0;
 	}
+	*/
 
 	// m_Input 객체 반환
 	if (m_Input) {
@@ -173,8 +196,12 @@ bool SystemClass::Frame()
 
 	// 시스템 통계 업데이트
 	m_Timer->Frame();
-	m_Fps->Frame();
-	m_Cpu->Frame();
+	//m_Fps->Frame();
+	//m_Cpu->Frame();
+	if (!m_Input->Frame())	return false;
+
+	// 업데이트 된 위치를 계산하기 위한 프레임 시간 설정
+	m_Position->SetFrameTime(m_Timer->GetTime());
 
 	// Direct Input 처리
 	int mouseX = 0;
@@ -185,13 +212,19 @@ bool SystemClass::Frame()
 	if (!m_Input->Frame())	return false;
 
 	// input 객체에서 마우스 위치 읽어옴
-	m_Input->GetMouseLocation(mouseX, mouseY);
-	m_Input->GetKeyCount(keyCount);
+	//m_Input->GetMouseLocation(mouseX, mouseY);
+	//m_Input->GetKeyCount(keyCount);
+	bool keydownLeft = m_Input->IsLeftArrowPressed();
+	m_Position->TurnLeft(keydownLeft);
+	bool keydownRight = m_Input->IsRightArrowPressed();
+	m_Position->TurnRight(keydownRight);
+	float rotationY = 0.0f;
+	m_Position->GetRotation(rotationY);
 
 	// graphic 객체의 프레임 처리 수행
-	if (!m_Graphics->Frame(mouseX, mouseY, keyCount, m_Fps->GetFps(), m_Cpu->GetCpuPercentage(), m_Timer->GetTime()))	return false;
+	if (!m_Graphics->Frame(rotationY))	return false;
 
-	return m_Graphics->Render(0.0f);
+	return m_Graphics->Render(0.0);
 }
 
 LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
