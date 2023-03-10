@@ -1,5 +1,5 @@
 #include "Stdafx.h"
-#include "TextureClass.h"
+#include "TextureArrayClass.h"
 #include "Model3DClass.h"
 
 #include <fstream>
@@ -9,16 +9,16 @@ Model3DClass::Model3DClass() {}
 Model3DClass::Model3DClass(const Model3DClass& other) {}
 Model3DClass:: ~Model3DClass() {}
 
-bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename)
+bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename1, const WCHAR* textureFilename2, const WCHAR* textureFilename3)
 {
 	if (!LoadModel(modelFilename))	return false;
 	if (!InitializeBuffers(device))	return false;
-	return LoadTexture(device, textureFilename);
+	return LoadTextures(device, textureFilename1, textureFilename2, textureFilename3);
 }
 
 void Model3DClass::Shutdown()
 {
-	ReleaseTexture();
+	ReleaseTextures();
 	ShutdownBuffers();
 	ReleaseModel();
 }
@@ -30,7 +30,7 @@ void Model3DClass::Render(ID3D11DeviceContext* deviceContext)
 
 int Model3DClass::GetIndexCount() { return m_indexCount; }
 
-ID3D11ShaderResourceView* Model3DClass::GetTexture() { return m_Texture->GetTexture(); }
+ID3D11ShaderResourceView** Model3DClass::GetTextureArray() { return m_textureArray->GetTextureArray(); }
 
 bool Model3DClass::InitializeBuffers(ID3D11Device* device)
 {
@@ -46,7 +46,7 @@ bool Model3DClass::InitializeBuffers(ID3D11Device* device)
 	for (int i = 0; i < m_vertexCount; i++) {
 		vertices[i].position = XMFLOAT3(m_model3D[i].x, m_model3D[i].y, m_model3D[i].z);
 		vertices[i].texture = XMFLOAT2(m_model3D[i].tu, m_model3D[i].tv);
-		vertices[i].normal = XMFLOAT3(m_model3D[i].nx, m_model3D[i].ny, m_model3D[i].nz);
+		//vertices[i].normal = XMFLOAT3(m_model3D[i].nx, m_model3D[i].ny, m_model3D[i].nz);
 
 		indices[i] = i;
 	}
@@ -125,24 +125,24 @@ void Model3DClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-bool Model3DClass::LoadTexture(ID3D11Device* device, const WCHAR* filename)
+bool Model3DClass::LoadTextures(ID3D11Device* device, const WCHAR* filename1, const WCHAR* filename2, const WCHAR* filename3)
 {
 	// 텍스쳐 객체 생성
-	m_Texture = new TextureClass;
-	if (!m_Texture)	return false;
+	m_textureArray = new TextureArrayClass;
+	if (!m_textureArray)	return false;
 
 	// 텍스쳐 객체 초기화
-	return m_Texture->Initialize(device, filename);
+	return m_textureArray->Initialize(device, filename1, filename2, filename3);
 }
 
-void Model3DClass::ReleaseTexture()
+void Model3DClass::ReleaseTextures()
 {
 	// 택스쳐 객체 릴리즈
-	if (m_Texture)
+	if (m_textureArray)
 	{
-		m_Texture->Shutdown();
-		delete m_Texture;
-		m_Texture = 0;
+		m_textureArray->Shutdown();
+		delete m_textureArray;
+		m_textureArray = 0;
 	}
 }
 

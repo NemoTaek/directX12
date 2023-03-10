@@ -23,17 +23,18 @@ void TextureShaderClass::Shutdown()
 	ShutdownShader();
 }
 
-bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+// 마지막 매개변수를 단일 텍스쳐 일때는 texture, 다중 텍스쳐 일때는 textureArray
+bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, textureArray))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
 	return true;
 }
 
-bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const WCHAR* vsFilename, const WCHAR* psFilename)
 {
 	ID3D10Blob* errorMessage = nullptr;
 
@@ -159,7 +160,7 @@ void TextureShaderClass::ShutdownShader()
 	}
 }
 
-void TextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void TextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, const WCHAR* shaderFilename)
 {
 	// 에러메세지 출력창에 표시
 	OutputDebugStringA(reinterpret_cast<const char*>(errorMessage->GetBufferPointer()));
@@ -192,7 +193,7 @@ void TextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	MessageBox(hwnd, L"Error compiling shader.", shaderFilename, MB_OK);
 }
 
-bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray)
 {
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -215,7 +216,8 @@ bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
 
 	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(0, 1, &texture);
+	// 2번째 인자가 리소스 수라서 블렌딩 하면 블렌딩 할 textureArray 수를 적는다
+	deviceContext->PSSetShaderResources(0, 3, textureArray);
 
 	return true;
 }

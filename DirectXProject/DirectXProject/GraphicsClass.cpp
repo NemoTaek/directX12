@@ -5,15 +5,15 @@
 //#include "ModelClass.h"
 //#include "ColorShaderClass.h"
 //#include "ModelTextureClass.h"
-//#include "TextureShaderClass.h"
+#include "TextureShaderClass.h"
 //#include "ModelLightClass.h"
 #include "Model3DClass.h"
-#include "LightShaderClass.h"
-#include "LightClass.h"
+//#include "LightShaderClass.h"
+//#include "LightClass.h"
 //#include "BitmapClass.h"
-#include "TextClass.h"
-#include "FrustumClass.h"
-#include "ModelListClass.h"
+//#include "TextClass.h"
+//#include "FrustumClass.h"
+//#include "ModelListClass.h"
 
 #include <iostream>
 using namespace std;
@@ -53,7 +53,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!m_Camera) { return false; }
 	// 카메라 위치 설정
 	XMMATRIX baseViewMatrix;
-	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
 	m_Camera->Render();
 	m_Camera->GetViewMatrix(baseViewMatrix);
 
@@ -83,7 +83,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	m_Model3D = new Model3DClass;
 	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/sphere.txt", L"./Textures/checkboard.dds")) {
+	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/checkboard.dds", L"./Textures/water1.dds", L"./Textures/alpha01.dds")) {
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
@@ -97,28 +97,28 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	//m_TextureShader = new TextureShaderClass;
-	//if (!m_TextureShader) { return false; }
-	//// 텍스쳐 셰이더 객체 초기화
-	//if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-	//	MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	m_LightShader = new LightShaderClass;
-	if (!m_LightShader) { return false; }
-	if (!m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the shader object", L"Error", MB_OK);
+	m_TextureShader = new TextureShaderClass;
+	if (!m_TextureShader) { return false; }
+	// 텍스쳐 셰이더 객체 초기화
+	if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
 		return false;
 	}
 
-	m_Light = new LightClass;
-	if (!m_Light) { return false; }
-	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
-	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(1.0f, 0.0f, 1.0f);
-	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetSpecularPower(32.0f);
+	//m_LightShader = new LightShaderClass;
+	//if (!m_LightShader) { return false; }
+	//if (!m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the shader object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	//m_Light = new LightClass;
+	//if (!m_Light) { return false; }
+	//m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
+	//m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//m_Light->SetDirection(1.0f, 0.0f, 1.0f);
+	//m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//m_Light->SetSpecularPower(32.0f);
 
 	//// 2D 모델 객체 생성
 	//m_Bitmap = new BitmapClass;
@@ -129,52 +129,52 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	// 텍스트 객체 생성
-	m_Text = new TextClass;
-	if (!m_Text) { return false; }
-	// 텍스트 객체 초기화
-	if (!m_Text->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseViewMatrix)) {
-		MessageBox(hwnd, L"Could not initialize the text object", L"Error", MB_OK);
-		return false;
-	}
+	//// 텍스트 객체 생성
+	//m_Text = new TextClass;
+	//if (!m_Text) { return false; }
+	//// 텍스트 객체 초기화
+	//if (!m_Text->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseViewMatrix)) {
+	//	MessageBox(hwnd, L"Could not initialize the text object", L"Error", MB_OK);
+	//	return false;
+	//}
 
-	// 랜덤 모델 리스트 객체 생성
-	m_ModelList = new ModelListClass;
-	if (!m_ModelList) { return false; }
-	// 랜덤 모델 리스트 객체 초기화
-	if (!m_ModelList->Initialize(25)) {
-		MessageBox(hwnd, L"Could not initialize the model list object", L"Error", MB_OK);
-		return false;
-	}
+	//// 랜덤 모델 리스트 객체 생성
+	//m_ModelList = new ModelListClass;
+	//if (!m_ModelList) { return false; }
+	//// 랜덤 모델 리스트 객체 초기화
+	//if (!m_ModelList->Initialize(25)) {
+	//	MessageBox(hwnd, L"Could not initialize the model list object", L"Error", MB_OK);
+	//	return false;
+	//}
 
-	// 절두체 객체 생성
-	m_Frustum = new FrustumClass;
-	if (!m_Frustum) { return false; }
+	//// 절두체 객체 생성
+	//m_Frustum = new FrustumClass;
+	//if (!m_Frustum) { return false; }
 
 	return true;
 }
 
 void GraphicsClass::Shutdown()
 {
-	// 절두체 객체 반환
-	if (m_Frustum) {
-		delete m_Frustum;
-		m_Frustum = 0;
-	}
+	//// 절두체 객체 반환
+	//if (m_Frustum) {
+	//	delete m_Frustum;
+	//	m_Frustum = 0;
+	//}
 
-	// 랜덤 모델 리스트 객체 반환
-	if (m_ModelList) {
-		m_ModelList->Shutdown();
-		delete m_ModelList;
-		m_ModelList = 0;
-	}
+	//// 랜덤 모델 리스트 객체 반환
+	//if (m_ModelList) {
+	//	m_ModelList->Shutdown();
+	//	delete m_ModelList;
+	//	m_ModelList = 0;
+	//}
 
-	// 텍스트 객체 반환
-	if (m_Text) {
-		m_Text->Shutdown();
-		delete m_Text;
-		m_Text = 0;
-	}
+	//// 텍스트 객체 반환
+	//if (m_Text) {
+	//	m_Text->Shutdown();
+	//	delete m_Text;
+	//	m_Text = 0;
+	//}
 
 	// 비트맵 객체 반환
 	//if (m_Bitmap) {
@@ -183,26 +183,26 @@ void GraphicsClass::Shutdown()
 	//	m_Bitmap = 0;
 	//}
 
-	// light 객체 반환
-	if (m_Light)
-	{
-		delete m_Light;
-		m_Light = 0;
-	}
-
-	// 셰이더 객체 반환
-	if (m_LightShader) {
-		m_LightShader->Shutdown();
-		delete m_LightShader;
-		m_LightShader = 0;
-	}
-
-	// 셰이더 객체 반환
-	//if (m_TextureShader) {
-	//	m_TextureShader->Shutdown();
-	//	delete m_TextureShader;
-	//	m_TextureShader = 0;
+	//// light 객체 반환
+	//if (m_Light)
+	//{
+	//	delete m_Light;
+	//	m_Light = 0;
 	//}
+
+	//// 셰이더 객체 반환
+	//if (m_LightShader) {
+	//	m_LightShader->Shutdown();
+	//	delete m_LightShader;
+	//	m_LightShader = 0;
+	//}
+
+	// 셰이더 객체 반환
+	if (m_TextureShader) {
+		m_TextureShader->Shutdown();
+		delete m_TextureShader;
+		m_TextureShader = 0;
+	}
 
 	// 모델 객체 반환
 	//if (m_ModelLight) {
@@ -255,7 +255,7 @@ bool GraphicsClass::Frame(float rotationY)
 	//if(!m_Text->SetFps(fps, m_Direct3D->GetDeviceContext()))	return false;
 	//if (!m_Text->SetCpu(cpu, m_Direct3D->GetDeviceContext()))	return false;
 
-	m_Camera->SetRotation(0.0f, rotationY, 0.0f);
+	//m_Camera->SetRotation(0.0f, rotationY, 0.0f);
 
 	return true;
 }
@@ -283,49 +283,49 @@ bool GraphicsClass::Render(float rotation)
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
 	// 매 프레임마다 시야 행렬에 근거하여 절두체를 생성
-	m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
+	//m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
 
 	// 랜더링 될 모델의 수 세팅 및 초기화
-	int modelCount = m_ModelList->GetModelCount();
-	int renderCount = 0;
+	//int modelCount = m_ModelList->GetModelCount();
+	//int renderCount = 0;
 
 	// 모든 모델을 탐색하고, 카메라 뷰에 보여지는 모델만 렌더링
-	for (int i = 0; i < modelCount; i++) {
-		// 모델 위치와 색상 세팅
-		m_ModelList->GetData(i, positionX, positionY, positionZ, color);
-		
-		// 모델이 절두체 안에 있는지 확인
-		if (m_Frustum->CheckSphere(positionX, positionY, positionZ, radius)) {
-			// 모델을 렌더링 할 위치로 이동
-			worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ);
-			
-			// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
-			m_Model3D->Render(m_Direct3D->GetDeviceContext());
+	//for (int i = 0; i < modelCount; i++) {
+	//	// 모델 위치와 색상 세팅
+	//	m_ModelList->GetData(i, positionX, positionY, positionZ, color);
+	//	
+	//	// 모델이 절두체 안에 있는지 확인
+	//	if (m_Frustum->CheckSphere(positionX, positionY, positionZ, radius)) {
+	//		// 모델을 렌더링 할 위치로 이동
+	//		worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ);
+	//		
+	//		// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
+	//		m_Model3D->Render(m_Direct3D->GetDeviceContext());
 
-			// 빛 셰이더를 사용하여 모델 렌더링
-			m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(),
-				m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+	//		// 빛 셰이더를 사용하여 모델 렌더링
+	//		m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(),
+	//			m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 
-			// 세계 행렬 리셋
-			m_Direct3D->GetWorldMatrix(worldMatrix);
+	//		// 세계 행렬 리셋
+	//		m_Direct3D->GetWorldMatrix(worldMatrix);
 
-			renderCount++;
-		}
-	}
+	//		renderCount++;
+	//	}
+	//}
 
 	// 모델이 회전할 수 있도록 회전 값으로 세계 행렬 세팅
 	//worldMatrix = XMMatrixRotationY(rotation);
 
 	// 2D 렌더링을 위해 Z 버퍼 OFF
-	m_Direct3D->TurnZBufferOff();
+	//m_Direct3D->TurnZBufferOff();
 
 	// 알파 블랜딩 on
-	m_Direct3D->TurnOnAlphaBlending();
+	//m_Direct3D->TurnOnAlphaBlending();
 
 	// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
 	//m_Model->Render(m_Direct3D->GetDeviceContext());
 	//m_ModelTexture->Render(m_Direct3D->GetDeviceContext());
-	//m_model3D->Render(m_Direct3D->GetDeviceContext());
+	m_Model3D->Render(m_Direct3D->GetDeviceContext());
 	//if (!m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 400, 300))	return false;
 
 	// 셰이더를 사용하여 모델 렌더링
@@ -334,20 +334,21 @@ bool GraphicsClass::Render(float rotation)
 	// 텍스쳐 셰이더를 사용하여 모델 렌더링
 	//if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_ModelTexture->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_ModelTexture->GetTexture()))	return false;
 	//if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_Bitmap->GetTexture()))	return false;
+	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTextureArray()))	return false;
 
 	// 빛 셰이더를 사용하여 모델 렌더링
 	//if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model3D->GetTexture(),
 	//	m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower()))	return false;
 
 	// 텍스트 문자열 렌더링
-	if (!m_Text->Render(m_Direct3D->GetDeviceContext(), worldMatrix, orthoMatrix))	return false;
-	if (!m_Text->SetRenderCount(renderCount, m_Direct3D->GetDeviceContext()))	return false;
+	//if (!m_Text->Render(m_Direct3D->GetDeviceContext(), worldMatrix, orthoMatrix))	return false;
+	//if (!m_Text->SetRenderCount(renderCount, m_Direct3D->GetDeviceContext()))	return false;
 
 	// 알파 블랜딩 off
-	m_Direct3D->TurnOffAlphaBlending();
+	//m_Direct3D->TurnOffAlphaBlending();
 	
 	// 2D 렌더링이 완료되었으면 Z 버퍼 ON
-	m_Direct3D->TurnZBufferOn();
+	//m_Direct3D->TurnZBufferOn();
 
 	// 버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();
