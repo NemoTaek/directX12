@@ -9,12 +9,12 @@ Model3DClass::Model3DClass() {}
 Model3DClass::Model3DClass(const Model3DClass& other) {}
 Model3DClass:: ~Model3DClass() {}
 
-bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename1, const WCHAR* textureFilename2)
+bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename1, const WCHAR* textureFilename2, const WCHAR* textureFilename3)
 {
 	if (!LoadModel(modelFilename))	return false;
 	CalculateModelVectors();	// 모델의 법선, 접선, 이항벡터 계산
 	if (!InitializeBuffers(device))	return false;
-	return LoadTextures(device, textureFilename1, textureFilename2);
+	return LoadTextures(device, textureFilename1, textureFilename2, textureFilename3);
 }
 
 void Model3DClass::Shutdown()
@@ -128,14 +128,14 @@ void Model3DClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-bool Model3DClass::LoadTextures(ID3D11Device* device, const WCHAR* filename1, const WCHAR* filename2)
+bool Model3DClass::LoadTextures(ID3D11Device* device, const WCHAR* filename1, const WCHAR* filename2, const WCHAR* filename3)
 {
 	// 텍스쳐 객체 생성
 	m_textureArray = new TextureArrayClass;
 	if (!m_textureArray)	return false;
 
 	// 텍스쳐 객체 초기화
-	return m_textureArray->Initialize(device, filename1, filename2);
+	return m_textureArray->Initialize(device, filename1, filename2, filename3);
 }
 
 void Model3DClass::ReleaseTextures()

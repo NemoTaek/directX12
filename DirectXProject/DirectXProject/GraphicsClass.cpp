@@ -84,7 +84,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	m_Model3D = new Model3DClass;
 	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/stone01.dds", L"./Textures/bump01.dds")) {
+	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/stone02.dds", L"./Textures/bump02.dds", L"./Textures/spec02.dds")) {
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
@@ -125,8 +125,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
-	//m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
-	//m_Light->SetSpecularPower(32.0f);
+	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light->SetSpecularPower(16.0f);
 
 	//// 2D 모델 객체 생성
 	//m_Bitmap = new BitmapClass;
@@ -299,7 +299,7 @@ bool GraphicsClass::Render()
 	static float rotation = 0.0f;
 
 	// 각 프레임의 회전을 업데이트
-	rotation += (float)XM_PI * 0.005f;
+	rotation += (float)XM_PI * 0.0025f;
 	if (rotation > 360.0f)	rotation -= 360.0f;
 
 	// 매 프레임마다 시야 행렬에 근거하여 절두체를 생성
@@ -372,7 +372,7 @@ bool GraphicsClass::Render()
 
 	// 범프 맵 셰이더를 사용하여 모델 렌더링
 	if (!m_BumpMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTextureArray(),
-		m_Light->GetDirection(), m_Light->GetDiffuseColor()))	return false;
+		m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower()))	return false;
 
 	// 버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();

@@ -7,6 +7,12 @@ cbuffer MatrixBuffer
 	matrix projectionMatrix;
 };
 
+// 정반사 계산을 위한 카메라 위치 정보
+cbuffer CameraBuffer
+{
+	float3 cameraPosition;
+}
+
 
 // Typedefs
 
@@ -26,6 +32,7 @@ struct PixelInputType
 	float3 normal : NORMAL;		// z축(탄젠트 공간에서의 법선이 되는 공간)
 	float3 tangent : TANGENT;	// x축(uv 좌표계에서는 u좌표)
 	float3 binormal : BINORMAL;	// y축(uv 좌표계에서는 v좌표)
+	float3 viewDirection : TEXCOORD1;	// 반사광 연산에 필요
 };
 
 
@@ -34,6 +41,7 @@ struct PixelInputType
 PixelInputType BumpMapVertexShader(VertexInputType input)
 {
 	PixelInputType output;
+	float4 worldPosition;
 
 	// 올바르게 행렬 연산을 하기 위하여 position 벡터를 w까지 있는 4성분이 있는 것으로 사용한다.
 	input.position.w = 1.0f;
@@ -53,8 +61,17 @@ PixelInputType BumpMapVertexShader(VertexInputType input)
 	output.tangent = mul(input.tangent, (float3x3)worldMatrix);
 	output.tangent = normalize(output.tangent);
 
-	output.binormal = mul(input.normal, (float3x3)worldMatrix);
+	output.binormal = mul(input.binormal, (float3x3)worldMatrix);
 	output.binormal = normalize(output.binormal);
+
+	// 세계 정점 위치 계산
+	worldPosition = mul(input.position, worldMatrix);
+
+	// 카메라 위치와 세계 정점 위치를 기준으로 시야 방향 계산
+	output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
+
+	// 시야 방향벡터 정규화
+	output.viewDirection = normalize(output.viewDirection);
 
 	return output;
 }

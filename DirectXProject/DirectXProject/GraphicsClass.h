@@ -20,7 +20,7 @@ class LightClass;			// 조명 관련 값 설정 및 조회
 //class InputClass;			// Direct Input 모델
 //class FrustumClass;			// 절단
 //class ModelListClass;		// 여러개의 랜덤 모델
-class BumpMapShaderClass;	// 범프 매핑
+class BumpMapShaderClass;	// 범프 매핑, 반사 매핑
 
 // 이 프로젝트에서 사용되는 모든 그래픽 객체에 대한 호출을 담당하는 클래스
 class GraphicsClass
