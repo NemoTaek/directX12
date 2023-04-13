@@ -1,0 +1,53 @@
+Texture2D shaderTexture[2];	// 텍스쳐 자원으로써 모델에 텍스쳐를 그릴 때 사용한다. 0번은 색상 텍스쳐, 1번은 노말 맵
+SamplerState SampleType;	// 텍스쳐 자원에서 표본을 추출할 때 어떤 필터링 방식과 좌표 지정모드를 적용할 것인지를 표본추출기로 지정한다.
+
+cbuffer LightBuffer
+{
+	float4 diffuseColor;	// 분산조명
+	float3 lightDirection;	// 빛 방향
+};
+
+struct PixelInputType
+{
+	float4 position : POSITION;
+	float2 tex : TEXCOORD0;
+	float3 normal : NORMAL;		// z축(탄젠트 공간에서의 법선이 되는 공간)
+	float3 tangent : TANGENT;	// x축(uv 좌표계에서는 u좌표)
+	float3 binormal : BINORMAL;	// y축(uv 좌표계에서는 v좌표)
+};
+
+float4 BumpMapPixelShader(PixelInputType input) : SV_TARGET
+{
+	float4 textureColor;
+	float3 lightDir;		// 시야 방향
+	float lightIntensity;	// 조명값
+	float4 color;
+	float4 bumpMap;
+	float3 bumpNormal;
+
+	// 이 텍스쳐 좌표 위치에서 샘플러를 사용하여 텍스쳐에서 픽셀 색상을 샘플링
+	textureColor = shaderTexture[0].Sample(SampleType, input.tex);
+
+	// 범프 맵에서 픽셀 샘플링
+	bumpMap = shaderTexture[1].Sample(SampleType, input.tex);
+	bumpMap = (bumpMap * 2.0f) - 1.0f;
+
+	// 범프 맵의 데이터에서 법선 계산
+	bumpNormal = (bumpMap.x * input.tangent) + (bumpMap.y * input.binormal) + (bumpMap.z * input.normal);
+	bumpNormal = normalize(bumpNormal);
+
+	// 빛 벡터는 입사광 진행방향과 반대이다
+	lightDir = -lightDirection;
+
+	// 픽셀의 빛의 양 계산
+	// saturate(x): 주어진 인수를 [0, 1] 구간으로 한정하는 함수
+	lightIntensity = saturate(dot(bumpNormal, lightDir));
+
+	// 조명값을 주변광에 더해줌
+	color = saturate(diffuseColor * lightIntensity);
+
+	// 최종 빛 색상 설정
+	color = color * textureColor;
+
+	return color;
+}

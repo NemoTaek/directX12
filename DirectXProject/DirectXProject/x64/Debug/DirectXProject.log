@@ -1,4 +1,3 @@
 ﻿  GraphicsClass.cpp
   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\dinput.h: DIRECTINPUT_VERSION undefined. Defaulting to version 0x0800
-C:\Users\nemo1\OneDrive\바탕 화면\내꺼\github\directX12\DirectXProject\DirectXProject\GraphicsClass.cpp(270,11): warning C4101: 'color' :참조되지 않은 지역 변수입니다.
-  DirectXProject.vcxproj -> C:\Users\nemo1\OneDrive\바탕 화면\내꺼\github\directX12\DirectXProject\x64\Debug\DirectXProject.exe
+  DirectXProject.vcxproj -> C:\Users\jht\Desktop\gameProject\directX12\DirectXProject\x64\Debug\DirectXProject.exe

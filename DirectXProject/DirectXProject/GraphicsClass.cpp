@@ -5,15 +5,16 @@
 //#include "ModelClass.h"
 //#include "ColorShaderClass.h"
 //#include "ModelTextureClass.h"
-#include "TextureShaderClass.h"
+//#include "TextureShaderClass.h"
 //#include "ModelLightClass.h"
 #include "Model3DClass.h"
 //#include "LightShaderClass.h"
-//#include "LightClass.h"
+#include "LightClass.h"
 //#include "BitmapClass.h"
 //#include "TextClass.h"
 //#include "FrustumClass.h"
 //#include "ModelListClass.h"
+#include "BumpMapShaderClass.h"
 
 #include <iostream>
 using namespace std;
@@ -83,8 +84,15 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	m_Model3D = new Model3DClass;
 	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/checkboard.dds", L"./Textures/water1.dds", L"./Textures/alpha01.dds")) {
+	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/stone01.dds", L"./Textures/bump01.dds")) {
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
+		return false;
+	}
+
+	m_BumpMapShader = new BumpMapShaderClass;
+	if (!m_BumpMapShader) { return false; }
+	if (!m_BumpMapShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the bump map shader object", L"Error", MB_OK);
 		return false;
 	}
 
@@ -97,13 +105,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	m_TextureShader = new TextureShaderClass;
-	if (!m_TextureShader) { return false; }
-	// 텍스쳐 셰이더 객체 초기화
-	if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-		return false;
-	}
+	//m_TextureShader = new TextureShaderClass;
+	//if (!m_TextureShader) { return false; }
+	//// 텍스쳐 셰이더 객체 초기화
+	//if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	//m_LightShader = new LightShaderClass;
 	//if (!m_LightShader) { return false; }
@@ -112,11 +120,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	//m_Light = new LightClass;
-	//if (!m_Light) { return false; }
+	m_Light = new LightClass;
+	if (!m_Light) { return false; }
 	//m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
-	//m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	//m_Light->SetDirection(1.0f, 0.0f, 1.0f);
+	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
 	//m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//m_Light->SetSpecularPower(32.0f);
 
@@ -183,12 +191,12 @@ void GraphicsClass::Shutdown()
 	//	m_Bitmap = 0;
 	//}
 
-	//// light 객체 반환
-	//if (m_Light)
-	//{
-	//	delete m_Light;
-	//	m_Light = 0;
-	//}
+	// light 객체 반환
+	if (m_Light)
+	{
+		delete m_Light;
+		m_Light = 0;
+	}
 
 	//// 셰이더 객체 반환
 	//if (m_LightShader) {
@@ -197,12 +205,12 @@ void GraphicsClass::Shutdown()
 	//	m_LightShader = 0;
 	//}
 
-	// 셰이더 객체 반환
-	if (m_TextureShader) {
-		m_TextureShader->Shutdown();
-		delete m_TextureShader;
-		m_TextureShader = 0;
-	}
+	//// 셰이더 객체 반환
+	//if (m_TextureShader) {
+	//	m_TextureShader->Shutdown();
+	//	delete m_TextureShader;
+	//	m_TextureShader = 0;
+	//}
 
 	// 모델 객체 반환
 	//if (m_ModelLight) {
@@ -210,6 +218,13 @@ void GraphicsClass::Shutdown()
 	//	delete m_ModelLight;
 	//	m_ModelLight = 0;
 	//}
+
+	// 범프 맵 쉐이더 객체 반환
+	if (m_BumpMapShader) {
+		m_BumpMapShader->Shutdown();
+		delete m_BumpMapShader;
+		m_BumpMapShader = 0;
+	}
 
 	// 모델 객체 반환
 	if (m_Model3D) {
@@ -233,19 +248,17 @@ void GraphicsClass::Shutdown()
 }
 
 //bool GraphicsClass::Frame(int mouseX, int mouseY, int keyCount, int fps, int cpu, float frameTime)
-bool GraphicsClass::Frame(float rotationY)
+bool GraphicsClass::Frame()
 {
-	// 모델 회전용 코드
-	/*
-	static float rotation = 0.0f;
+	//// 모델 회전용 코드
+	//static float rotation = 0.0f;
 
-	// 각 프레임의 회전을 업데이트
-	rotation += (float)XM_PI * 0.005f;
-	if (rotation > 360.0f)	rotation -= 360.0f;
+	//// 각 프레임의 회전을 업데이트
+	//rotation += (float)XM_PI * 0.005f;
+	//if (rotation > 360.0f)	rotation -= 360.0f;
 
-	// 그래픽 렌더링 처리
-	return Render(rotation);
-	*/
+	//// 그래픽 렌더링 처리
+	//return Render(rotation);
 
 	// Input 용 코드
 	//if (!m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDeviceContext()))	return false;
@@ -260,14 +273,14 @@ bool GraphicsClass::Frame(float rotationY)
 	return true;
 }
 
-bool GraphicsClass::Render(float rotation)
+bool GraphicsClass::Render()
 {
 	// 렌더링할 모델 세팅
 	float positionX = 0;
 	float positionY = 0;
 	float positionZ = 0;
 	float radius = 1.0f;
-	XMFLOAT4 color;
+	//XMFLOAT4 color;
 
 	// Scene을 그리기 위해 버퍼 삭제
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
@@ -281,6 +294,13 @@ bool GraphicsClass::Render(float rotation)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	// 모델 회전용 코드
+	static float rotation = 0.0f;
+
+	// 각 프레임의 회전을 업데이트
+	rotation += (float)XM_PI * 0.005f;
+	if (rotation > 360.0f)	rotation -= 360.0f;
 
 	// 매 프레임마다 시야 행렬에 근거하여 절두체를 생성
 	//m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
@@ -314,7 +334,7 @@ bool GraphicsClass::Render(float rotation)
 	//}
 
 	// 모델이 회전할 수 있도록 회전 값으로 세계 행렬 세팅
-	//worldMatrix = XMMatrixRotationY(rotation);
+	worldMatrix = XMMatrixRotationY(rotation);
 
 	// 2D 렌더링을 위해 Z 버퍼 OFF
 	//m_Direct3D->TurnZBufferOff();
@@ -334,7 +354,7 @@ bool GraphicsClass::Render(float rotation)
 	// 텍스쳐 셰이더를 사용하여 모델 렌더링
 	//if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_ModelTexture->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_ModelTexture->GetTexture()))	return false;
 	//if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_Bitmap->GetTexture()))	return false;
-	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTextureArray()))	return false;
+	//if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTextureArray()))	return false;
 
 	// 빛 셰이더를 사용하여 모델 렌더링
 	//if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model3D->GetTexture(),
@@ -349,6 +369,10 @@ bool GraphicsClass::Render(float rotation)
 	
 	// 2D 렌더링이 완료되었으면 Z 버퍼 ON
 	//m_Direct3D->TurnZBufferOn();
+
+	// 범프 맵 셰이더를 사용하여 모델 렌더링
+	if (!m_BumpMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTextureArray(),
+		m_Light->GetDirection(), m_Light->GetDiffuseColor()))	return false;
 
 	// 버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();

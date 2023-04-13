@@ -21,6 +21,8 @@
     <None Include="texture.ps" />
     <None Include="texture.vs" />
     <None Include="VertexShader.vs" />
+    <None Include="BumpMap.vs" />
+    <None Include="BumpMap.ps" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -84,6 +86,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="TextureArrayClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BumpMapShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -152,6 +157,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="TextureArrayClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BumpMapShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
