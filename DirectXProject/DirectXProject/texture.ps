@@ -1,5 +1,5 @@
 // GLOBALS
-Texture2D shaderTextures[3];
+Texture2D shaderTexture;
 SamplerState SampleType;
 
 
@@ -16,33 +16,5 @@ struct PixelInputType
 
 float4 TexturePixelShader(PixelInputType input) : SV_TARGET
 {
-	float4 textureColor1;
-	float4 textureColor2;
-	float4 blendColor;	// 2개 텍스쳐 혼합한 텍스쳐
-	float4 lightTexture;	// 좁은 시야를 나타낼 때 사용하는 텍스쳐
-	float4 alphaValue;	// 알파 블렌딩 값
-	float4 alphaBlendColor;		// 알파 블렌딩 한 색
-
-	// 이 텍스쳐 좌표 위치에서 샘플러를 사용하여 텍스쳐에서 픽셀 색상을 샘플링 한다.
-	textureColor1 = shaderTextures[0].Sample(SampleType, input.tex);
-	textureColor2 = shaderTextures[1].Sample(SampleType, input.tex);
-
-	// 알파 블렌딩 전용
-	alphaValue = shaderTextures[2].Sample(SampleType, input.tex);
-
-	// 다중 텍스쳐 혼합용 계산
-	// blendColor = basePixel * colorPixel * gammaCorrection
-	// 두 픽셀 값을 혼합 후 감마(여기서는 2.0)을 곱한다.
-	blendColor = textureColor1 * textureColor2 * 2.0f;
-	blendColor = saturate(blendColor);
-
-	// 좁은 시야용 텍스쳐는 그냥 혼합만 한다.
-	// 여기에도 감마값을 곱하면 강하거나 부드러운 광원 효과를 얻을 수 있다.
-	lightTexture = textureColor1 * textureColor2 * 2.0f;
-
-	// 알파 블렌딩 계산
-	alphaBlendColor = (alphaValue * textureColor1) + ((1.0f - alphaValue) * textureColor2);
-	alphaBlendColor = saturate(alphaBlendColor);
-
-	return alphaBlendColor;
+	return shaderTexture.Sample(SampleType, input.tex);
 }

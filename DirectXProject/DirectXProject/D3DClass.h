@@ -31,6 +31,9 @@ public:
 	void TurnOnAlphaBlending();
 	void TurnOffAlphaBlending();
 
+	ID3D11DepthStencilView* GetDepthStencilView();
+	void SetBackBufferRenderTarget();
+
 private:
 	bool m_vsync_enabled = false;
 	int m_videoCardMemory = 0;
@@ -43,9 +46,11 @@ private:
 	ID3D11DepthStencilState* m_depthStencilState = nullptr;
 	ID3D11DepthStencilView* m_depthStencilView = nullptr;
 	ID3D11RasterizerState* m_rasterState = nullptr;
+
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;
 	XMMATRIX m_orthoMatrix;
+
 	ID3D11DepthStencilState* m_depthDisabledStencilState = nullptr;
 	ID3D11BlendState* m_alphaEnableBlendingState = nullptr;
 	ID3D11BlendState* m_alphaDisableBlendingState = nullptr;

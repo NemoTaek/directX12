@@ -3,11 +3,11 @@ SamplerState SampleType;	// 텍스쳐 자원에서 표본을 추출할 때 어�
 
 cbuffer LightBuffer
 {
-	float4 ambientColor;	// 주변광
+	// float4 ambientColor;	// 주변광
 	float4 diffuseColor;	// 분산조명
 	float3 lightDirection;	// 빛 방향
-	float specularPower;	// 반사 강도
-	float4 specularColor;	// 반영광 색
+	// float specularPower;	// 반사 강도
+	// float4 specularColor;	// 반영광 색
 };
 
 struct PixelInputType
@@ -16,7 +16,7 @@ struct PixelInputType
 	// float4 color : COLOR;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float3 viewDirection : TEXCOORD1;
+	// float3 viewDirection : TEXCOORD1;
 };
 
 float4 PS(PixelInputType input) : SV_TARGET
@@ -32,10 +32,10 @@ float4 PS(PixelInputType input) : SV_TARGET
 	textureColor = shaderTexture.Sample(SampleType, input.tex);
 
 	// 기본 출력 색을 주변광으로 설정
-	color = ambientColor;
+	// color = ambientColor;
 
 	// 반영광 색 초기화
-	specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	// specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// 빛 벡터는 입사광 진행방향과 반대이다
 	lightDir = -lightDirection;
@@ -45,6 +45,7 @@ float4 PS(PixelInputType input) : SV_TARGET
 	lightIntensity = saturate(dot(input.normal, lightDir));
 
 	// 법선벡터와 빛벡터의 내적이 0보다 클 때
+	/*
 	if(lightIntensity > 0.0f) {
 		// 조명값을 주변광에 더해줌
 		color += (diffuseColor * lightIntensity);
@@ -62,6 +63,42 @@ float4 PS(PixelInputType input) : SV_TARGET
 
 	// 정반사 효과 적용, 이로 인해 더욱 입체적이게 될 것
 	color = saturate(color + specular);
+	*/
+
+	color = saturate(diffuseColor * lightIntensity);
+	color = color * textureColor;
 
 	return color;
+
+	/*
+	float4 textureColor1;
+	float4 textureColor2;
+	float4 blendColor;	// 2개 텍스쳐 혼합한 텍스쳐
+	float4 lightTexture;	// 좁은 시야를 나타낼 때 사용하는 텍스쳐
+	float4 alphaValue;	// 알파 블렌딩 값
+	float4 alphaBlendColor;		// 알파 블렌딩 한 색
+
+	// 이 텍스쳐 좌표 위치에서 샘플러를 사용하여 텍스쳐에서 픽셀 색상을 샘플링 한다.
+	textureColor1 = shaderTextures[0].Sample(SampleType, input.tex);
+	textureColor2 = shaderTextures[1].Sample(SampleType, input.tex);
+
+	// 알파 블렌딩 전용
+	alphaValue = shaderTextures[2].Sample(SampleType, input.tex);
+
+	// 다중 텍스쳐 혼합용 계산
+	blendColor = basePixel * colorPixel * gammaCorrection
+	// 두 픽셀 값을 혼합 후 감마(여기서는 2.0)을 곱한다.
+	blendColor = textureColor1 * textureColor2 * 2.0f;
+	blendColor = saturate(blendColor);
+
+	// 좁은 시야용 텍스쳐는 그냥 혼합만 한다.
+	// 여기에도 감마값을 곱하면 강하거나 부드러운 광원 효과를 얻을 수 있다.
+	lightTexture = textureColor1 * textureColor2 * 2.0f;
+
+	// 알파 블렌딩 계산
+	alphaBlendColor = (alphaValue * textureColor1) + ((1.0f - alphaValue) * textureColor2);
+	alphaBlendColor = saturate(alphaBlendColor);
+
+	return alphaBlendColor;
+	*/
 }

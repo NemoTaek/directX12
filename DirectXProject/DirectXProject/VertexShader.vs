@@ -37,7 +37,7 @@ struct PixelInputType
 	// float4 color : COLOR;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float3 viewDirection : TEXCOORD1;	// 시야 방향
+	// float3 viewDirection : TEXCOORD1;	// 시야 방향
 };
 
 PixelInputType VS(VertexInputType input)
@@ -66,13 +66,13 @@ PixelInputType VS(VertexInputType input)
 	output.normal = normalize(output.normal);
 
 	// 세계 정점 위치 계산
-	worldPosition = mul(input.position, worldMatrix);
+	// worldPosition = mul(input.position, worldMatrix);
 
 	// 카메라 위치와 세계 정점 위치를 기준으로 시야 방향 계산
-	output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
+	// output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
 
 	// 시야 방향벡터 정규화
-	output.viewDirection = normalize(output.viewDirection);
+	// output.viewDirection = normalize(output.viewDirection);
 
 	return output;
 }

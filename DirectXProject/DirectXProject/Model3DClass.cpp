@@ -1,5 +1,6 @@
 #include "Stdafx.h"
 #include "TextureArrayClass.h"
+#include "TextureClass.h"
 #include "Model3DClass.h"
 
 #include <fstream>
@@ -9,12 +10,13 @@ Model3DClass::Model3DClass() {}
 Model3DClass::Model3DClass(const Model3DClass& other) {}
 Model3DClass:: ~Model3DClass() {}
 
-bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename1, const WCHAR* textureFilename2, const WCHAR* textureFilename3)
+bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename1)
 {
 	if (!LoadModel(modelFilename))	return false;
-	CalculateModelVectors();	// 모델의 법선, 접선, 이항벡터 계산
+	//CalculateModelVectors();	// 모델의 법선, 접선, 이항벡터 계산
 	if (!InitializeBuffers(device))	return false;
-	return LoadTextures(device, textureFilename1, textureFilename2, textureFilename3);
+	//return LoadTextures(device, textureFilename1, textureFilename2, textureFilename3);
+	return LoadTexture(device, textureFilename1);
 }
 
 void Model3DClass::Shutdown()
@@ -30,6 +32,8 @@ void Model3DClass::Render(ID3D11DeviceContext* deviceContext)
 }
 
 int Model3DClass::GetIndexCount() { return m_indexCount; }
+
+ID3D11ShaderResourceView* Model3DClass::GetTexture() { return m_texture->GetTexture(); }
 
 ID3D11ShaderResourceView** Model3DClass::GetTextureArray() { return m_textureArray->GetTextureArray(); }
 
@@ -48,8 +52,8 @@ bool Model3DClass::InitializeBuffers(ID3D11Device* device)
 		vertices[i].position = XMFLOAT3(m_model3D[i].x, m_model3D[i].y, m_model3D[i].z);
 		vertices[i].texture = XMFLOAT2(m_model3D[i].tu, m_model3D[i].tv);
 		vertices[i].normal = XMFLOAT3(m_model3D[i].nx, m_model3D[i].ny, m_model3D[i].nz);
-		vertices[i].tangent = XMFLOAT3(m_model3D[i].tx, m_model3D[i].ty, m_model3D[i].tz);
-		vertices[i].binormal = XMFLOAT3(m_model3D[i].bx, m_model3D[i].by, m_model3D[i].bz);
+		//vertices[i].tangent = XMFLOAT3(m_model3D[i].tx, m_model3D[i].ty, m_model3D[i].tz);
+		//vertices[i].binormal = XMFLOAT3(m_model3D[i].bx, m_model3D[i].by, m_model3D[i].bz);
 
 		indices[i] = i;
 	}
@@ -126,6 +130,16 @@ void Model3DClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 	// 정점 버퍼로 그릴 기본형 설정
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+bool Model3DClass::LoadTexture(ID3D11Device* device, const WCHAR* filename)
+{
+	// 텍스쳐 객체 생성
+	m_texture = new TextureClass;
+	if (!m_texture)	return false;
+
+	// 텍스쳐 객체 초기화
+	return m_texture->Initialize(device, filename);
 }
 
 bool Model3DClass::LoadTextures(ID3D11Device* device, const WCHAR* filename1, const WCHAR* filename2, const WCHAR* filename3)
