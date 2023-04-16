@@ -1,0 +1,28 @@
+Texture2D shaderTexture;
+SamplerState SampleType;
+
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float2 tex : TEXCOORD0;
+	float fogFactor : FOG;
+};
+
+float4 FogPixelShader(PixelInputType input) : SV_TARGET
+{
+	float4 textureColor;
+    float4 fogColor;
+    float4 finalColor;
+
+	
+    // 이 위치에서 텍스처 픽셀을 샘플링합니다.
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+    
+    // 안개의 색을 회색으로 설정합니다.
+    fogColor = float4(0.5f, 0.5f, 0.5f, 1.0f);
+
+    // 안개 효과 방정식을 사용하여 최종 색상을 계산합니다.
+    finalColor = input.fogFactor * textureColor + (1.0 - input.fogFactor) * fogColor;
+
+	return finalColor;
+}

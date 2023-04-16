@@ -23,6 +23,8 @@
     <None Include="VertexShader.vs" />
     <None Include="BumpMap.vs" />
     <None Include="BumpMap.ps" />
+    <None Include="Fog.vs" />
+    <None Include="Fog.ps" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -95,6 +97,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DebugWindowClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FogShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -172,6 +177,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="DebugWindowClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FogShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
