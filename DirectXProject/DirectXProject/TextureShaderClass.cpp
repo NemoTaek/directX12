@@ -24,10 +24,10 @@ void TextureShaderClass::Shutdown()
 }
 
 // 마지막 매개변수를 단일 텍스쳐 일때는 texture, 다중 텍스쳐 일때는 textureArray
-bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, float translation)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, translation))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -124,11 +124,29 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	// 텍스쳐 샘플러 상태 생성
 	if (FAILED(device->CreateSamplerState(&samplerDesc, &m_sampleState)))	return false;
 
+	// 텍스처 이동 버퍼 구조체 설정
+	D3D11_BUFFER_DESC translateBufferDesc;
+	translateBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	translateBufferDesc.ByteWidth = sizeof(TranslateBufferType);
+	translateBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	translateBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	translateBufferDesc.MiscFlags = 0;
+	translateBufferDesc.StructureByteStride = 0;
+
+	// 텍스처 이동 버퍼 생성
+	if (FAILED(device->CreateBuffer(&translateBufferDesc, NULL, &m_translateBuffer)))	return false;
+
 	return true;
 }
 
 void TextureShaderClass::ShutdownShader()
 {
+	// 텍스처 이동 버퍼 해제
+	if (m_translateBuffer) {
+		m_translateBuffer->Release();
+		m_translateBuffer = 0;
+	}
+
 	// 샘플러 상태 해제
 	if (m_sampleState) {
 		m_sampleState->Release();
@@ -193,7 +211,7 @@ void TextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	MessageBox(hwnd, L"Error compiling shader.", shaderFilename, MB_OK);
 }
 
-bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, float translation)
 {
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -203,12 +221,12 @@ bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	// 상수 버퍼 자원에 자료를 올릴 수 있도록 포인터 생성
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	if (FAILED(deviceContext->Map(m_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	ConstantBufferType* dataPtr = (ConstantBufferType*)mappedResource.pData;
+	ConstantBufferType* matrixPtr = (ConstantBufferType*)mappedResource.pData;
 
 	// 상수버퍼에 행렬 복사
-	dataPtr->world = worldMatrix;
-	dataPtr->view = viewMatrix;
-	dataPtr->projection = projectionMatrix;
+	matrixPtr->world = worldMatrix;
+	matrixPtr->view = viewMatrix;
+	matrixPtr->projection = projectionMatrix;
 
 	// 상수버퍼 메모리 해제
 	deviceContext->Unmap(m_constantBuffer, 0);
@@ -219,6 +237,17 @@ bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	// 2번째 인자가 리소스 수라서 블렌딩 하면 블렌딩 할 textureArray 수를 적는다
 	//deviceContext->PSSetShaderResources(0, 3, textureArray);
 	deviceContext->PSSetShaderResources(0, 1, &texture);
+
+	if (FAILED(deviceContext->Map(m_translateBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	TranslateBufferType* translationPtr = (TranslateBufferType*)mappedResource.pData;
+
+	// 상수버퍼에 클리핑 평면 복사
+	translationPtr->translation = translation;
+
+	// 상수버퍼 메모리 해제
+	deviceContext->Unmap(m_translateBuffer, 0);
+	bufferNumber = 0;
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_translateBuffer);
 
 	return true;
 }
