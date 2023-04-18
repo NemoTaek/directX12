@@ -222,7 +222,7 @@ bool SystemClass::Frame()
 	m_Position->GetRotation(rotationY);
 
 	// graphic 객체의 프레임 처리 수행
-	if (!m_Graphics->Frame())	return false;
+	if (!m_Graphics->Frame(m_Timer->GetTime()))	return false;
 
 	return m_Graphics->Render();
 }

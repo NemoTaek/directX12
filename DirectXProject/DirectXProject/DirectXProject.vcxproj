@@ -130,6 +130,8 @@
   <ItemGroup>
     <None Include="BumpMap.ps" />
     <None Include="BumpMap.vs" />
+    <None Include="Fade.ps" />
+    <None Include="Fade.vs" />
     <None Include="Fog.ps" />
     <None Include="Fog.vs" />
     <None Include="font.ps" />
@@ -144,11 +146,13 @@
     <None Include="VertexShader.vs" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BitmapClass.cpp" />
     <ClCompile Include="BumpMapShaderClass.cpp" />
     <ClCompile Include="CameraClass.cpp" />
     <ClCompile Include="D3DClass.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DebugWindowClass.cpp" />
+    <ClCompile Include="FadeShaderClass.cpp" />
     <ClCompile Include="FogShaderClass.cpp" />
     <ClCompile Include="FontClass.cpp" />
     <ClCompile Include="FontShaderClass.cpp" />
@@ -173,12 +177,14 @@
     <ClCompile Include="TransparentShaderClass.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BitmapClass.h" />
     <ClInclude Include="BumpMapShaderClass.h" />
     <ClInclude Include="CameraClass.h" />
     <ClInclude Include="D3DClass.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DebugWindowClass.h" />
     <ClInclude Include="DxDefine.h" />
+    <ClInclude Include="FadeShaderClass.h" />
     <ClInclude Include="FogShaderClass.h" />
     <ClInclude Include="FontClass.h" />
     <ClInclude Include="FontShaderClass.h" />

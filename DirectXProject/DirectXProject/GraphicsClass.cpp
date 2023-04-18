@@ -10,7 +10,7 @@
 #include "Model3DClass.h"
 //#include "LightShaderClass.h"
 //#include "LightClass.h"
-//#include "BitmapClass.h"
+#include "BitmapClass.h"
 //#include "TextClass.h"
 //#include "FrustumClass.h"
 //#include "ModelListClass.h"
@@ -19,7 +19,8 @@
 //#include "DebugWindowClass.h"
 //#include "FogShaderClass.h"
 //#include "TransparentShaderClass.h"
-#include "ReflectionShaderClass.h"
+//#include "ReflectionShaderClass.h"
+#include "FadeShaderClass.h"
 
 #include <iostream>
 using namespace std;
@@ -59,7 +60,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!m_Camera) { return false; }
 	// 카메라 위치 설정
 	XMMATRIX baseViewMatrix;
-	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
 	m_Camera->Render();
 	m_Camera->GetViewMatrix(baseViewMatrix);
 
@@ -133,14 +134,14 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//m_Light->SetSpecularPower(16.0f);
 
-	//// 2D 모델 객체 생성
-	//m_Bitmap = new BitmapClass;
-	//if (!m_Bitmap) { return false; }
-	//// 2D 모델 객체 초기화
-	//if (!m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, L"./Textures/ice.dds", 256, 256)) {
-	//	MessageBox(hwnd, L"Could not initialize the bitmap object", L"Error", MB_OK);
-	//	return false;
-	//}
+	// 2D 모델 객체 생성
+	m_Bitmap = new BitmapClass;
+	if (!m_Bitmap) { return false; }
+	// 2D 모델 객체 초기화
+	if (!m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight)) {
+		MessageBox(hwnd, L"Could not initialize the bitmap object", L"Error", MB_OK);
+		return false;
+	}
 
 	//// 텍스트 객체 생성
 	//m_Text = new TextClass;
@@ -184,17 +185,21 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	m_Model3D2 = new Model3DClass;
-	if (!m_Model3D2) { return false; }
-	if (!m_Model3D2->Initialize(m_Direct3D->GetDevice(), L"./data/floor.txt", L"./Textures/blue01.dds")) {
-		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
-		return false;
-	}
+	//m_ReflectionShader = new ReflectionShaderClass;
+	//if (!m_ReflectionShader) { return false; }
+	//if (!m_ReflectionShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the transparent shader object", L"Error", MB_OK);
+	//	return false;
+	//}
 
-	m_ReflectionShader = new ReflectionShaderClass;
-	if (!m_ReflectionShader) { return false; }
-	if (!m_ReflectionShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the transparent shader object", L"Error", MB_OK);
+	m_fadeInTime = 3000.0f;	// 페이드 인 효과 시간 설정
+	m_accumulatedTime = 0;	// 누적 시간
+	m_fadePercentage = 0;	// 페이드 퍼센트를 설정하여 페이드 효과 시작지점 설정
+	m_fadeDone = false;		// 페이드 효과 완료 유무
+	m_FadeShader = new FadeShaderClass;
+	if (!m_FadeShader) { return false; }
+	if (!m_FadeShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the fade shader object", L"Error", MB_OK);
 		return false;
 	}
 
@@ -203,17 +208,18 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 void GraphicsClass::Shutdown()
 {
-	if (m_ReflectionShader) {
-		m_ReflectionShader->Shutdown();
-		delete m_ReflectionShader;
-		m_ReflectionShader = 0;
+	if (m_FadeShader) {
+		m_FadeShader->Shutdown();
+		delete m_FadeShader;
+		m_FadeShader = 0;
 	}
 
-	if (m_Model3D2) {
-		m_Model3D2->Shutdown();
-		delete m_Model3D2;
-		m_Model3D2 = 0;
-	}
+	//if (m_ReflectionShader) {
+	//	m_ReflectionShader->Shutdown();
+	//	delete m_ReflectionShader;
+	//	m_ReflectionShader = 0;
+	//}
+
 	//if (m_FogShader)
 	//{
 	//	delete m_FogShader;
@@ -330,21 +336,49 @@ bool GraphicsClass::Frame()
 
 	return true;
 }
+bool GraphicsClass::Frame(float frameTime)
+{
+	if (!m_fadeDone) {
+		// 누적 시간에 프레임 시간 추가
+		m_accumulatedTime += frameTime;
+
+		// 페이드인 중이라면
+		if (m_accumulatedTime < m_fadeInTime) {
+			// 페이드 퍼센트를 진행률로 계속 업에디트
+			m_fadePercentage = m_accumulatedTime / m_fadeInTime;
+		}
+		else {
+			// 끝났으면 완료 설정
+			m_fadeDone = true;
+			m_fadePercentage = 1.0f;
+		}
+	}
+
+	return true;
+}
 
 bool GraphicsClass::Render()
 {
-	// 전체 장면을 먼저 텍스처로 렌더링
-	if (!RenderToTexture()) return false;
-
-	// 백 버퍼의 장면 렌더링
-	if (!RenderScene())	return false;
+	if (m_fadeDone) {
+		// 백 버퍼의 장면 렌더링
+		if (!RenderScene())	return false;
+	}
+	else {
+		// 전체 장면을 먼저 텍스처로 렌더링
+		if (!RenderToTexture()) return false;
+		if (!RenderFadingScene()) return false;
+	}
 
 	return true;
 }
 
 bool GraphicsClass::RenderToTexture()
 {
-	XMMATRIX worldMatrix, reflectionViewMatrix, projectionMatrix;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
 	// 렌더링 대상을 RTT로 설정
 	m_RenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView());
@@ -352,13 +386,8 @@ bool GraphicsClass::RenderToTexture()
 	// RTT 초기화
 	m_RenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 1.0f);
 
-	// 카메라가 반사행렬을 계산
-	m_Camera->RenderReflection(-1.5f);
-
-	// 일반 뷰 행렬 대신 반사 뷰 행렬을 가져온다
-	reflectionViewMatrix = m_Camera->GetReflectionViewMatrix();
-	m_Direct3D->GetWorldMatrix(worldMatrix);
-	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	// 카메라의 위치에 따라 뷰 행렬을 생성합니다.
+	m_Camera->Render();
 
 	// 모델 회전용 코드
 	static float rotation = 0.0f;
@@ -379,7 +408,7 @@ bool GraphicsClass::RenderToTexture()
 	m_Model3D->Render(m_Direct3D->GetDeviceContext());
 
 	// 텍스쳐 셰이더와 반사 뷰 행렬을 사용하여 모델 렌더링
-	m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix, m_Model3D->GetTexture(), textureTranslation);
+	m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(), textureTranslation);
 
 	// 렌더링 대상을 다시 원래 백버퍼로 설정
 	m_Direct3D->SetBackBufferRenderTarget();
@@ -396,7 +425,7 @@ bool GraphicsClass::RenderScene()
 	m_Camera->Render();
 
 	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, reflectionViewMatrix;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	m_Direct3D->GetWorldMatrix(worldMatrix);
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
@@ -421,12 +450,36 @@ bool GraphicsClass::RenderScene()
 	m_Model3D->Render(m_Direct3D->GetDeviceContext());
 	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(), textureTranslation))	return false;
 
-	// 메인 모델의 바닥에 반사되는 모델 세팅 후 렌더링
+	// 버퍼의 내용을 화면에 출력
+	m_Direct3D->EndScene();
+
+	return true;
+}
+
+bool GraphicsClass::RenderFadingScene()
+{
+	// Scene을 그리기 위해 버퍼 삭제
+	m_Direct3D->BeginScene(0.0f, 0.0f, 1.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬 생성
+	m_Camera->Render();
+
+	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	m_Direct3D->GetWorldMatrix(worldMatrix);
-	worldMatrix = XMMatrixTranslation(0.0f, -1.5f, 0.0f);
-	reflectionViewMatrix = m_Camera->GetReflectionViewMatrix();
-	m_Model3D2->Render(m_Direct3D->GetDeviceContext());
-	if (!m_ReflectionShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D2->GetTexture(), m_RenderTexture->GetShaderResourceView(), reflectionViewMatrix))	return false;
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	// 2D 렌더링을 위해 Z 버퍼 OFF
+	m_Direct3D->TurnZBufferOff();
+
+	// 텍스쳐 셰이더를 이용하여 모델 렌더링
+	if (!m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 0, 0))	return false;
+	if (!m_FadeShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_RenderTexture->GetShaderResourceView(), m_fadePercentage))	return false;
+
+	// 2D 렌더링이 완료되었으면 Z 버퍼 ON
+	m_Direct3D->TurnZBufferOn();
 
 	// 버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();
@@ -474,6 +527,13 @@ m_Camera->GetViewMatrix(viewMatrix);
 m_Direct3D->GetProjectionMatrix(projectionMatrix);
 m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
+// 카메라가 반사행렬을 계산
+m_Camera->RenderReflection(-1.5f);
+
+// 일반 뷰 행렬 대신 반사 뷰 행렬을 가져온다
+reflectionViewMatrix = m_Camera->GetReflectionViewMatrix();
+m_Direct3D->GetWorldMatrix(worldMatrix);
+m_Direct3D->GetProjectionMatrix(projectionMatrix);
 
 // 모델 회전용 코드
 static float rotation = 0.0f;

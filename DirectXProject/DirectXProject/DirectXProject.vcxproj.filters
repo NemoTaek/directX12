@@ -29,6 +29,8 @@
     <None Include="Transparent.ps" />
     <None Include="Reflection.vs" />
     <None Include="Reflection.ps" />
+    <None Include="Fade.vs" />
+    <None Include="Fade.ps" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -110,6 +112,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="ReflectionShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FadeShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BitmapClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -196,6 +204,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ReflectionShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FadeShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
