@@ -25,6 +25,10 @@
     <None Include="BumpMap.ps" />
     <None Include="Fog.vs" />
     <None Include="Fog.ps" />
+    <None Include="Transparent.vs" />
+    <None Include="Transparent.ps" />
+    <None Include="Reflection.vs" />
+    <None Include="Reflection.ps" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -100,6 +104,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="FogShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TransparentShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ReflectionShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -180,6 +190,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="FogShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TransparentShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ReflectionShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

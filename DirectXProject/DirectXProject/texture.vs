@@ -26,9 +26,6 @@ struct PixelInputType
 	// float clip : SV_ClipDistance0;
 };
 
-
-// Vertex Shader
-
 PixelInputType TextureVertexShader(VertexInputType input)
 {
 	PixelInputType output;

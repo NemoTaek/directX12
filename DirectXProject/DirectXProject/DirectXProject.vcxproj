@@ -135,8 +135,12 @@
     <None Include="font.ps" />
     <None Include="font.vs" />
     <None Include="PixelShader.ps" />
+    <None Include="Reflection.ps" />
+    <None Include="Reflection.vs" />
     <None Include="texture.ps" />
     <None Include="texture.vs" />
+    <None Include="Transparent.ps" />
+    <None Include="Transparent.vs" />
     <None Include="VertexShader.vs" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +161,7 @@
     <ClCompile Include="Model3DClass.cpp" />
     <ClCompile Include="ModelListClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
+    <ClCompile Include="ReflectionShaderClass.cpp" />
     <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
@@ -165,6 +170,7 @@
     <ClCompile Include="TextureClass.cpp" />
     <ClCompile Include="TextureShaderClass.cpp" />
     <ClCompile Include="TimeClass.cpp" />
+    <ClCompile Include="TransparentShaderClass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BumpMapShaderClass.h" />
@@ -184,6 +190,7 @@
     <ClInclude Include="Model3DClass.h" />
     <ClInclude Include="ModelListClass.h" />
     <ClInclude Include="PositionClass.h" />
+    <ClInclude Include="ReflectionShaderClass.h" />
     <ClInclude Include="RenderTextureClass.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />
@@ -193,6 +200,7 @@
     <ClInclude Include="TextureClass.h" />
     <ClInclude Include="TextureShaderClass.h" />
     <ClInclude Include="TimerClass.h" />
+    <ClInclude Include="TransparentShaderClass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
