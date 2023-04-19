@@ -5,12 +5,12 @@
 //#include "ModelClass.h"
 //#include "ColorShaderClass.h"
 //#include "ModelTextureClass.h"
-#include "TextureShaderClass.h"
+//#include "TextureShaderClass.h"
 //#include "ModelLightClass.h"
 #include "Model3DClass.h"
-//#include "LightShaderClass.h"
-//#include "LightClass.h"
-#include "BitmapClass.h"
+#include "LightShaderClass.h"
+#include "LightClass.h"
+//#include "BitmapClass.h"
 //#include "TextClass.h"
 //#include "FrustumClass.h"
 //#include "ModelListClass.h"
@@ -19,8 +19,9 @@
 //#include "DebugWindowClass.h"
 //#include "FogShaderClass.h"
 //#include "TransparentShaderClass.h"
-//#include "ReflectionShaderClass.h"
-#include "FadeShaderClass.h"
+#include "ReflectionShaderClass.h"
+//#include "FadeShaderClass.h"
+#include "RefractionShaderClass.h"
 
 #include <iostream>
 using namespace std;
@@ -111,37 +112,37 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	m_TextureShader = new TextureShaderClass;
-	if (!m_TextureShader) { return false; }
-	// 텍스쳐 셰이더 객체 초기화
-	if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-		return false;
-	}
-
-	//m_LightShader = new LightShaderClass;
-	//if (!m_LightShader) { return false; }
-	//if (!m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-	//	MessageBox(hwnd, L"Could not initialize the shader object", L"Error", MB_OK);
+	//m_TextureShader = new TextureShaderClass;
+	//if (!m_TextureShader) { return false; }
+	//// 텍스쳐 셰이더 객체 초기화
+	//if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
 	//	return false;
 	//}
 
-	//m_Light = new LightClass;
-	//if (!m_Light) { return false; }
-	//m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
-	//m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	//m_Light->SetDirection(0.0f, 0.0f, 1.0f);
+	m_LightShader = new LightShaderClass;
+	if (!m_LightShader) { return false; }
+	if (!m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the shader object", L"Error", MB_OK);
+		return false;
+	}
+
+	m_Light = new LightClass;
+	if (!m_Light) { return false; }
+	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
+	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light->SetDirection(0.0f, -1.0f, 0.5f);
 	//m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//m_Light->SetSpecularPower(16.0f);
 
 	// 2D 모델 객체 생성
-	m_Bitmap = new BitmapClass;
-	if (!m_Bitmap) { return false; }
-	// 2D 모델 객체 초기화
-	if (!m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight)) {
-		MessageBox(hwnd, L"Could not initialize the bitmap object", L"Error", MB_OK);
-		return false;
-	}
+	//m_Bitmap = new BitmapClass;
+	//if (!m_Bitmap) { return false; }
+	//// 2D 모델 객체 초기화
+	//if (!m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight)) {
+	//	MessageBox(hwnd, L"Could not initialize the bitmap object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	//// 텍스트 객체 생성
 	//m_Text = new TextClass;
@@ -165,11 +166,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//m_Frustum = new FrustumClass;
 	//if (!m_Frustum) { return false; }
 
-	m_RenderTexture = new RenderTextureClass;
-	if (!m_RenderTexture) { return false; }
-	if (!m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight)) {
-		return false;
-	}
+	//m_RenderTexture = new RenderTextureClass;
+	//if (!m_RenderTexture) { return false; }
+	//if (!m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight)) {
+	//	return false;
+	//}
 
 	//m_DebugWindow = new DebugWindowClass;
 	//if (!m_DebugWindow) { return false; }
@@ -192,27 +193,116 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	m_fadeInTime = 3000.0f;	// 페이드 인 효과 시간 설정
-	m_accumulatedTime = 0;	// 누적 시간
-	m_fadePercentage = 0;	// 페이드 퍼센트를 설정하여 페이드 효과 시작지점 설정
-	m_fadeDone = false;		// 페이드 효과 완료 유무
-	m_FadeShader = new FadeShaderClass;
-	if (!m_FadeShader) { return false; }
-	if (!m_FadeShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the fade shader object", L"Error", MB_OK);
+	//m_fadeInTime = 3000.0f;	// 페이드 인 효과 시간 설정
+	//m_accumulatedTime = 0;	// 누적 시간
+	//m_fadePercentage = 0;	// 페이드 퍼센트를 설정하여 페이드 효과 시작지점 설정
+	//m_fadeDone = false;		// 페이드 효과 완료 유무
+	//m_FadeShader = new FadeShaderClass;
+	//if (!m_FadeShader) { return false; }
+	//if (!m_FadeShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the fade shader object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	// 물 효과를 위한 클래스
+	m_GroundModel = new Model3DClass;
+	if (!m_GroundModel->Initialize(m_Direct3D->GetDevice(), L"./data/ground.txt", L"./Textures/ground01.dds")) {
+		MessageBox(hwnd, L"Could not initialize the ground model object", L"Error", MB_OK);
 		return false;
 	}
+	m_WallModel = new Model3DClass;
+	if (!m_WallModel->Initialize(m_Direct3D->GetDevice(), L"./data/wall.txt", L"./Textures/wall01.dds")) {
+		MessageBox(hwnd, L"Could not initialize the wall model object", L"Error", MB_OK);
+		return false;
+	}
+	m_BathModel = new Model3DClass;
+	if (!m_BathModel->Initialize(m_Direct3D->GetDevice(), L"./data/bath.txt", L"./Textures/marble01.dds")) {
+		MessageBox(hwnd, L"Could not initialize the bath model object", L"Error", MB_OK);
+		return false;
+	}
+	m_WaterModel = new Model3DClass;
+	if (!m_WaterModel->Initialize(m_Direct3D->GetDevice(), L"./data/water.txt", L"./Textures/water01.dds")) {
+		MessageBox(hwnd, L"Could not initialize the water model object", L"Error", MB_OK);
+		return false;
+	}
+	m_ReflectionTexture = new RenderTextureClass;
+	if (!m_ReflectionTexture) { return false; }
+	if (!m_ReflectionTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight)) {
+		MessageBox(hwnd, L"Could not initialize the reflection texture object", L"Error", MB_OK);
+		return false;
+	}
+	m_RefractionTexture = new RenderTextureClass;
+	if (!m_RefractionTexture) { return false; }
+	if (!m_RefractionTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight)) {
+		MessageBox(hwnd, L"Could not initialize the refraction texture object", L"Error", MB_OK);
+		return false;
+	}
+	m_WaterShader = new ReflectionShaderClass;
+	if (!m_WaterShader) { return false; }
+	if (!m_WaterShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the water shader object", L"Error", MB_OK);
+		return false;
+	}
+	m_RefractionShader = new RefractionShaderClass;
+	if (!m_RefractionShader) { return false; }
+	if (!m_RefractionShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the refraction shader object", L"Error", MB_OK);
+		return false;
+	}
+	m_waterHeight = 2.75f;
+	m_waterTranslation = 0.0f;
 
 	return true;
 }
 
 void GraphicsClass::Shutdown()
 {
-	if (m_FadeShader) {
-		m_FadeShader->Shutdown();
-		delete m_FadeShader;
-		m_FadeShader = 0;
+	if (m_RefractionShader) {
+		m_RefractionShader->Shutdown();
+		delete m_RefractionShader;
+		m_RefractionShader = 0;
 	}
+	if (m_WaterShader) {
+		m_WaterShader->Shutdown();
+		delete m_WaterShader;
+		m_WaterShader = 0;
+	}
+	if (m_RefractionTexture) {
+		m_RefractionTexture->Shutdown();
+		delete m_RefractionTexture;
+		m_RefractionTexture = 0;
+	}
+	if (m_ReflectionTexture) {
+		m_ReflectionTexture->Shutdown();
+		delete m_ReflectionTexture;
+		m_ReflectionTexture = 0;
+	}
+	if (m_WaterModel) {
+		m_WaterModel->Shutdown();
+		delete m_WaterModel;
+		m_WaterModel = 0;
+	}
+	if (m_BathModel) {
+		m_BathModel->Shutdown();
+		delete m_BathModel;
+		m_BathModel = 0;
+	}
+	if (m_WallModel) {
+		m_WallModel->Shutdown();
+		delete m_WallModel;
+		m_WallModel = 0;
+	}
+	if (m_GroundModel) {
+		m_GroundModel->Shutdown();
+		delete m_GroundModel;
+		m_GroundModel = 0;
+	}
+
+	//if (m_FadeShader) {
+	//	m_FadeShader->Shutdown();
+	//	delete m_FadeShader;
+	//	m_FadeShader = 0;
+	//}
 
 	//if (m_ReflectionShader) {
 	//	m_ReflectionShader->Shutdown();
@@ -232,11 +322,11 @@ void GraphicsClass::Shutdown()
 	//	m_DebugWindow = 0;
 	//}
 
-	if (m_RenderTexture)
-	{
-		delete m_RenderTexture;
-		m_RenderTexture = 0;
-	}
+	//if (m_RenderTexture)
+	//{
+	//	delete m_RenderTexture;
+	//	m_RenderTexture = 0;
+	//}
 
 	//// 절두체 객체 반환
 	//if (m_Frustum) {
@@ -266,25 +356,25 @@ void GraphicsClass::Shutdown()
 	//}
 
 	// light 객체 반환
-	//if (m_Light)
-	//{
-	//	delete m_Light;
-	//	m_Light = 0;
-	//}
-
-	// 셰이더 객체 반환
-	//if (m_LightShader) {
-	//	m_LightShader->Shutdown();
-	//	delete m_LightShader;
-	//	m_LightShader = 0;
-	//}
-
-	// 셰이더 객체 반환
-	if (m_TextureShader) {
-		m_TextureShader->Shutdown();
-		delete m_TextureShader;
-		m_TextureShader = 0;
+	if (m_Light)
+	{
+		delete m_Light;
+		m_Light = 0;
 	}
+
+	// 셰이더 객체 반환
+	if (m_LightShader) {
+		m_LightShader->Shutdown();
+		delete m_LightShader;
+		m_LightShader = 0;
+	}
+
+	// 셰이더 객체 반환
+	//if (m_TextureShader) {
+	//	m_TextureShader->Shutdown();
+	//	delete m_TextureShader;
+	//	m_TextureShader = 0;
+	//}
 
 	// 모델 객체 반환
 	//if (m_ModelLight) {
@@ -334,44 +424,54 @@ bool GraphicsClass::Frame()
 
 	//m_Camera->SetRotation(0.0f, rotationY, 0.0f);
 
+	m_waterTranslation += 0.001f;
+	if (m_waterTranslation > 1.0f)	m_waterTranslation -= 1.0f;
+	m_Camera->SetPosition(-11.0f, 6.0f, -10.0f);
+	m_Camera->SetRotation(0.0f, 45.0f, 0.0f);
+
 	return true;
 }
 bool GraphicsClass::Frame(float frameTime)
 {
-	if (!m_fadeDone) {
-		// 누적 시간에 프레임 시간 추가
-		m_accumulatedTime += frameTime;
+	//if (!m_fadeDone) {
+	//	// 누적 시간에 프레임 시간 추가
+	//	m_accumulatedTime += frameTime;
 
-		// 페이드인 중이라면
-		if (m_accumulatedTime < m_fadeInTime) {
-			// 페이드 퍼센트를 진행률로 계속 업에디트
-			m_fadePercentage = m_accumulatedTime / m_fadeInTime;
-		}
-		else {
-			// 끝났으면 완료 설정
-			m_fadeDone = true;
-			m_fadePercentage = 1.0f;
-		}
-	}
+	//	// 페이드인 중이라면
+	//	if (m_accumulatedTime < m_fadeInTime) {
+	//		// 페이드 퍼센트를 진행률로 계속 업에디트
+	//		m_fadePercentage = m_accumulatedTime / m_fadeInTime;
+	//	}
+	//	else {
+	//		// 끝났으면 완료 설정
+	//		m_fadeDone = true;
+	//		m_fadePercentage = 1.0f;
+	//	}
+	//}
 
 	return true;
 }
 
 bool GraphicsClass::Render()
 {
-	if (m_fadeDone) {
-		// 백 버퍼의 장면 렌더링
-		if (!RenderScene())	return false;
-	}
-	else {
-		// 전체 장면을 먼저 텍스처로 렌더링
-		if (!RenderToTexture()) return false;
-		if (!RenderFadingScene()) return false;
-	}
+	//if (m_fadeDone) {
+	//	// 백 버퍼의 장면 렌더링
+	//	if (!RenderScene())	return false;
+	//}
+	//else {
+	//	// 전체 장면을 먼저 텍스처로 렌더링
+	//	if (!RenderToTexture()) return false;
+	//	if (!RenderFadingScene()) return false;
+	//}
+
+	if (!RenderRefractionToTexture()) return false;
+	if (!RenderReflectionToTexture()) return false;
+	if (!RenderWaterScene()) return false;
 
 	return true;
 }
 
+/*
 bool GraphicsClass::RenderToTexture()
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
@@ -486,7 +586,92 @@ bool GraphicsClass::RenderFadingScene()
 
 	return true;
 }
+*/
 
+bool GraphicsClass::RenderRefractionToTexture()
+{
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	XMFLOAT4 clipPlane = XMFLOAT4(0.0f, -1.0f, 0.0f, m_waterHeight + 0.1f);
+
+	m_RefractionTexture->SetRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView());
+	m_RefractionTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	m_Camera->Render();
+
+	worldMatrix = XMMatrixTranslation(0.0f, 2.0f, 0.0f);
+	m_BathModel->Render(m_Direct3D->GetDeviceContext());
+	if(!m_RefractionShader->Render(m_Direct3D->GetDeviceContext(), m_BathModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_BathModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), clipPlane))	return false;
+
+	// 렌더링 대상을 다시 원래 백버퍼로 설정
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	return true;
+}
+bool GraphicsClass::RenderReflectionToTexture()
+{
+	XMMATRIX worldMatrix, reflectionViewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	m_ReflectionTexture->SetRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView());
+	m_ReflectionTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	m_Camera->RenderReflection(m_waterHeight);
+	reflectionViewMatrix = m_Camera->GetReflectionViewMatrix();
+
+	worldMatrix = XMMatrixTranslation(0.0f, 6.0f, 8.0f);
+	m_WallModel->Render(m_Direct3D->GetDeviceContext());
+	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_WallModel->GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix, m_WallModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
+
+	// 렌더링 대상을 다시 원래 백버퍼로 설정
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	return true;
+}
+bool GraphicsClass::RenderWaterScene()
+{
+	// Scene을 그리기 위해 버퍼 삭제
+	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬 생성
+	m_Camera->Render();
+
+	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, reflectionMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	worldMatrix = XMMatrixTranslation(0.0f, 1.0f, 0.0f);
+	m_GroundModel->Render(m_Direct3D->GetDeviceContext());
+	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_GroundModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_GroundModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
+
+	worldMatrix = XMMatrixTranslation(0.0f, 6.0f, 8.0f);
+	m_WallModel->Render(m_Direct3D->GetDeviceContext());
+	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_WallModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_WallModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
+
+	worldMatrix = XMMatrixTranslation(0.0f, 2.0f, 0.0f);
+	m_BathModel->Render(m_Direct3D->GetDeviceContext());
+	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_BathModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_BathModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
+
+	reflectionMatrix = m_Camera->GetReflectionViewMatrix();
+	worldMatrix = XMMatrixTranslation(0.0f, m_waterHeight, 0.0f);
+	m_WaterModel->Render(m_Direct3D->GetDeviceContext());
+	if (!m_WaterShader->Render(m_Direct3D->GetDeviceContext(), m_WaterModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, reflectionMatrix, 
+		m_ReflectionTexture->GetShaderResourceView(), m_RefractionTexture->GetShaderResourceView(), m_WaterModel->GetTexture(),m_waterTranslation, 0.1f))	return false;
+
+	// 버퍼의 내용을 화면에 출력
+	m_Direct3D->EndScene();
+
+	return true;
+}
 
 /* ---------------------------------------- - 코드 정리--------------------------------------------
 

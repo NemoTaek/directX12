@@ -139,11 +139,15 @@
     <None Include="PixelShader.ps" />
     <None Include="Reflection.ps" />
     <None Include="Reflection.vs" />
+    <None Include="Refraction.ps" />
+    <None Include="Refraction.vs" />
     <None Include="texture.ps" />
     <None Include="texture.vs" />
     <None Include="Transparent.ps" />
     <None Include="Transparent.vs" />
     <None Include="VertexShader.vs" />
+    <None Include="Water.ps" />
+    <None Include="Water.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitmapClass.cpp" />
@@ -166,6 +170,7 @@
     <ClCompile Include="ModelListClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
     <ClCompile Include="ReflectionShaderClass.cpp" />
+    <ClCompile Include="RefractionShaderClass.cpp" />
     <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
@@ -197,6 +202,7 @@
     <ClInclude Include="ModelListClass.h" />
     <ClInclude Include="PositionClass.h" />
     <ClInclude Include="ReflectionShaderClass.h" />
+    <ClInclude Include="RefractionShaderClass.h" />
     <ClInclude Include="RenderTextureClass.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />

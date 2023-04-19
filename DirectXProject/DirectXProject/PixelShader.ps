@@ -3,7 +3,7 @@ SamplerState SampleType;	// 텍스쳐 자원에서 표본을 추출할 때 어�
 
 cbuffer LightBuffer
 {
-	// float4 ambientColor;	// 주변광
+	float4 ambientColor;	// 주변광
 	float4 diffuseColor;	// 분산조명
 	float3 lightDirection;	// 빛 방향
 	// float specularPower;	// 반사 강도
@@ -32,7 +32,7 @@ float4 PS(PixelInputType input) : SV_TARGET
 	textureColor = shaderTexture.Sample(SampleType, input.tex);
 
 	// 기본 출력 색을 주변광으로 설정
-	// color = ambientColor;
+	color = ambientColor;
 
 	// 반영광 색 초기화
 	// specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -65,7 +65,10 @@ float4 PS(PixelInputType input) : SV_TARGET
 	color = saturate(color + specular);
 	*/
 
-	color = saturate(diffuseColor * lightIntensity);
+	if(lightIntensity > 0.0f) {
+		color += (diffuseColor * lightIntensity);
+	}
+	color = saturate(color);
 	color = color * textureColor;
 
 	return color;

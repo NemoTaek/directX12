@@ -28,7 +28,7 @@ float4 ReflectionPixelShader(PixelInputType input) : SV_TARGET
 
 	// 블렌드 효과를 위해 두 텍스처 간에 선형 보간을 수행
 	// lerp(x, y, s): x*(1-s) + y*s 수식을 기반으로 계산
-	color = lerp(textureColor, reflectionColor, 0.15f);
+	color = lerp(textureColor, reflectionColor, 1.0f);
 
 	return color;
 }

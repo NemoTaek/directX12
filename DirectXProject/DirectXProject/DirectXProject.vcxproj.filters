@@ -31,6 +31,10 @@
     <None Include="Reflection.ps" />
     <None Include="Fade.vs" />
     <None Include="Fade.ps" />
+    <None Include="Water.vs" />
+    <None Include="Water.ps" />
+    <None Include="Refraction.vs" />
+    <None Include="Refraction.ps" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -118,6 +122,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="BitmapClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="RefractionShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -210,6 +217,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="BitmapClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="RefractionShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

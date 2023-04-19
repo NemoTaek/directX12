@@ -154,6 +154,13 @@ bool Model3DClass::LoadTextures(ID3D11Device* device, const WCHAR* filename1, co
 
 void Model3DClass::ReleaseTextures()
 {
+	if (m_texture)
+	{
+		m_texture->Shutdown();
+		delete m_texture;
+		m_texture = 0;
+	}
+
 	// 택스쳐 객체 릴리즈
 	if (m_textureArray)
 	{

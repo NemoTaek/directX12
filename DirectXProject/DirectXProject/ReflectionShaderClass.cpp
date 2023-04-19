@@ -15,7 +15,7 @@ bool ReflectionShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	//WCHAR ps[] = L"PS.hlsl";
 	//result = InitializeShader(device, hwnd, vs, ps);
 	//return result;
-	return InitializeShader(device, hwnd, L"./Reflection.vs", L"./Reflection.ps");
+	return InitializeShader(device, hwnd, L"./Water.vs", L"./Water.ps");
 }
 
 void ReflectionShaderClass::Shutdown()
@@ -24,11 +24,11 @@ void ReflectionShaderClass::Shutdown()
 }
 
 // 마지막 매개변수를 단일 텍스쳐 일때는 texture, 다중 텍스쳐 일때는 textureArray
-bool ReflectionShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* reflectionTexture, XMMATRIX reflectionMatrix)
+bool ReflectionShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, XMMATRIX reflectionMatrix, 
+	ID3D11ShaderResourceView* reflectionTexture, ID3D11ShaderResourceView* refractionTexture, ID3D11ShaderResourceView* normalTexture, float waterTranslation, float reflectRefractScale)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, reflectionTexture, reflectionMatrix))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, reflectionMatrix, reflectionTexture, refractionTexture, normalTexture, waterTranslation, reflectRefractScale))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -41,7 +41,7 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 
 	// 정점셰이더 코드 컴파일
 	ID3D10Blob* vertexShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "ReflectionVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
+	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "WaterVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, vsFilename); }
 		else { MessageBox(hwnd, vsFilename, L"Missing Vertex Shader File", MB_OK); }
 		return false;
@@ -49,7 +49,7 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 
 	// 픽셀셰이더 코드 컴파일
 	ID3D10Blob* pixelShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "ReflectionPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
+	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "WaterPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, psFilename); }
 		else { MessageBox(hwnd, psFilename, L"Missing Pixel Shader File", MB_OK); }
 		return false;
@@ -125,7 +125,7 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 	// 텍스쳐 샘플러 상태 생성
 	if (FAILED(device->CreateSamplerState(&samplerDesc, &m_sampleState)))	return false;
 
-	// 텍스처 이동 버퍼 구조체 설정
+	// 반사 버퍼 구조체 설정
 	D3D11_BUFFER_DESC reflectionBufferDesc;
 	reflectionBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	reflectionBufferDesc.ByteWidth = sizeof(ReflectionBufferType);
@@ -134,15 +134,33 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 	reflectionBufferDesc.MiscFlags = 0;
 	reflectionBufferDesc.StructureByteStride = 0;
 
-	// 텍스처 이동 버퍼 생성
+	// 반사 버퍼 생성
 	if (FAILED(device->CreateBuffer(&reflectionBufferDesc, NULL, &m_reflectionBuffer)))	return false;
+
+	// 물 버퍼 구조체 설정
+	D3D11_BUFFER_DESC waterBufferDesc;
+	waterBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	waterBufferDesc.ByteWidth = sizeof(WaterBufferType);
+	waterBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	waterBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	waterBufferDesc.MiscFlags = 0;
+	waterBufferDesc.StructureByteStride = 0;
+
+	// 물 버퍼 생성
+	if (FAILED(device->CreateBuffer(&waterBufferDesc, NULL, &m_waterBuffer)))	return false;
 
 	return true;
 }
 
 void ReflectionShaderClass::ShutdownShader()
 {
-	// 텍스처 이동 버퍼 해제
+	// 물 버퍼 해제
+	if (m_waterBuffer) {
+		m_waterBuffer->Release();
+		m_waterBuffer = 0;
+	}
+
+	// 반사 버퍼 해제
 	if (m_reflectionBuffer) {
 		m_reflectionBuffer->Release();
 		m_reflectionBuffer = 0;
@@ -212,13 +230,14 @@ void ReflectionShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, H
 	MessageBox(hwnd, L"Error compiling shader.", shaderFilename, MB_OK);
 }
 
-bool ReflectionShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* reflectionTexture, XMMATRIX reflectionMatrix)
+bool ReflectionShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, XMMATRIX reflectionMatrix,
+	ID3D11ShaderResourceView* reflectionTexture, ID3D11ShaderResourceView* refractionTexture, ID3D11ShaderResourceView* normalTexture, float waterTranslation, float reflectRefractScale)
 {
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	viewMatrix = XMMatrixTranspose(viewMatrix);
 	projectionMatrix = XMMatrixTranspose(projectionMatrix);
+	reflectionMatrix = XMMatrixTranspose(reflectionMatrix);
 
 	// 상수 버퍼 자원에 자료를 올릴 수 있도록 포인터 생성
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -246,13 +265,27 @@ bool ReflectionShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceConte
 	bufferNumber = 1;
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_reflectionBuffer);
 
-	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
-	// 2번째 인자가 리소스 수라서 블렌딩 하면 블렌딩 할 textureArray 수를 적는다
-	//deviceContext->PSSetShaderResources(0, 3, textureArray);
-	deviceContext->PSSetShaderResources(0, 1, &texture);
-
 	// 반사 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(1, 1, &reflectionTexture);
+	deviceContext->PSSetShaderResources(0, 1, &reflectionTexture);
+
+	// 굴절 텍스쳐 리소스 설정
+	deviceContext->PSSetShaderResources(1, 1, &refractionTexture);
+
+	// 노말 텍스쳐 리소스 설정
+	deviceContext->PSSetShaderResources(2, 1, &normalTexture);
+
+	if (FAILED(deviceContext->Map(m_waterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	WaterBufferType* waterPtr = (WaterBufferType*)mappedResource.pData;
+
+	// 상수버퍼에 클리핑 평면 복사
+	waterPtr->waterTranslation = waterTranslation;
+	waterPtr->reflectRefractScale = reflectRefractScale;
+	waterPtr->padding = XMFLOAT2(0.0f, 0.0f);
+
+	// 상수버퍼 메모리 해제
+	deviceContext->Unmap(m_waterBuffer, 0);
+	bufferNumber = 0;
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_waterBuffer);
 
 	return true;
 }
