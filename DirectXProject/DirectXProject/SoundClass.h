@@ -31,12 +31,14 @@ public:
 private:
 	bool InitializeDirectSound(HWND);
 	void ShutdownDirectSound();
-	bool LoadWaveFile(char*, IDirectSoundBuffer8**);
-	void ShutdownWaveFile(IDirectSoundBuffer8**);
+	bool LoadWaveFile(const char*, IDirectSoundBuffer8**, IDirectSound3DBuffer8**);
+	void ShutdownWaveFile(IDirectSoundBuffer8**, IDirectSound3DBuffer8**);
 	bool PlayWaveFile();
 
 private:
 	IDirectSound8* m_directSound = nullptr;
 	IDirectSoundBuffer* m_primaryBuffer = nullptr;
 	IDirectSoundBuffer8* m_secondaryBuffer1 = nullptr;
+	IDirectSound3DListener8* m_listener = nullptr;
+	IDirectSound3DBuffer8* m_secondary3DBuffer1 = nullptr;
 };

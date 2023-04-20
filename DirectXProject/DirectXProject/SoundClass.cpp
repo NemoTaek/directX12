@@ -12,7 +12,7 @@ bool SoundClass::Initialize(HWND hwnd)
 	if (!InitializeDirectSound(hwnd))	return false;
 
 	// wav 오디오파일 2차 버퍼 초기화
-	if (!LoadWaveFile("./data/sound01.wav", &m_secondaryBuffer1)) {
+	if (!LoadWaveFile("./data/sound02.wav", &m_secondaryBuffer1, &m_secondary3DBuffer1)) {
 		MessageBox(hwnd, L"Could not initialize the sound object", L"Error", MB_OK);
 		return false;
 	}
@@ -23,7 +23,7 @@ bool SoundClass::Initialize(HWND hwnd)
 void SoundClass::Shutdown()
 {
 	// 2차버퍼 해제
-	ShutdownWaveFile(&m_secondaryBuffer1);
+	ShutdownWaveFile(&m_secondaryBuffer1, &m_secondary3DBuffer1);
 
 	// direct sound 1차 버퍼 해제
 	ShutdownDirectSound();
@@ -40,7 +40,7 @@ bool SoundClass::InitializeDirectSound(HWND hwnd)
 	// 1차 버퍼 서술자 설정
 	DSBUFFERDESC bufferDesc;
 	bufferDesc.dwSize = sizeof(DSBUFFERDESC);
-	bufferDesc.dwFlags = DSBCAPS_PRIMARYBUFFER | DSBCAPS_CTRLVOLUME;
+	bufferDesc.dwFlags = DSBCAPS_PRIMARYBUFFER | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRL3D;	// DSBCAPS_CTRL3D 마스크를 사용하여 이 음향 효과가 3D 기능을 가짐을 알려준다
 	bufferDesc.dwBufferBytes = 0;
 	bufferDesc.dwReserved = 0;
 	bufferDesc.lpwfxFormat = NULL;
@@ -62,11 +62,23 @@ bool SoundClass::InitializeDirectSound(HWND hwnd)
 
 	if (FAILED(m_primaryBuffer->SetFormat(&waveFormat)))	return false;
 
+	// 리스너 인터페이스 설정
+	if (FAILED(m_primaryBuffer->QueryInterface(IID_IDirectSound3DListener8, (LPVOID*)&m_listener)))	return false;
+
+	// 리스너의 초기 위치를 장면의 중간에 설정
+	m_listener->SetPosition(0.0f, 0.0f, 0.0f, DS3D_IMMEDIATE);
+
 	return true;
 }
 
 void SoundClass::ShutdownDirectSound()
 {
+	// 리스너 인터페이스 해제
+	if (m_listener) {
+		m_listener->Release();
+		m_listener = 0;
+	}
+
 	// 1차 사운드 버퍼 포인터 해제
 	if (m_primaryBuffer) {
 		m_primaryBuffer->Release();
@@ -80,7 +92,7 @@ void SoundClass::ShutdownDirectSound()
 	}
 }
 
-bool SoundClass::LoadWaveFile(char* filename, IDirectSoundBuffer8** secondaryBuffer)
+bool SoundClass::LoadWaveFile(const char* filename, IDirectSoundBuffer8** secondaryBuffer, IDirectSound3DBuffer** secondary3DBuffer)
 {
 	FILE* filePtr = nullptr;
 	int error = fopen_s(&filePtr, filename, "rb");
@@ -119,7 +131,8 @@ bool SoundClass::LoadWaveFile(char* filename, IDirectSoundBuffer8** secondaryBuf
 	}
 
 	// 스테레오 포맷인지 체크
-	if (waveFileHeader.numChannels != 2)
+	// 3D 음향 파일은 반드시 단일 채널이어야함
+	if (waveFileHeader.numChannels != 1)
 	{
 		return false;
 	}
@@ -144,18 +157,19 @@ bool SoundClass::LoadWaveFile(char* filename, IDirectSoundBuffer8** secondaryBuf
 	}
 
 	// 2차 사운드 버퍼 포맷 세팅
+	// 3D 음향 파일은 반드시 단일 채널이어야함
 	WAVEFORMATEX waveFormat;
 	waveFormat.wFormatTag = WAVE_FORMAT_PCM;
 	waveFormat.nSamplesPerSec = 44100;
 	waveFormat.wBitsPerSample = 16;
-	waveFormat.nChannels = 2;
+	waveFormat.nChannels = 1;
 	waveFormat.nBlockAlign = (waveFormat.wBitsPerSample / 8) * waveFormat.nChannels;
 	waveFormat.nAvgBytesPerSec = waveFormat.nSamplesPerSec * waveFormat.nBlockAlign;
 	waveFormat.cbSize = 0;
 
 	DSBUFFERDESC bufferDesc;
 	bufferDesc.dwSize = sizeof(DSBUFFERDESC);
-	bufferDesc.dwFlags = DSBCAPS_CTRLVOLUME;
+	bufferDesc.dwFlags = DSBCAPS_CTRLVOLUME | DSBCAPS_CTRL3D;	// DSBCAPS_CTRL3D 마스크를 사용하여 이 음향 효과가 3D 기능을 가짐을 알려준다
 	bufferDesc.dwBufferBytes = waveFileHeader.dataSize;
 	bufferDesc.dwReserved = 0;
 	bufferDesc.lpwfxFormat = &waveFormat;
@@ -207,11 +221,19 @@ bool SoundClass::LoadWaveFile(char* filename, IDirectSoundBuffer8** secondaryBuf
 	delete[] waveData;
 	waveData = 0;
 
+	// 2차 사운드 버퍼에 3D 인터페이스 로드
+	if (FAILED((*secondaryBuffer)->QueryInterface(IID_IDirectSound3DBuffer8, (void**)&*secondary3DBuffer)))	return false;
+
 	return true;
 }
 
-void SoundClass::ShutdownWaveFile(IDirectSoundBuffer8** secondaryBuffer)
+void SoundClass::ShutdownWaveFile(IDirectSoundBuffer8** secondaryBuffer, IDirectSound3DBuffer8** secondary3DBuffer)
 {
+	if (*secondary3DBuffer) {
+		(*secondary3DBuffer)->Release();
+		*secondary3DBuffer = nullptr;
+	}
+
 	if (*secondaryBuffer) {
 		(*secondaryBuffer)->Release();
 		*secondaryBuffer = nullptr;
@@ -220,11 +242,19 @@ void SoundClass::ShutdownWaveFile(IDirectSoundBuffer8** secondaryBuffer)
 
 bool SoundClass::PlayWaveFile()
 {
+	// 사운드를 배치 할 3D 위치 설정
+	float positionX = 2.0f;
+	float positionY = 0.0f;
+	float positionZ = 2.0f;
+
 	// 사운드 버퍼의 시작지점 세팅
 	if (FAILED(m_secondaryBuffer1->SetCurrentPosition(0)))	return false;
 
 	// 버퍼의 볼륨 100%로 세팅
 	if (FAILED(m_secondaryBuffer1->SetVolume(DSBVOLUME_MAX)))	return false;
+
+	// 사운드의 3D 위치 설정
+	m_secondary3DBuffer1->SetPosition(positionX, positionY, positionZ, DS3D_IMMEDIATE);
 
 	// 2차 사운드 버퍼의 내용 재생
 	if (FAILED(m_secondaryBuffer1->Play(0, 0, 0)))	return false;

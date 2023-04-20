@@ -15,7 +15,7 @@ bool LightShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	//WCHAR ps[] = L"PS.hlsl";
 	//result = InitializeShader(device, hwnd, vs, ps);
 	//return result;
-	return InitializeShader(device, hwnd, L"./VertexShader.vs", L"./PixelShader.ps");
+	return InitializeShader(device, hwnd, L"./Light.vs", L"./Light.ps");
 }
 
 void LightShaderClass::Shutdown()
@@ -24,10 +24,10 @@ void LightShaderClass::Shutdown()
 }
 
 bool LightShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, 
-	XMFLOAT3 lightDirection, XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor)
+	XMFLOAT4 diffuseColor[], XMFLOAT4 lightPosition[])
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, lightDirection, ambientColor, diffuseColor))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, diffuseColor, lightPosition))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -41,7 +41,7 @@ bool LightShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const W
 	// 정점셰이더 코드 컴파일
 	// D3DCompileFromFile 의 4번째 매개변수(pEntryPoint)가 해당 셰이더 파일의 진입점이 같아야 통과함. 다르면 그냥 무조건 오류띄워버림
 	ID3D10Blob* vertexShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
+	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, vsFilename); }
 		else { MessageBox(hwnd, vsFilename, L"Missing Vertex Shader File", MB_OK); }
 		return false;
@@ -49,7 +49,7 @@ bool LightShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const W
 
 	// 픽셀셰이더 코드 컴파일
 	ID3D10Blob* pixelShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
+	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, psFilename); }
 		else { MessageBox(hwnd, psFilename, L"Missing Pixel Shader File", MB_OK); }
 		return false;
@@ -103,16 +103,16 @@ bool LightShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const W
 
 	// 정점셰이더에 있는 행렬 상수버퍼의 서술자 작성
 	// 상수버퍼는 셰이더 프로그램에서 참조하는 자료를 담는 GPU 자원이다.
-	D3D11_BUFFER_DESC matrixBufferDesc;
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC constantBufferDesc;
+	constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	constantBufferDesc.ByteWidth = sizeof(ConstantBufferType);
+	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	constantBufferDesc.MiscFlags = 0;
+	constantBufferDesc.StructureByteStride = 0;
 
 	// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
-	if (FAILED(device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer)))	return false;
+	if (FAILED(device->CreateBuffer(&constantBufferDesc, NULL, &m_constantBuffer)))	return false;
 
 	// 텍스쳐 샘플러 상태 서술자 설정
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -133,29 +133,29 @@ bool LightShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const W
 	// 텍스쳐 샘플러 상태 생성
 	if (FAILED(device->CreateSamplerState(&samplerDesc, &m_sampleState)))	return false;
 
-	// 정점셰이더에 있는 카메라 동적 상수 버퍼 서술자 설정
-	//D3D11_BUFFER_DESC cameraBufferDesc;
-	//cameraBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	//cameraBufferDesc.ByteWidth = sizeof(CameraBufferType);
-	//cameraBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	//cameraBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	//cameraBufferDesc.MiscFlags = 0;
-	//cameraBufferDesc.StructureByteStride = 0;
+	// 픽셀셰이더에 있는 광원 동적 상수 버퍼 서술자 설정
+	D3D11_BUFFER_DESC diffuseColorBufferDesc;
+	diffuseColorBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	diffuseColorBufferDesc.ByteWidth = sizeof(LightColorBufferType);
+	diffuseColorBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	diffuseColorBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	diffuseColorBufferDesc.MiscFlags = 0;
+	diffuseColorBufferDesc.StructureByteStride = 0;
 
 	// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
-	//if (FAILED(device->CreateBuffer(&cameraBufferDesc, NULL, &m_cameraBuffer)))	return false;
+	if (FAILED(device->CreateBuffer(&diffuseColorBufferDesc, NULL, &m_diffuseColorBuffer)))	return false;
 
 	// 픽셀셰이더에 있는 광원 동적 상수 버퍼 서술자 설정
-	D3D11_BUFFER_DESC lightBufferDesc;
-	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
-	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	lightBufferDesc.MiscFlags = 0;
-	lightBufferDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC lightPositionBufferDesc;
+	lightPositionBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightPositionBufferDesc.ByteWidth = sizeof(LightPositionBufferType);
+	lightPositionBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightPositionBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightPositionBufferDesc.MiscFlags = 0;
+	lightPositionBufferDesc.StructureByteStride = 0;
 
 	// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
-	if (FAILED(device->CreateBuffer(&lightBufferDesc, NULL, &m_lightBuffer)))	return false;
+	if (FAILED(device->CreateBuffer(&lightPositionBufferDesc, NULL, &m_lightPositionBuffer)))	return false;
 
 	return true;
 }
@@ -163,16 +163,16 @@ bool LightShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const W
 void LightShaderClass::ShutdownShader()
 {
 	// 광원 상수버퍼 해제
-	if (m_lightBuffer) {
-		m_lightBuffer->Release();
-		m_lightBuffer = 0;
+	if (m_lightPositionBuffer) {
+		m_lightPositionBuffer->Release();
+		m_lightPositionBuffer = 0;
 	}
 
-	// 카메라 상수버퍼 해제
-	//if (m_cameraBuffer) {
-	//	m_cameraBuffer->Release();
-	//	m_cameraBuffer = 0;
-	//}
+	// 광원 상수버퍼 해제
+	if (m_diffuseColorBuffer) {
+		m_diffuseColorBuffer->Release();
+		m_diffuseColorBuffer = 0;
+	}
 
 	// 샘플러 상태 해제
 	if (m_sampleState) {
@@ -181,9 +181,9 @@ void LightShaderClass::ShutdownShader()
 	}
 
 	// 행렬 상수버퍼 해제
-	if (m_matrixBuffer) {
-		m_matrixBuffer->Release();
-		m_matrixBuffer = 0;
+	if (m_constantBuffer) {
+		m_constantBuffer->Release();
+		m_constantBuffer = 0;
 	}
 
 	// 레이아웃 해제
@@ -239,11 +239,8 @@ void LightShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 }
 
 bool LightShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, 
-	XMFLOAT3 lightDirection, XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor)
+	XMFLOAT4 diffuseColor[], XMFLOAT4 lightPosition[])
 {
-	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(0, 1, &texture);
-
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	viewMatrix = XMMatrixTranspose(viewMatrix);
@@ -251,47 +248,48 @@ bool LightShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 
 	// 상수 버퍼 자원에 자료를 올릴 수 있도록 포인터 생성
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	unsigned int bufferNumber;
-	MatrixBufferType* matrixDataPtr;
-	LightBufferType* lightDataPtr;
-
-	// 상수버퍼 매핑
-	if (FAILED(deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	matrixDataPtr = (MatrixBufferType*)mappedResource.pData;
+	if (FAILED(deviceContext->Map(m_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	ConstantBufferType* matrixPtr = (ConstantBufferType*)mappedResource.pData;
 
 	// 상수버퍼에 행렬 복사
-	matrixDataPtr->world = worldMatrix;
-	matrixDataPtr->view = viewMatrix;
-	matrixDataPtr->projection = projectionMatrix;
+	matrixPtr->world = worldMatrix;
+	matrixPtr->view = viewMatrix;
+	matrixPtr->projection = projectionMatrix;
 
 	// 상수버퍼 메모리 해제
-	deviceContext->Unmap(m_matrixBuffer, 0);
+	deviceContext->Unmap(m_constantBuffer, 0);
+	unsigned bufferNumber = 0;
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_constantBuffer);
+
+	if (FAILED(deviceContext->Map(m_lightPositionBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	LightPositionBufferType* lightPositionPtr = (LightPositionBufferType*)mappedResource.pData;
+
+	lightPositionPtr->lightPosition[0] = lightPosition[0];
+	lightPositionPtr->lightPosition[1] = lightPosition[1];
+	lightPositionPtr->lightPosition[2] = lightPosition[2];
+	lightPositionPtr->lightPosition[3] = lightPosition[3];
+	lightPositionPtr->lightPosition[4] = lightPosition[4];
+
+	deviceContext->Unmap(m_lightPositionBuffer, 0);
+	bufferNumber = 1;
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_lightPositionBuffer);
+
+	if (FAILED(deviceContext->Map(m_diffuseColorBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	LightColorBufferType* diffuseColorPtr = (LightColorBufferType*)mappedResource.pData;
+
+	diffuseColorPtr->diffuseColor[0] = diffuseColor[0];
+	diffuseColorPtr->diffuseColor[1] = diffuseColor[1];
+	diffuseColorPtr->diffuseColor[2] = diffuseColor[2];
+	diffuseColorPtr->diffuseColor[3] = diffuseColor[3];
+	diffuseColorPtr->diffuseColor[4] = diffuseColor[4];
+
+	deviceContext->Unmap(m_diffuseColorBuffer, 0);
 	bufferNumber = 0;
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_diffuseColorBuffer);
 
-	//if (FAILED(deviceContext->Map(m_cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	//cameraDataPtr = (CameraBufferType*)mappedResource.pData;
-
-	// 상수버퍼에 행렬 복사
-	//cameraDataPtr->cameraPosition = cameraPosition;
-	//cameraDataPtr->padding = 0.0f;
-
-	//deviceContext->Unmap(m_cameraBuffer, 0);
-	//bufferNumber = 1;	// 카메라 버퍼는 정점셰이더에서 2번째 버퍼이기 때문에 1로 설정
-	//deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_cameraBuffer);
-
-	if (FAILED(deviceContext->Map(m_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	lightDataPtr = (LightBufferType*)mappedResource.pData;
-
-	lightDataPtr->ambientColor = ambientColor;
-	lightDataPtr->diffuseColor = diffuseColor;
-	lightDataPtr->lightDirection = lightDirection;
-	//lightDataPtr->specularColor = specularColor;
-	//lightDataPtr->specularPower = specularPower;
-
-	deviceContext->Unmap(m_lightBuffer, 0);
-	bufferNumber = 0;
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
+	
+	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
+	deviceContext->PSSetShaderResources(0, 1, &texture);
 
 	return true;
 }

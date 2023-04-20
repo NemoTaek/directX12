@@ -10,18 +10,19 @@
 #include "Model3DClass.h"
 #include "LightShaderClass.h"
 #include "LightClass.h"
+//#include "ExampleWaterShaderClass.h"
 //#include "BitmapClass.h"
 //#include "TextClass.h"
 //#include "FrustumClass.h"
 //#include "ModelListClass.h"
 //#include "BumpMapShaderClass.h"
-#include "RenderTextureClass.h"
+//#include "RenderTextureClass.h"
 //#include "DebugWindowClass.h"
 //#include "FogShaderClass.h"
 //#include "TransparentShaderClass.h"
-#include "ReflectionShaderClass.h"
+//#include "ReflectionShaderClass.h"
 //#include "FadeShaderClass.h"
-#include "RefractionShaderClass.h"
+//#include "RefractionShaderClass.h"
 
 #include <iostream>
 using namespace std;
@@ -91,7 +92,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	m_Model3D = new Model3DClass;
 	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/checkboard.dds")) {
+	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/plane01.txt", L"./Textures/stone01.dds")) {
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
@@ -127,13 +128,34 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	m_Light = new LightClass;
-	if (!m_Light) { return false; }
-	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
-	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(0.0f, -1.0f, 0.5f);
+	//m_Light = new LightClass;
+	//if (!m_Light) { return false; }
+	//m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
+	//m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//m_Light->SetDirection(0.0f, -1.0f, 0.5f);
 	//m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//m_Light->SetSpecularPower(16.0f);
+
+	m_Light1 = new LightClass;
+	if (!m_Light1) { return false; }
+	m_Light1->SetDiffuseColor(1.0f, 0.0f, 0.0f, 1.0f);
+	m_Light1->SetPosition(-3.0f, 1.0f, 3.0f);
+	m_Light2 = new LightClass;
+	if (!m_Light2) { return false; }
+	m_Light2->SetDiffuseColor(0.0f, 1.0f, 0.0f, 1.0f);
+	m_Light2->SetPosition(3.0f, 1.0f, 3.0f);
+	m_Light3 = new LightClass;
+	if (!m_Light3) { return false; }
+	m_Light3->SetDiffuseColor(0.0f, 0.0f, 1.0f, 1.0f);
+	m_Light3->SetPosition(-3.0f, 1.0f, -3.0f);
+	m_Light4 = new LightClass;
+	if (!m_Light4) { return false; }
+	m_Light4->SetDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
+	m_Light4->SetPosition(3.0f, 1.0f, -3.0f);
+	m_Light5 = new LightClass;
+	if (!m_Light5) { return false; }
+	m_Light5->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light5->SetPosition(0.0f, 1.0f, 0.0f);
 
 	// 2D 모델 객체 생성
 	//m_Bitmap = new BitmapClass;
@@ -204,6 +226,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
+	/*
 	// 물 효과를 위한 클래스
 	m_GroundModel = new Model3DClass;
 	if (!m_GroundModel->Initialize(m_Direct3D->GetDevice(), L"./data/ground.txt", L"./Textures/ground01.dds")) {
@@ -223,6 +246,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_WaterModel = new Model3DClass;
 	if (!m_WaterModel->Initialize(m_Direct3D->GetDevice(), L"./data/water.txt", L"./Textures/water01.dds")) {
 		MessageBox(hwnd, L"Could not initialize the water model object", L"Error", MB_OK);
+		return false;
+	}
+	m_ExampleWaterShader = new ExampleWaterShaderClass;
+	if (!m_ExampleWaterShader) { return false; }
+	if (!m_ExampleWaterShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the shader object", L"Error", MB_OK);
 		return false;
 	}
 	m_ReflectionTexture = new RenderTextureClass;
@@ -251,12 +280,14 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 	m_waterHeight = 2.75f;
 	m_waterTranslation = 0.0f;
+	*/
 
 	return true;
 }
 
 void GraphicsClass::Shutdown()
 {
+	/*
 	if (m_RefractionShader) {
 		m_RefractionShader->Shutdown();
 		delete m_RefractionShader;
@@ -276,6 +307,11 @@ void GraphicsClass::Shutdown()
 		m_ReflectionTexture->Shutdown();
 		delete m_ReflectionTexture;
 		m_ReflectionTexture = 0;
+	}
+	if (m_ExampleWaterShader) {
+		m_ExampleWaterShader->Shutdown();
+		delete m_ExampleWaterShader;
+		m_ExampleWaterShader = 0;
 	}
 	if (m_WaterModel) {
 		m_WaterModel->Shutdown();
@@ -297,6 +333,7 @@ void GraphicsClass::Shutdown()
 		delete m_GroundModel;
 		m_GroundModel = 0;
 	}
+	*/
 
 	//if (m_FadeShader) {
 	//	m_FadeShader->Shutdown();
@@ -356,11 +393,36 @@ void GraphicsClass::Shutdown()
 	//}
 
 	// light 객체 반환
-	if (m_Light)
+	if (m_Light5)
 	{
-		delete m_Light;
-		m_Light = 0;
+		delete m_Light5;
+		m_Light5 = 0;
 	}
+	if (m_Light4)
+	{
+		delete m_Light4;
+		m_Light4 = 0;
+	}
+	if (m_Light3)
+	{
+		delete m_Light3;
+		m_Light3 = 0;
+	}
+	if (m_Light2)
+	{
+		delete m_Light2;
+		m_Light2 = 0;
+	}
+	if (m_Light1)
+	{
+		delete m_Light1;
+		m_Light1 = 0;
+	}
+	//if (m_Light)
+	//{
+	//	delete m_Light;
+	//	m_Light = 0;
+	//}
 
 	// 셰이더 객체 반환
 	if (m_LightShader) {
@@ -424,10 +486,12 @@ bool GraphicsClass::Frame()
 
 	//m_Camera->SetRotation(0.0f, rotationY, 0.0f);
 
-	m_waterTranslation += 0.001f;
-	if (m_waterTranslation > 1.0f)	m_waterTranslation -= 1.0f;
-	m_Camera->SetPosition(-11.0f, 6.0f, -10.0f);
-	m_Camera->SetRotation(0.0f, 45.0f, 0.0f);
+	//m_waterTranslation += 0.001f;
+	//if (m_waterTranslation > 1.0f)	m_waterTranslation -= 1.0f;
+	//m_Camera->SetPosition(-11.0f, 6.0f, -10.0f);
+	//m_Camera->SetRotation(0.0f, 45.0f, 0.0f);
+
+	m_Camera->SetPosition(0.0f, 2.0f, -12.0f);
 
 	return true;
 }
@@ -464,9 +528,12 @@ bool GraphicsClass::Render()
 	//	if (!RenderFadingScene()) return false;
 	//}
 
-	if (!RenderRefractionToTexture()) return false;
-	if (!RenderReflectionToTexture()) return false;
-	if (!RenderWaterScene()) return false;
+	//if (!RenderRefractionToTexture()) return false;
+	//if (!RenderReflectionToTexture()) return false;
+	//if (!RenderWaterScene()) return false;
+
+	// 백 버퍼의 장면 렌더링
+	if (!RenderScene())	return false;
 
 	return true;
 }
@@ -515,15 +582,10 @@ bool GraphicsClass::RenderToTexture()
 
 	return true;
 }
+*/
 
 bool GraphicsClass::RenderScene()
 {
-	// Scene을 그리기 위해 버퍼 삭제
-	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
-
-	// 카메라의 위치에 따라 뷰 행렬 생성
-	m_Camera->Render();
-
 	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	m_Direct3D->GetWorldMatrix(worldMatrix);
@@ -531,24 +593,29 @@ bool GraphicsClass::RenderScene()
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
-	// 모델 회전용 코드
-	static float rotation = 0.0f;
+	XMFLOAT4 diffuseColor[5];
+	XMFLOAT4 lightPosition[5];
 
-	// 각 프레임의 회전을 업데이트
-	rotation += (float)XM_PI * 0.0025f;
-	if (rotation > 360.0f)	rotation -= 360.0f;
+	diffuseColor[0] = m_Light1->GetDiffuseColor();
+	diffuseColor[1] = m_Light2->GetDiffuseColor();
+	diffuseColor[2] = m_Light3->GetDiffuseColor();
+	diffuseColor[3] = m_Light4->GetDiffuseColor();
+	diffuseColor[4] = m_Light5->GetDiffuseColor();
+	lightPosition[0] = m_Light1->GetPosition();
+	lightPosition[1] = m_Light2->GetPosition();
+	lightPosition[2] = m_Light3->GetPosition();
+	lightPosition[3] = m_Light4->GetPosition();
+	lightPosition[4] = m_Light5->GetPosition();
 
-	// 모델이 회전할 수 있도록 회전 값으로 세계 행렬 세팅
-	worldMatrix = XMMatrixRotationY(rotation);
+	// Scene을 그리기 위해 버퍼 삭제
+	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-	// 텍스처 이동 위치 설정
-	static float textureTranslation = 0.0f;
-	textureTranslation += 0.005f;
-	if (textureTranslation > 1.0f) textureTranslation -= 1.0f;
+	// 카메라의 위치에 따라 뷰 행렬 생성
+	m_Camera->Render();
 
 	// 텍스쳐 셰이더를 이용하여 모델 렌더링
 	m_Model3D->Render(m_Direct3D->GetDeviceContext());
-	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(), textureTranslation))	return false;
+	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(), diffuseColor, lightPosition))	return false;
 
 	// 버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();
@@ -556,6 +623,7 @@ bool GraphicsClass::RenderScene()
 	return true;
 }
 
+/*
 bool GraphicsClass::RenderFadingScene()
 {
 	// Scene을 그리기 위해 버퍼 삭제
@@ -588,6 +656,7 @@ bool GraphicsClass::RenderFadingScene()
 }
 */
 
+/*
 bool GraphicsClass::RenderRefractionToTexture()
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
@@ -627,7 +696,7 @@ bool GraphicsClass::RenderReflectionToTexture()
 
 	worldMatrix = XMMatrixTranslation(0.0f, 6.0f, 8.0f);
 	m_WallModel->Render(m_Direct3D->GetDeviceContext());
-	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_WallModel->GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix, m_WallModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
+	if (!m_ExampleWaterShader->Render(m_Direct3D->GetDeviceContext(), m_WallModel->GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix, m_WallModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
 
 	// 렌더링 대상을 다시 원래 백버퍼로 설정
 	m_Direct3D->SetBackBufferRenderTarget();
@@ -651,15 +720,15 @@ bool GraphicsClass::RenderWaterScene()
 
 	worldMatrix = XMMatrixTranslation(0.0f, 1.0f, 0.0f);
 	m_GroundModel->Render(m_Direct3D->GetDeviceContext());
-	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_GroundModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_GroundModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
+	if (!m_ExampleWaterShader->Render(m_Direct3D->GetDeviceContext(), m_GroundModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_GroundModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
 
 	worldMatrix = XMMatrixTranslation(0.0f, 6.0f, 8.0f);
 	m_WallModel->Render(m_Direct3D->GetDeviceContext());
-	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_WallModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_WallModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
+	if (!m_ExampleWaterShader->Render(m_Direct3D->GetDeviceContext(), m_WallModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_WallModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
 
 	worldMatrix = XMMatrixTranslation(0.0f, 2.0f, 0.0f);
 	m_BathModel->Render(m_Direct3D->GetDeviceContext());
-	if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_BathModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_BathModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
+	if (!m_ExampleWaterShader->Render(m_Direct3D->GetDeviceContext(), m_BathModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_BathModel->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor()))	return false;
 
 	reflectionMatrix = m_Camera->GetReflectionViewMatrix();
 	worldMatrix = XMMatrixTranslation(0.0f, m_waterHeight, 0.0f);
@@ -672,8 +741,9 @@ bool GraphicsClass::RenderWaterScene()
 
 	return true;
 }
+*/
 
-/* ---------------------------------------- - 코드 정리--------------------------------------------
+/* ---------------------------------------- 코드 정리--------------------------------------------
 
 // 렌더링할 모델 세팅
 //float positionX = 0;

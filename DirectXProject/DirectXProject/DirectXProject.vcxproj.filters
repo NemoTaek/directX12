@@ -35,6 +35,8 @@
     <None Include="Water.ps" />
     <None Include="Refraction.vs" />
     <None Include="Refraction.ps" />
+    <None Include="Light.vs" />
+    <None Include="Light.ps" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -125,6 +127,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="RefractionShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ExampleWaterShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -220,6 +228,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="RefractionShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ExampleWaterShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

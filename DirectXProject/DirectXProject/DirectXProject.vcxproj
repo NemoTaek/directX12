@@ -136,6 +136,8 @@
     <None Include="Fog.vs" />
     <None Include="font.ps" />
     <None Include="font.vs" />
+    <None Include="Light.ps" />
+    <None Include="Light.vs" />
     <None Include="PixelShader.ps" />
     <None Include="Reflection.ps" />
     <None Include="Reflection.vs" />
@@ -156,6 +158,7 @@
     <ClCompile Include="D3DClass.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DebugWindowClass.cpp" />
+    <ClCompile Include="ExampleWaterShaderClass.cpp" />
     <ClCompile Include="FadeShaderClass.cpp" />
     <ClCompile Include="FogShaderClass.cpp" />
     <ClCompile Include="FontClass.cpp" />
@@ -172,6 +175,7 @@
     <ClCompile Include="ReflectionShaderClass.cpp" />
     <ClCompile Include="RefractionShaderClass.cpp" />
     <ClCompile Include="RenderTextureClass.cpp" />
+    <ClCompile Include="SoundClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
     <ClCompile Include="TextClass.cpp" />
@@ -189,6 +193,7 @@
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DebugWindowClass.h" />
     <ClInclude Include="DxDefine.h" />
+    <ClInclude Include="ExampleWaterShaderClass.h" />
     <ClInclude Include="FadeShaderClass.h" />
     <ClInclude Include="FogShaderClass.h" />
     <ClInclude Include="FontClass.h" />
@@ -204,6 +209,7 @@
     <ClInclude Include="ReflectionShaderClass.h" />
     <ClInclude Include="RefractionShaderClass.h" />
     <ClInclude Include="RenderTextureClass.h" />
+    <ClInclude Include="SoundClass.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />
     <ClInclude Include="Targetver.h" />

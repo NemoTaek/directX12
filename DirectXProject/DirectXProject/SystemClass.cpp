@@ -1,7 +1,7 @@
 #include "Stdafx.h"
 #include "InputClass.h"
 #include "GraphicsClass.h"
-//#include "SoundClass.h"
+#include "SoundClass.h"
 //#include "FpsClass.h"
 //#include "CpuClass.h"
 #include "TimerClass.h"
@@ -48,20 +48,20 @@ bool SystemClass::initialize()
 		return false;
 	}
 
-	/*
+	
 	// m_Sound 按眉 积己
 	m_Sound = new SoundClass;
 	if (!m_Sound) {
 		return false;
 	}
-
+	
 	// m_Sound 按眉 檬扁拳
 	if (!(m_Sound->Initialize(m_hwnd)))
 	{
 		MessageBox(m_hwnd, L"Could not initialize the Direct Sound", L"Error", MB_OK);
 		return false;
 	}
-
+	/*
 	// m_Fps 按眉 积己
 	m_Fps = new FpsClass;
 	if (!m_Fps) {
@@ -135,13 +135,13 @@ void SystemClass::Shutdown()
 		delete m_Fps;
 		m_Fps = 0;
 	}
-
+	*/
 	// m_Sound 按眉 馆券
 	if (m_Sound) {
 		delete m_Sound;
 		m_Sound = 0;
 	}
-	*/
+	
 
 	// m_Input 按眉 馆券
 	if (m_Input) {
