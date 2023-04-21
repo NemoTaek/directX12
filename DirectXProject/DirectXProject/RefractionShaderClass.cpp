@@ -23,11 +23,11 @@ void RefractionShaderClass::Shutdown()
 	ShutdownShader();
 }
 
-bool RefractionShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture,
-	XMFLOAT3 lightDirection, XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor, XMFLOAT4 clipPlane)
+bool RefractionShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* colorTexture,
+	ID3D11ShaderResourceView* normalTexture, ID3D11ShaderResourceView* refractionTexture, float refractionScale)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, lightDirection, ambientColor, diffuseColor, clipPlane))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, colorTexture, normalTexture, refractionTexture, refractionScale))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -63,7 +63,7 @@ bool RefractionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 
 	// 정점 입력 레이아웃 구조체 설정
 	// ModelClass와 셰이더의 VertexType 구조와 일치해야한다.
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -80,13 +80,13 @@ bool RefractionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
-	polygonLayout[2].SemanticName = "NORMAL";
-	polygonLayout[2].SemanticIndex = 0;
-	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	polygonLayout[2].InputSlot = 0;
-	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[2].InstanceDataStepRate = 0;
+	//polygonLayout[2].SemanticName = "NORMAL";
+	//polygonLayout[2].SemanticIndex = 0;
+	//polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	//polygonLayout[2].InputSlot = 0;
+	//polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	//polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	//polygonLayout[2].InstanceDataStepRate = 0;
 
 	// 레이아웃 요소 수
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -134,49 +134,27 @@ bool RefractionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 	if (FAILED(device->CreateSamplerState(&samplerDesc, &m_sampleState)))	return false;
 
 	// 픽셀셰이더에 있는 광원 동적 상수 버퍼 서술자 설정
-	D3D11_BUFFER_DESC lightBufferDesc;
-	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
-	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	lightBufferDesc.MiscFlags = 0;
-	lightBufferDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC glassBufferDesc;
+	glassBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	glassBufferDesc.ByteWidth = sizeof(GlassBufferType);
+	glassBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	glassBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	glassBufferDesc.MiscFlags = 0;
+	glassBufferDesc.StructureByteStride = 0;
 
 	// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
-	if (FAILED(device->CreateBuffer(&lightBufferDesc, NULL, &m_lightBuffer)))	return false;
-
-	D3D11_BUFFER_DESC clipPlaneBufferDesc;
-	clipPlaneBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	clipPlaneBufferDesc.ByteWidth = sizeof(ClipPlaneBufferType);
-	clipPlaneBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	clipPlaneBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	clipPlaneBufferDesc.MiscFlags = 0;
-	clipPlaneBufferDesc.StructureByteStride = 0;
-
-	// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
-	if (FAILED(device->CreateBuffer(&clipPlaneBufferDesc, NULL, &m_clipPlaneBuffer)))	return false;
+	if (FAILED(device->CreateBuffer(&glassBufferDesc, NULL, &m_glassBuffer)))	return false;
 
 	return true;
 }
 
 void RefractionShaderClass::ShutdownShader()
 {
-	if (m_clipPlaneBuffer) {
-		m_clipPlaneBuffer->Release();
-		m_clipPlaneBuffer = 0;
-	}
-
 	// 광원 상수버퍼 해제
-	if (m_lightBuffer) {
-		m_lightBuffer->Release();
-		m_lightBuffer = 0;
+	if (m_glassBuffer) {
+		m_glassBuffer->Release();
+		m_glassBuffer = 0;
 	}
-
-	// 카메라 상수버퍼 해제
-	//if (m_cameraBuffer) {
-	//	m_cameraBuffer->Release();
-	//	m_cameraBuffer = 0;
-	//}
 
 	// 샘플러 상태 해제
 	if (m_sampleState) {
@@ -214,40 +192,37 @@ void RefractionShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, H
 	// 에러메세지 출력창에 표시
 	OutputDebugStringA(reinterpret_cast<const char*>(errorMessage->GetBufferPointer()));
 
-	//char* compileErrors;
-	//unsigned long bufferSize, i;
-	//std::ofstream fout;
+	char* compileErrors;
+	unsigned long bufferSize, i;
+	std::ofstream fout;
 
 
-	//// 에러 메세지를 담고 있는 문자열 버퍼의 포인터를 가져옵니다.
-	//compileErrors = (char*)(errorMessage->GetBufferPointer());
+	// 에러 메세지를 담고 있는 문자열 버퍼의 포인터를 가져옵니다.
+	compileErrors = (char*)(errorMessage->GetBufferPointer());
 
-	//// 메세지의 길이를 가져옵니다.
-	//bufferSize = errorMessage->GetBufferSize();
+	// 메세지의 길이를 가져옵니다.
+	bufferSize = errorMessage->GetBufferSize();
 
-	//// 파일을 열고 안에 메세지를 기록합니다.
-	//fout.open("light-error.txt");
+	// 파일을 열고 안에 메세지를 기록합니다.
+	fout.open("light-error.txt");
 
-	//// 에러 메세지를 씁니다.
-	//for (i = 0; i < bufferSize; i++)
-	//{
-	//	fout << compileErrors[i];
-	//}
+	// 에러 메세지를 씁니다.
+	for (i = 0; i < bufferSize; i++)
+	{
+		fout << compileErrors[i];
+	}
 
-	//// 파일을 닫습니다.
-	//fout.close();
+	// 파일을 닫습니다.
+	fout.close();
 
 	errorMessage->Release();
 	errorMessage = 0;
 	MessageBox(hwnd, L"Error compiling shader.", shaderFilename, MB_OK);
 }
 
-bool RefractionShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture,
-	XMFLOAT3 lightDirection, XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor, XMFLOAT4 clipPlane)
+bool RefractionShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* colorTexture,
+	ID3D11ShaderResourceView* normalTexture, ID3D11ShaderResourceView* refractionTexture, float refractionScale)
 {
-	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(0, 1, &texture);
-
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	viewMatrix = XMMatrixTranspose(viewMatrix);
@@ -257,8 +232,7 @@ bool RefractionShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceConte
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
 	ConstantBufferType* matrixDataPtr;
-	LightBufferType* lightDataPtr;
-	ClipPlaneBufferType* clipDataPtr;
+	GlassBufferType* glassDataPtr;
 
 	// 상수버퍼 매핑
 	if (FAILED(deviceContext->Map(m_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
@@ -274,25 +248,20 @@ bool RefractionShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceConte
 	bufferNumber = 0;
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_constantBuffer);
 
-	if (FAILED(deviceContext->Map(m_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	lightDataPtr = (LightBufferType*)mappedResource.pData;
+	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
+	deviceContext->PSSetShaderResources(0, 1, &colorTexture);
+	deviceContext->PSSetShaderResources(1, 1, &normalTexture);
+	deviceContext->PSSetShaderResources(2, 1, &refractionTexture);
 
-	lightDataPtr->ambientColor = ambientColor;
-	lightDataPtr->diffuseColor = diffuseColor;
-	lightDataPtr->lightDirection = lightDirection;
+	if (FAILED(deviceContext->Map(m_glassBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	glassDataPtr = (GlassBufferType*)mappedResource.pData;
 
-	deviceContext->Unmap(m_lightBuffer, 0);
+	glassDataPtr->refractionScale = refractionScale;
+	glassDataPtr->padding = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+	deviceContext->Unmap(m_glassBuffer, 0);
 	bufferNumber = 0;
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
-
-	if (FAILED(deviceContext->Map(m_clipPlaneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	clipDataPtr = (ClipPlaneBufferType*)mappedResource.pData;
-
-	clipDataPtr->clipPlane = clipPlane;
-
-	deviceContext->Unmap(m_clipPlaneBuffer, 0);
-	bufferNumber = 1;
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_clipPlaneBuffer);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_glassBuffer);
 
 	return true;
 }

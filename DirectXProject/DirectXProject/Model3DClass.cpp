@@ -10,13 +10,13 @@ Model3DClass::Model3DClass() {}
 Model3DClass::Model3DClass(const Model3DClass& other) {}
 Model3DClass:: ~Model3DClass() {}
 
-bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename1)
+bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename1, const WCHAR* textureFilename2)
 {
 	if (!LoadModel(modelFilename))	return false;
 	//CalculateModelVectors();	// 모델의 법선, 접선, 이항벡터 계산
 	if (!InitializeBuffers(device))	return false;
 	//return LoadTextures(device, textureFilename1, textureFilename2, textureFilename3);
-	return LoadTexture(device, textureFilename1);
+	return LoadTexture(device, textureFilename1, textureFilename2);
 }
 
 void Model3DClass::Shutdown()
@@ -34,6 +34,7 @@ void Model3DClass::Render(ID3D11DeviceContext* deviceContext)
 int Model3DClass::GetIndexCount() { return m_indexCount; }
 
 ID3D11ShaderResourceView* Model3DClass::GetTexture() { return m_texture->GetTexture(); }
+ID3D11ShaderResourceView* Model3DClass::GetTexture2() { return m_texture2->GetTexture(); }
 
 ID3D11ShaderResourceView** Model3DClass::GetTextureArray() { return m_textureArray->GetTextureArray(); }
 
@@ -132,14 +133,19 @@ void Model3DClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-bool Model3DClass::LoadTexture(ID3D11Device* device, const WCHAR* filename)
+bool Model3DClass::LoadTexture(ID3D11Device* device, const WCHAR* filename1, const WCHAR* filename2)
 {
 	// 텍스쳐 객체 생성
 	m_texture = new TextureClass;
 	if (!m_texture)	return false;
+	if (!m_texture->Initialize(device, filename1))	return false;
 
-	// 텍스쳐 객체 초기화
-	return m_texture->Initialize(device, filename);
+	// 텍스쳐 객체 생성
+	m_texture2 = new TextureClass;
+	if (!m_texture2)	return false;
+	if (!m_texture2->Initialize(device, filename2))	return false;
+
+	return true;
 }
 
 bool Model3DClass::LoadTextures(ID3D11Device* device, const WCHAR* filename1, const WCHAR* filename2, const WCHAR* filename3)
@@ -154,6 +160,13 @@ bool Model3DClass::LoadTextures(ID3D11Device* device, const WCHAR* filename1, co
 
 void Model3DClass::ReleaseTextures()
 {
+	if (m_texture2)
+	{
+		m_texture2->Shutdown();
+		delete m_texture2;
+		m_texture2 = 0;
+	}
+
 	if (m_texture)
 	{
 		m_texture->Shutdown();
