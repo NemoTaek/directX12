@@ -1,0 +1,68 @@
+SamplerState SampleType;
+SamplerState SampleType2;
+
+Texture2D fireTexture : register(t0);		// 불 형태를 보이는 텍스처
+Texture2D noiseTexture : register(t1);		// 불의 색상과 불의 경계가 보이는 노이즈 텍스처
+Texture2D alphaTexture : register(t2);		// 투명도를 위한 알파 텍스처
+
+// 불꽃 효과를 만들기 위한 왜곡 버퍼
+cbuffer DistortionBuffer
+{
+	float2 distortion1;
+	float2 distortion2;
+	float2 distortion3;
+	float distortionScale;
+	float distortionBias;
+};
+
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float2 tex : TEXCOORD0;
+	float2 texCoords1 : TEXCOORD1;
+	float2 texCoords2 : TEXCOORD2;
+	float3 texCoords3 : TEXCOORD3;
+};
+
+float4 FirePixelShader(PixelInputType input) : SV_TARGET
+{
+	float4 noise1;
+	float4 noise2;
+	float4 noise3;
+	float4 finalNoise;
+	float perturb;	// 교란시키다?
+	float2 noiseCoords;
+	float4 fireColor;
+	float4 alphaColor;
+
+	noise1 = noiseTexture.Sample(SampleType, input.texCoords1);
+	noise2 = noiseTexture.Sample(SampleType, input.texCoords2);
+	noise3 = noiseTexture.Sample(SampleType, input.texCoords3);
+
+	// 범위를 (0, 1)에서 (-1, 1)로 변환
+	noise1 = (noise1 - 0.5f) * 2.0f;
+	noise2 = (noise2 - 0.5f) * 2.0f;
+	noise3 = (noise3 - 0.5f) * 2.0f;
+
+	// 샘플링 좌표의 x, y 크기를 왜곡
+	noise1.xy = noise1.xy * distortion1.xy;
+	noise2.xy = noise2.xy * distortion2.xy;
+	noise3.xy = noise3.xy * distortion3.xy;
+
+	// 왜곡된 세 노이즈 값들을 하나의 노이즈로 합성
+	finalNoise = noise1 + noise2 + noise3;
+
+	// 최종 노이즈 값을 흩뜨려 전체적인 모양을 불꽃처럼 보이도록 설정
+	// 보통 불꽃은 위쪽이 많이 흔들리고 아래쪽은 덜 흔들리므로 흩뜨리는 정도를 이렇게 설정
+	perturb = ((1.0f - input.tex.y) * distortionScale) + distortionBias;
+	noiseCoords.xy = (finalNoise.xy * perturb) + input.tex.xy;
+
+	// 불꽃 색상 텍스처와 알파 텍스처를 흩뜨려진 노이즈 좌표에 따라 샘플링하여 불꽃 효과를 생성
+	fireColor = fireTexture.Sample(SampleType2, noiseCoords.xy);
+	alphaColor = alphaTexture.Sample(SampleType2, noiseCoords.xy);
+
+	// 알파 값과 불꽃 색상을 조합하여 투명도가 블렌딩 된 불꽃 효과를 얻음
+	fireColor.a = alphaColor;
+
+	return fireColor;
+}

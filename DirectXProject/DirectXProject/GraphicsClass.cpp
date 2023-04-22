@@ -5,7 +5,7 @@
 //#include "ModelClass.h"
 //#include "ColorShaderClass.h"
 //#include "ModelTextureClass.h"
-#include "TextureShaderClass.h"
+//#include "TextureShaderClass.h"
 //#include "ModelLightClass.h"
 #include "Model3DClass.h"
 //#include "LightShaderClass.h"
@@ -16,13 +16,14 @@
 //#include "FrustumClass.h"
 //#include "ModelListClass.h"
 //#include "BumpMapShaderClass.h"
-#include "RenderTextureClass.h"
+//#include "RenderTextureClass.h"
 //#include "DebugWindowClass.h"
 //#include "FogShaderClass.h"
 //#include "TransparentShaderClass.h"
 //#include "ReflectionShaderClass.h"
 //#include "FadeShaderClass.h"
-#include "RefractionShaderClass.h"
+//#include "RefractionShaderClass.h"
+#include "FireShaderClass.h"
 
 #include <iostream>
 using namespace std;
@@ -92,7 +93,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	m_Model3D = new Model3DClass;
 	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/seafloor.dds", L"./Textures/bump03.dds")) {
+	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/square.txt", L"./Textures/fire01.dds", L"./Textures/noise01.dds", L"./Textures/alpha01.dds")) {
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
@@ -113,13 +114,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	m_TextureShader = new TextureShaderClass;
-	if (!m_TextureShader) { return false; }
-	// 텍스쳐 셰이더 객체 초기화
-	if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-		return false;
-	}
+	//m_TextureShader = new TextureShaderClass;
+	//if (!m_TextureShader) { return false; }
+	//// 텍스쳐 셰이더 객체 초기화
+	//if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	//m_LightShader = new LightShaderClass;
 	//if (!m_LightShader) { return false; }
@@ -188,31 +189,18 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//m_Frustum = new FrustumClass;
 	//if (!m_Frustum) { return false; }
 
-	m_RenderTexture = new RenderTextureClass;
-	if (!m_RenderTexture) { return false; }
-	if (!m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight)) {
-		return false;
-	}
+	//m_RenderTexture = new RenderTextureClass;
+	//if (!m_RenderTexture) { return false; }
+	//if (!m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight)) {
+	//	return false;
+	//}
 
-	m_RefractionShader = new RefractionShaderClass;
-	if (!m_RefractionShader) { return false; }
-	if (!m_RefractionShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the refraction shader object", L"Error", MB_OK);
-		return false;
-	}
-
-	m_Model3D2 = new Model3DClass;
-	if (!m_Model3D2) { return false; }
-#define GLASS true	// true: 유리 , false: 얼음
-#if GLASS
-	if (!m_Model3D2->Initialize(m_Direct3D->GetDevice(), L"./data/square.txt", L"./Textures/glass01.dds", L"./Textures/bump03.dds"))
-#else
-	if (!m_Model3D2->Initialize(m_Direct3D->GetDevice(), L"./data/square.txt", L"./Textures/ice01.dds", L"./Textures/icebump01.dds"))
-#endif GLASS
-	{
-		MessageBox(hwnd, L"Could not initialize the model2 object", L"Error", MB_OK);
-		return false;
-	}
+	//m_RefractionShader = new RefractionShaderClass;
+	//if (!m_RefractionShader) { return false; }
+	//if (!m_RefractionShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the refraction shader object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	//m_DebugWindow = new DebugWindowClass;
 	//if (!m_DebugWindow) { return false; }
@@ -302,22 +290,51 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_waterTranslation = 0.0f;
 	*/
 
+	/*
+	// 유리, 얼음 효과
+	m_Model3D2 = new Model3DClass;
+	if (!m_Model3D2) { return false; }
+#define GLASS true	// true: 유리 , false: 얼음
+#if GLASS
+	if (!m_Model3D2->Initialize(m_Direct3D->GetDevice(), L"./data/square.txt", L"./Textures/glass01.dds", L"./Textures/bump03.dds"))
+#else
+	if (!m_Model3D2->Initialize(m_Direct3D->GetDevice(), L"./data/square.txt", L"./Textures/ice01.dds", L"./Textures/icebump01.dds"))
+#endif GLASS
+	{
+		MessageBox(hwnd, L"Could not initialize the model2 object", L"Error", MB_OK);
+		return false;
+	}
+	*/
+
+	m_FireShader = new FireShaderClass;
+	if (!m_FireShader) { return false; }
+	if (!m_FireShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the fire shader object", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 void GraphicsClass::Shutdown()
 {
-	if (m_RefractionShader) {
-		m_RefractionShader->Shutdown();
-		delete m_RefractionShader;
-		m_RefractionShader = 0;
+	if (m_FireShader) {
+		m_FireShader->Shutdown();
+		delete m_FireShader;
+		m_FireShader = 0;
 	}
+ 
+	//if (m_Model3D2) {
+	//	m_Model3D2->Shutdown();
+	//	delete m_Model3D2;
+	//	m_Model3D2 = 0;
+	//}
 
-	if (m_Model3D2) {
-		m_Model3D2->Shutdown();
-		delete m_Model3D2;
-		m_Model3D2 = 0;
-	}
+	//if (m_RefractionShader) {
+	//	m_RefractionShader->Shutdown();
+	//	delete m_RefractionShader;
+	//	m_RefractionShader = 0;
+	//}
 
 	/*
 	if (m_RefractionShader) {
@@ -391,11 +408,11 @@ void GraphicsClass::Shutdown()
 	//	m_DebugWindow = 0;
 	//}
 
-	if (m_RenderTexture)
-	{
-		delete m_RenderTexture;
-		m_RenderTexture = 0;
-	}
+	//if (m_RenderTexture)
+	//{
+	//	delete m_RenderTexture;
+	//	m_RenderTexture = 0;
+	//}
 
 	//// 절두체 객체 반환
 	//if (m_Frustum) {
@@ -464,11 +481,11 @@ void GraphicsClass::Shutdown()
 	//}
 
 	// 셰이더 객체 반환
-	if (m_TextureShader) {
-		m_TextureShader->Shutdown();
-		delete m_TextureShader;
-		m_TextureShader = 0;
-	}
+	//if (m_TextureShader) {
+	//	m_TextureShader->Shutdown();
+	//	delete m_TextureShader;
+	//	m_TextureShader = 0;
+	//}
 
 	// 모델 객체 반환
 	//if (m_ModelLight) {
@@ -563,7 +580,7 @@ bool GraphicsClass::Render()
 	//if (!RenderWaterScene()) return false;
 
 	// 전체 장면을 먼저 텍스처로 렌더링
-	if (!RenderToTexture()) return false;
+	//if (!RenderToTexture()) return false;
 	// 백 버퍼의 장면 렌더링
 	if (!RenderScene())	return false;
 
@@ -573,44 +590,44 @@ bool GraphicsClass::Render()
 
 bool GraphicsClass::RenderToTexture()
 {
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
-	m_Direct3D->GetWorldMatrix(worldMatrix);
-	m_Camera->GetViewMatrix(viewMatrix);
-	m_Direct3D->GetProjectionMatrix(projectionMatrix);
-	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+	//XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	//m_Direct3D->GetWorldMatrix(worldMatrix);
+	//m_Camera->GetViewMatrix(viewMatrix);
+	//m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	//m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
-	// 렌더링 대상을 RTT로 설정
-	m_RenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView());
+	//// 렌더링 대상을 RTT로 설정
+	//m_RenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView());
 
-	// RTT 초기화
-	m_RenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 1.0f);
+	//// RTT 초기화
+	//m_RenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 1.0f);
 
-	// 카메라의 위치에 따라 뷰 행렬을 생성합니다.
-	m_Camera->Render();
+	//// 카메라의 위치에 따라 뷰 행렬을 생성합니다.
+	//m_Camera->Render();
 
-	// 모델 회전용 코드
-	static float rotation = 0.0f;
+	//// 모델 회전용 코드
+	//static float rotation = 0.0f;
 
-	// 각 프레임의 회전을 업데이트
-	rotation += (float)XM_PI * 0.0025f;
-	if (rotation > 360.0f)	rotation -= 360.0f;
+	//// 각 프레임의 회전을 업데이트
+	//rotation += (float)XM_PI * 0.0025f;
+	//if (rotation > 360.0f)	rotation -= 360.0f;
 
-	// 모델이 회전할 수 있도록 회전 값으로 세계 행렬 세팅
-	worldMatrix = XMMatrixRotationY(rotation);
+	//// 모델이 회전할 수 있도록 회전 값으로 세계 행렬 세팅
+	//worldMatrix = XMMatrixRotationY(rotation);
 
-	// 텍스처 이동 위치 설정
-	static float textureTranslation = 0.0f;
-	textureTranslation += 0.005f;
-	if (textureTranslation > 1.0f) textureTranslation -= 1.0f;
+	//// 텍스처 이동 위치 설정
+	//static float textureTranslation = 0.0f;
+	//textureTranslation += 0.005f;
+	//if (textureTranslation > 1.0f) textureTranslation -= 1.0f;
 
-	// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
-	m_Model3D->Render(m_Direct3D->GetDeviceContext());
+	//// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
+	//m_Model3D->Render(m_Direct3D->GetDeviceContext());
 
-	// 텍스쳐 셰이더와 반사 뷰 행렬을 사용하여 모델 렌더링
-	m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(), textureTranslation);
+	//// 텍스쳐 셰이더와 반사 뷰 행렬을 사용하여 모델 렌더링
+	//m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(), textureTranslation);
 
-	// 렌더링 대상을 다시 원래 백버퍼로 설정
-	m_Direct3D->SetBackBufferRenderTarget();
+	//// 렌더링 대상을 다시 원래 백버퍼로 설정
+	//m_Direct3D->SetBackBufferRenderTarget();
 
 	return true;
 }
@@ -618,8 +635,6 @@ bool GraphicsClass::RenderToTexture()
 
 bool GraphicsClass::RenderScene()
 {
-	float refractionScale;
-
 	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	m_Direct3D->GetWorldMatrix(worldMatrix);
@@ -627,40 +642,36 @@ bool GraphicsClass::RenderScene()
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
-#if GLASS
-	refractionScale = 0.01f;	// 유리 섭동 효과
-#else
-	refractionScale = 0.1f;		// 얼음 섭동 효과
-#endif
-
 	// Scene을 그리기 위해 버퍼 삭제
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
 	// 카메라의 위치에 따라 뷰 행렬 생성
 	m_Camera->Render();
 
-	// 모델 회전용 코드
-	static float rotation = 0.0f;
+	static float frameTime = 0.0f;
+	frameTime += 0.01f;
+	if (frameTime > 1000.0f) frameTime = 0.0f;
 
-	// 각 프레임의 회전을 업데이트
-	rotation += (float)XM_PI * 0.0025f;
-	if (rotation > 360.0f)	rotation -= 360.0f;
+	// 3개의 노이즈 텍스쳐의 스크롤 속도, 크기, 왜곡 값 설정
+	XMFLOAT3 scrollSpeeds = XMFLOAT3(1.3f, 2.1f, 2.3f);
+	XMFLOAT3 scales = XMFLOAT3(1.0f, 2.0f, 3.0f);
+	XMFLOAT2 distortion1 = XMFLOAT2(0.1f, 0.2f);
+	XMFLOAT2 distortion2 = XMFLOAT2(0.1f, 0.3f);
+	XMFLOAT2 distortion3 = XMFLOAT2(0.1f, 0.1f);
 
-	// 모델이 회전할 수 있도록 회전 값으로 세계 행렬 세팅
-	worldMatrix = XMMatrixRotationY(rotation);
+	float distortionScale = 0.8f;
+	float distortionBias = 0.5f;
 
-	// 텍스처 이동 위치 설정
-	static float textureTranslation = 0.0f;
-	textureTranslation += 0.005f;
-	if (textureTranslation > 1.0f) textureTranslation -= 1.0f;
+	// 흩뜨려진 알파 텍스처를 이용하여 불꽃 효과의 일부가 반투명으로 보여아 하기 때문에 알파 블렌딩 on
+	m_Direct3D->TurnOnAlphaBlending();
 
 	// 텍스쳐 셰이더를 이용하여 모델 렌더링
 	m_Model3D->Render(m_Direct3D->GetDeviceContext());
-	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(), textureTranslation))	return false;
+	if (!m_FireShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
+		m_Model3D->GetTexture(), m_Model3D->GetTexture2(), m_Model3D->GetTexture3(), frameTime, scrollSpeeds, scales, distortion1, distortion2, distortion3, distortionScale, distortionBias))	return false;
 
-	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, -1.5f);
-	m_Model3D2->Render(m_Direct3D->GetDeviceContext());
-	if (!m_RefractionShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D2->GetTexture(), m_Model3D2->GetTexture2(), m_RenderTexture->GetShaderResourceView(), refractionScale))	return false;
+	// 알파 블렌딩 off
+	m_Direct3D->TurnOffAlphaBlending();
 
 	// 버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();
@@ -900,6 +911,7 @@ worldMatrix = XMMatrixRotationY(rotation);
 //if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DebugWindow->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_RenderTexture->GetShaderResourceView()))	return false;
 //if (!m_FogShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(), fogStart, fogEnd))	return false;
 //if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture(), textureTranslation))	return false;
+//if (!m_RefractionShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D2->GetTexture(), m_Model3D2->GetTexture2(), m_RenderTexture->GetShaderResourceView(), refractionScale))	return false;
 
 // 빛 셰이더를 사용하여 모델 렌더링
 //if (!m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model3D->GetTexture(),
