@@ -2,17 +2,13 @@
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
-const float SCREEN_DEPTH = 1000.0f;
-const float SCREEN_NEAR = 0.1f;
+const float SCREEN_DEPTH = 100.0f;	// 깊이 버퍼를 위해 far 평면값 수정
+const float SCREEN_NEAR = 1.0f;		// 깊이 버퍼를 위해 near 평면값 수정
 
 class D3DClass;				
 class CameraClass;
-//class ModelClass;			// 일반 모델
-//class ColorShaderClass;	// 컬러 셰이더
-//class ModelTextureClass;	// 텍스쳐 입힌 모델
 //class TextureShaderClass;	// 텍스쳐 셰이더
 class Model3DClass;		// 3D 모델
-//class ModelLightClass;	// 조명 입힌 모델
 //class LightShaderClass;	// 조명 셰이더
 //class LightClass;			// 조명 관련 값 설정 및 조회
 //class ExampleWaterShaderClass;	// 물의 반사와 굴절을 표현하기 위한 예시 클래스
@@ -29,7 +25,8 @@ class Model3DClass;		// 3D 모델
 //class ReflectionShaderClass;	// 반사 적용된 클래스
 //class FadeShaderClass;		// 페이드 효과 적용된 클래스
 //class RefractionShaderClass;	// 굴절 적용된 클래스
-class FireShaderClass;		// 불
+//class FireShaderClass;		// 불
+class DepthShaderClass;		// 깊이 버퍼 셰이더 클래스
 
 // 이 프로젝트에서 사용되는 모든 그래픽 객체에 대한 호출을 담당하는 클래스
 class GraphicsClass
@@ -43,6 +40,7 @@ public:
 	void Shutdown();
 	bool Frame();
 	bool Frame(float);
+	bool Frame(XMFLOAT3&);
 	bool Render();
 
 private:
@@ -61,7 +59,6 @@ private:
 	D3DClass* m_Direct3D = nullptr;
 	CameraClass* m_Camera = nullptr;
 	//ModelClass* m_Model = nullptr;
-	//ColorShaderClass* m_ColorShader = nullptr;
 	//ModelTextureClass* m_ModelTexture = nullptr;
 	//TextureShaderClass* m_TextureShader = nullptr;
 	Model3DClass* m_Model3D = nullptr;
@@ -85,7 +82,9 @@ private:
 	//ReflectionShaderClass* m_ReflectionShader = nullptr;
 	//FadeShaderClass* m_FadeShader = nullptr;
 	//RefractionShaderClass* m_RefractionShader = nullptr;
-	FireShaderClass* m_FireShader = nullptr;
+	//FireShaderClass* m_FireShader = nullptr;
+	//Model3DClass* m_Billboard = nullptr;
+	DepthShaderClass* m_DepthShader = nullptr;
 
 	
 

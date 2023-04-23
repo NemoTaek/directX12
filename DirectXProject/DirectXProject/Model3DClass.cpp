@@ -1,5 +1,5 @@
 #include "Stdafx.h"
-#include "TextureArrayClass.h"
+//#include "TextureArrayClass.h"
 #include "TextureClass.h"
 #include "Model3DClass.h"
 
@@ -10,13 +10,14 @@ Model3DClass::Model3DClass() {}
 Model3DClass::Model3DClass(const Model3DClass& other) {}
 Model3DClass:: ~Model3DClass() {}
 
-bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename1, const WCHAR* textureFilename2, const WCHAR* textureFilename3)
+bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, const WCHAR* textureFilename1)
 {
 	if (!LoadModel(modelFilename))	return false;
 	//CalculateModelVectors();	// 모델의 법선, 접선, 이항벡터 계산
 	if (!InitializeBuffers(device))	return false;
 	//return LoadTextures(device, textureFilename1, textureFilename2, textureFilename3);
-	return LoadTexture(device, textureFilename1, textureFilename2, textureFilename3);
+	//return LoadTexture(device, textureFilename1);
+	return InitializeBuffers(device);
 }
 
 void Model3DClass::Shutdown()
@@ -37,7 +38,7 @@ ID3D11ShaderResourceView* Model3DClass::GetTexture() { return m_texture->GetText
 ID3D11ShaderResourceView* Model3DClass::GetTexture2() { return m_texture2->GetTexture(); }
 ID3D11ShaderResourceView* Model3DClass::GetTexture3() { return m_texture3->GetTexture(); }
 
-ID3D11ShaderResourceView** Model3DClass::GetTextureArray() { return m_textureArray->GetTextureArray(); }
+//ID3D11ShaderResourceView** Model3DClass::GetTextureArray() { return m_textureArray->GetTextureArray(); }
 
 bool Model3DClass::InitializeBuffers(ID3D11Device* device)
 {
@@ -134,52 +135,28 @@ void Model3DClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-bool Model3DClass::LoadTexture(ID3D11Device* device, const WCHAR* filename1, const WCHAR* filename2, const WCHAR* filename3)
+bool Model3DClass::LoadTexture(ID3D11Device* device, const WCHAR* filename1)
 {
 	// 텍스쳐 객체 생성
 	m_texture = new TextureClass;
 	if (!m_texture)	return false;
 	if (!m_texture->Initialize(device, filename1))	return false;
 
-	// 텍스쳐 객체 생성
-	m_texture2 = new TextureClass;
-	if (!m_texture2)	return false;
-	if (!m_texture2->Initialize(device, filename2))	return false;
-
-	// 텍스쳐 객체 생성
-	m_texture3 = new TextureClass;
-	if (!m_texture3)	return false;
-	if (!m_texture3->Initialize(device, filename3))	return false;
-
 	return true;
 }
 
-bool Model3DClass::LoadTextures(ID3D11Device* device, const WCHAR* filename1, const WCHAR* filename2, const WCHAR* filename3)
-{
-	// 텍스쳐 객체 생성
-	m_textureArray = new TextureArrayClass;
-	if (!m_textureArray)	return false;
-
-	// 텍스쳐 객체 초기화
-	return m_textureArray->Initialize(device, filename1, filename2, filename3);
-}
+//bool Model3DClass::LoadTextures(ID3D11Device* device, const WCHAR* filename1, const WCHAR* filename2, const WCHAR* filename3)
+//{
+//	// 텍스쳐 객체 생성
+//	m_textureArray = new TextureArrayClass;
+//	if (!m_textureArray)	return false;
+//
+//	// 텍스쳐 객체 초기화
+//	return m_textureArray->Initialize(device, filename1, filename2, filename3);
+//}
 
 void Model3DClass::ReleaseTextures()
 {
-	if (m_texture3)
-	{
-		m_texture3->Shutdown();
-		delete m_texture3;
-		m_texture3 = 0;
-	}
-
-	if (m_texture2)
-	{
-		m_texture2->Shutdown();
-		delete m_texture2;
-		m_texture2 = 0;
-	}
-
 	if (m_texture)
 	{
 		m_texture->Shutdown();
@@ -188,12 +165,12 @@ void Model3DClass::ReleaseTextures()
 	}
 
 	// 택스쳐 객체 릴리즈
-	if (m_textureArray)
-	{
-		m_textureArray->Shutdown();
-		delete m_textureArray;
-		m_textureArray = 0;
-	}
+	//if (m_textureArray)
+	//{
+	//	m_textureArray->Shutdown();
+	//	delete m_textureArray;
+	//	m_textureArray = 0;
+	//}
 }
 
 bool Model3DClass::LoadModel(const WCHAR* filename)

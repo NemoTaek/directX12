@@ -2,11 +2,7 @@
 #include "GraphicsClass.h"
 #include "D3DClass.h"
 #include "CameraClass.h"
-//#include "ModelClass.h"
-//#include "ColorShaderClass.h"
-//#include "ModelTextureClass.h"
 //#include "TextureShaderClass.h"
-//#include "ModelLightClass.h"
 #include "Model3DClass.h"
 //#include "LightShaderClass.h"
 //#include "LightClass.h"
@@ -23,7 +19,8 @@
 //#include "ReflectionShaderClass.h"
 //#include "FadeShaderClass.h"
 //#include "RefractionShaderClass.h"
-#include "FireShaderClass.h"
+//#include "FireShaderClass.h"
+#include "DepthShaderClass.h"
 
 #include <iostream>
 using namespace std;
@@ -63,37 +60,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!m_Camera) { return false; }
 	// 카메라 위치 설정
 	XMMATRIX baseViewMatrix;
-	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	m_Camera->SetPosition(0.0f, 2.0f, -10.0f);
 	m_Camera->Render();
 	m_Camera->GetViewMatrix(baseViewMatrix);
 
-	//// 모델 객체 생성
-	//m_Model = new ModelClass;
-	//if (!m_Model) { return false; }
-	//// 모델 객체 초기화
-	//if (!m_Model->Initialize(m_Direct3D->GetDevice())) {
-	//	MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	//m_ModelTexture = new ModelTextureClass;
-	//if (!m_ModelTexture) { return false; }
-	//// 텍스쳐 모델 객체 초기화
-	//if (!m_ModelTexture->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), L"./Textures/checkboard.dds")) {
-	//	MessageBox(hwnd, L"Could not initialize the model texture object", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	//m_ModelLight = new ModelLightClass;
-	//if (!m_ModelLight) { return false; }
-	//if (!m_ModelLight->Initialize(m_Direct3D->GetDevice(), L"./Textures/checkboard.dds")) {
-	//	MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
-	//	return false;
-	//}
-
 	m_Model3D = new Model3DClass;
 	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/square.txt", L"./Textures/fire01.dds", L"./Textures/noise01.dds", L"./Textures/alpha01.dds")) {
+	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/floor.txt", L"./Textures/grid01.dds")) {
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
@@ -102,15 +75,6 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//if (!m_BumpMapShader) { return false; }
 	//if (!m_BumpMapShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
 	//	MessageBox(hwnd, L"Could not initialize the bump map shader object", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	//// 셰이더 객체 생성
-	//m_ColorShader = new ColorShaderClass;
-	//if (!m_ColorShader) { return false; }
-	//// 셰이더 객체 초기화
-	//if (!m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-	//	MessageBox(hwnd, L"Could not initialize the color shader object", L"Error", MB_OK);
 	//	return false;
 	//}
 
@@ -306,10 +270,24 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 	*/
 
-	m_FireShader = new FireShaderClass;
-	if (!m_FireShader) { return false; }
-	if (!m_FireShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the fire shader object", L"Error", MB_OK);
+	//m_FireShader = new FireShaderClass;
+	//if (!m_FireShader) { return false; }
+	//if (!m_FireShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the fire shader object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	//m_Billboard = new Model3DClass;
+	//if (!m_Billboard) { return false; }
+	//if (!m_Billboard->Initialize(m_Direct3D->GetDevice(), L"./data/square.txt", L"./Textures/checkboard.dds")) {
+	//	MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	m_DepthShader = new DepthShaderClass;
+	if (!m_DepthShader) { return false; }
+	if (!m_DepthShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
 
@@ -318,12 +296,24 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 void GraphicsClass::Shutdown()
 {
-	if (m_FireShader) {
-		m_FireShader->Shutdown();
-		delete m_FireShader;
-		m_FireShader = 0;
+	if (m_DepthShader) {
+		m_DepthShader->Shutdown();
+		delete m_DepthShader;
+		m_DepthShader = 0;
 	}
- 
+
+	//if (m_Billboard) {
+	//	m_Billboard->Shutdown();
+	//	delete m_Billboard;
+	//	m_Billboard = 0;
+	//}
+
+	//if (m_FireShader) {
+	//	m_FireShader->Shutdown();
+	//	delete m_FireShader;
+	//	m_FireShader = 0;
+	//}
+
 	//if (m_Model3D2) {
 	//	m_Model3D2->Shutdown();
 	//	delete m_Model3D2;
@@ -562,6 +552,12 @@ bool GraphicsClass::Frame(float frameTime)
 
 	return true;
 }
+bool GraphicsClass::Frame(XMFLOAT3& position)
+{
+	m_Camera->SetPosition(position.x, position.y, position.z);
+
+	return Render();
+}
 
 bool GraphicsClass::Render()
 {
@@ -648,30 +644,9 @@ bool GraphicsClass::RenderScene()
 	// 카메라의 위치에 따라 뷰 행렬 생성
 	m_Camera->Render();
 
-	static float frameTime = 0.0f;
-	frameTime += 0.01f;
-	if (frameTime > 1000.0f) frameTime = 0.0f;
-
-	// 3개의 노이즈 텍스쳐의 스크롤 속도, 크기, 왜곡 값 설정
-	XMFLOAT3 scrollSpeeds = XMFLOAT3(1.3f, 2.1f, 2.3f);
-	XMFLOAT3 scales = XMFLOAT3(1.0f, 2.0f, 3.0f);
-	XMFLOAT2 distortion1 = XMFLOAT2(0.1f, 0.2f);
-	XMFLOAT2 distortion2 = XMFLOAT2(0.1f, 0.3f);
-	XMFLOAT2 distortion3 = XMFLOAT2(0.1f, 0.1f);
-
-	float distortionScale = 0.8f;
-	float distortionBias = 0.5f;
-
-	// 흩뜨려진 알파 텍스처를 이용하여 불꽃 효과의 일부가 반투명으로 보여아 하기 때문에 알파 블렌딩 on
-	m_Direct3D->TurnOnAlphaBlending();
-
 	// 텍스쳐 셰이더를 이용하여 모델 렌더링
 	m_Model3D->Render(m_Direct3D->GetDeviceContext());
-	if (!m_FireShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-		m_Model3D->GetTexture(), m_Model3D->GetTexture2(), m_Model3D->GetTexture3(), frameTime, scrollSpeeds, scales, distortion1, distortion2, distortion3, distortionScale, distortionBias))	return false;
-
-	// 알파 블렌딩 off
-	m_Direct3D->TurnOffAlphaBlending();
+	if (!m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
 
 	// 버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();
@@ -888,6 +863,20 @@ worldMatrix = XMMatrixRotationY(rotation);
 //	}
 //}
 
+//	static float frameTime = 0.0f;
+//	frameTime += 0.01f;
+//	if (frameTime > 1000.0f) frameTime = 0.0f;
+
+	// 3개의 노이즈 텍스쳐의 스크롤 속도, 크기, 왜곡 값 설정
+//	XMFLOAT3 scrollSpeeds = XMFLOAT3(1.3f, 2.1f, 2.3f);
+//	XMFLOAT3 scales = XMFLOAT3(1.0f, 2.0f, 3.0f);
+//	XMFLOAT2 distortion1 = XMFLOAT2(0.1f, 0.2f);
+//	XMFLOAT2 distortion2 = XMFLOAT2(0.1f, 0.3f);
+//	XMFLOAT2 distortion3 = XMFLOAT2(0.1f, 0.1f);
+
+//	float distortionScale = 0.8f;
+//	float distortionBias = 0.5f;
+
 // 2D 렌더링을 위해 Z 버퍼 OFF
 //m_Direct3D->TurnZBufferOff();
 
@@ -929,6 +918,30 @@ worldMatrix = XMMatrixRotationY(rotation);
 //m_Direct3D->TurnOnAlphaBlending();
 //m_Model3D2->Render(m_Direct3D->GetDeviceContext());
 //if (!m_TransparentShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D2->GetTexture(), blendAmount))	return false;
+
+// 빌보드의 카메라 위치와 모델 위치 설정
+XMFLOAT3 cameraPosition, modelPosition;
+cameraPosition = m_Camera->GetPosition();
+modelPosition.x = 0.0f;
+modelPosition.y = 1.5f;
+modelPosition.z = 0.0f;
+
+// 아크탄젠트 함수를 사용하여 현재 카메라 위치를 향하도록 빌보드 모델에 적용해야 하는 각도를 계산
+// 이렇게 하여 빌보드 모델이 현재 카메라 위치를 바라보게 한다.
+double angle = atan2(modelPosition.x - cameraPosition.x, modelPosition.z - cameraPosition.z) * (100.0f / (float)XM_PI);
+float rotation = (float)angle * 0.0174532925f;
+
+// 세계 행렬을 사용하여 원점에서 빌보드 회전을 설정
+worldMatrix = XMMatrixRotationY(rotation);
+
+// 빌보드 모델에서 이동 행렬을 설정
+translateMatrix = XMMatrixTranslation(modelPosition.x, modelPosition.y, modelPosition.z);
+
+// 회전, 이동 행렬을 곱하여 빌보드 모델의 최종 행렬 설정
+worldMatrix = XMMatrixMultiply(worldMatrix, translateMatrix);
+
+m_Billboard->Render(m_Direct3D->GetDeviceContext());
+if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Billboard->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Billboard->GetTexture()))	return false;
 
 // 알파 블랜딩 off
 //m_Direct3D->TurnOffAlphaBlending();

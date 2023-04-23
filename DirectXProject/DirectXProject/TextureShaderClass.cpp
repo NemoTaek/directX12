@@ -24,10 +24,10 @@ void TextureShaderClass::Shutdown()
 }
 
 // 마지막 매개변수를 단일 텍스쳐 일때는 texture, 다중 텍스쳐 일때는 textureArray
-bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, float translation)
+bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, translation))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -211,7 +211,7 @@ void TextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	MessageBox(hwnd, L"Error compiling shader.", shaderFilename, MB_OK);
 }
 
-bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, float translation)
+bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -238,16 +238,16 @@ bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	//deviceContext->PSSetShaderResources(0, 3, textureArray);
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 
-	if (FAILED(deviceContext->Map(m_translateBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	TranslateBufferType* translationPtr = (TranslateBufferType*)mappedResource.pData;
+	//if (FAILED(deviceContext->Map(m_translateBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	//TranslateBufferType* translationPtr = (TranslateBufferType*)mappedResource.pData;
 
-	// 상수버퍼에 클리핑 평면 복사
-	translationPtr->translation = translation;
+	//// 상수버퍼에 클리핑 평면 복사
+	//translationPtr->translation = translation;
 
-	// 상수버퍼 메모리 해제
-	deviceContext->Unmap(m_translateBuffer, 0);
-	bufferNumber = 0;
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_translateBuffer);
+	//// 상수버퍼 메모리 해제
+	//deviceContext->Unmap(m_translateBuffer, 0);
+	//bufferNumber = 0;
+	//deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_translateBuffer);
 
 	return true;
 }

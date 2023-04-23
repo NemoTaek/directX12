@@ -99,6 +99,7 @@ bool SystemClass::initialize()
 	if (!m_Position) {
 		return false;
 	}
+	m_Position->SetPosition(0.0f, 2.0f, -12.0f);
 
 	// m_Position 객체 초기화
 	if (!(m_Position))
@@ -190,9 +191,7 @@ void SystemClass::Run()
 
 bool SystemClass::Frame()
 {
-	// ESC로 종료
-	//if (m_Input->IsKeyDown(VK_ESCAPE))	return false;
-	//return m_Graphics->Frame();
+	XMFLOAT3 position(0.0f, 0.0f, 0.0f);
 
 	// 시스템 통계 업데이트
 	m_Timer->Frame();
@@ -211,18 +210,19 @@ bool SystemClass::Frame()
 	// input 객체의 프레임 처리 수행
 	if (!m_Input->Frame())	return false;
 
-	// input 객체에서 마우스 위치 읽어옴
+	// input 객체에서 마우스 위치와 키보드 입력을 읽어옴
 	//m_Input->GetMouseLocation(mouseX, mouseY);
 	//m_Input->GetKeyCount(keyCount);
 	bool keydownLeft = m_Input->IsLeftArrowPressed();
-	m_Position->TurnLeft(keydownLeft);
+	m_Position->MoveLeft(keydownLeft);
 	bool keydownRight = m_Input->IsRightArrowPressed();
-	m_Position->TurnRight(keydownRight);
-	float rotationY = 0.0f;
-	m_Position->GetRotation(rotationY);
+	m_Position->MoveRight(keydownRight);
+
+	// 현재 위치 세팅
+	m_Position->GetPosition(position);
 
 	// graphic 객체의 프레임 처리 수행
-	if (!m_Graphics->Frame())	return false;
+	//if (!m_Graphics->Frame(position))	return false;
 
 	// 시간에 따라 처리되어야 하는 내용이 수행되어야 하면 아래를 실행
 	// if (!m_Graphics->Frame(m_Timer->GetTime()))	return false;

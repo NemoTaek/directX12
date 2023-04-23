@@ -39,6 +39,8 @@
     <None Include="Light.ps" />
     <None Include="Fire.vs" />
     <None Include="Fire.ps" />
+    <None Include="Depth.vs" />
+    <None Include="Depth.ps" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -48,15 +50,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DDSTextureLoader.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="FontClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="FontShaderClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="FrustumClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="GraphicsClass.cpp">
@@ -77,9 +70,6 @@
     <ClCompile Include="Model3DClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="ModelListClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="PositionClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -87,9 +77,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="SystemClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="TextClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="TimeClass.cpp">
@@ -101,43 +88,16 @@
     <ClCompile Include="TextureShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="TextureArrayClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="BumpMapShaderClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="RenderTextureClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugWindowClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="FogShaderClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="TransparentShaderClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="ReflectionShaderClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="FadeShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="BitmapClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="RefractionShaderClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="ExampleWaterShaderClass.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="SoundClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="FireShaderClass.cpp">
+    <ClCompile Include="DepthShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -152,15 +112,6 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="DxDefine.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="FontClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="FontShaderClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="FrustumClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsClass.h">
@@ -178,9 +129,6 @@
     <ClInclude Include="Model3DClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ModelListClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="PositionClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -193,9 +141,6 @@
     <ClInclude Include="Targetver.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="TextClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="TimerClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -205,43 +150,19 @@
     <ClInclude Include="TextureShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="TextureArrayClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="BumpMapShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="RenderTextureClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="DebugWindowClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="FogShaderClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="TransparentShaderClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="ReflectionShaderClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="FadeShaderClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="BitmapClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="RefractionShaderClass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="ExampleWaterShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="SoundClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="FireShaderClass.h">
+    <ClInclude Include="DepthShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
