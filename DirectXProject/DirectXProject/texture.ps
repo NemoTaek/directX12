@@ -16,8 +16,8 @@ struct PixelInputType
 float4 TexturePixelShader(PixelInputType input) : SV_TARGET
 {
 	// 픽셀을 샘플링하는 위치를 변환
-	input.tex.x += textureTranslation;
-	input.tex.y += textureTranslation;
+	// input.tex.x += textureTranslation;
+	// input.tex.y += textureTranslation;
 
 	return shaderTexture.Sample(SampleType, input.tex);
 }

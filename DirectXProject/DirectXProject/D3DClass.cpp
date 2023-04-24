@@ -229,16 +229,15 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	m_deviceContext->RSSetState(m_rasterState);
 
 	// 랜더링을 위해 뷰포트 설정
-	D3D11_VIEWPORT viewport;
-	viewport.Width = (float)screenWidth;
-	viewport.Height = (float)screenHeight;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	viewport.TopLeftX = 0.0f;
-	viewport.TopLeftY = 0.0f;
+	m_viewport.Width = (float)screenWidth;
+	m_viewport.Height = (float)screenHeight;
+	m_viewport.MinDepth = 0.0f;
+	m_viewport.MaxDepth = 1.0f;
+	m_viewport.TopLeftX = 0.0f;
+	m_viewport.TopLeftY = 0.0f;
 
 	// 뷰포트 생성
-	m_deviceContext->RSSetViewports(1, &viewport);
+	m_deviceContext->RSSetViewports(1, &m_viewport);
 
 	// 투영행렬 설정
 	float fieldOfView = XM_PI / 4.0f;
@@ -465,3 +464,5 @@ void D3DClass::SetBackBufferRenderTarget()
 	// RTV와 DSV 버퍼를 출력 렌더 파이프 라인데 바인딩
 	m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
 }
+
+void D3DClass::ResetViewport() { m_deviceContext->RSSetViewports(1, &m_viewport); }

@@ -2,12 +2,12 @@
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
-const float SCREEN_DEPTH = 100.0f;	// 깊이 버퍼를 위해 far 평면값 수정
-const float SCREEN_NEAR = 1.0f;		// 깊이 버퍼를 위해 near 평면값 수정
+const float SCREEN_DEPTH = 1000.0f;
+const float SCREEN_NEAR = 0.1f;
 
 class D3DClass;				
 class CameraClass;
-//class TextureShaderClass;	// 텍스쳐 셰이더
+class TextureShaderClass;	// 텍스쳐 셰이더
 class Model3DClass;		// 3D 모델
 //class LightShaderClass;	// 조명 셰이더
 //class LightClass;			// 조명 관련 값 설정 및 조회
@@ -18,7 +18,7 @@ class Model3DClass;		// 3D 모델
 //class FrustumClass;			// 절단
 //class ModelListClass;		// 여러개의 랜덤 모델
 //class BumpMapShaderClass;	// 범프 매핑, 반사 매핑
-//class RenderTextureClass;	// 백버퍼 대신 텍스처로 렌더링 대상을 설정
+class RenderTextureClass;	// 백버퍼 대신 텍스처로 렌더링 대상을 설정
 //class DebugWindowClass;		// 텍스처를 가지지 않는 2D 모델 (RTT 목적)
 //class FogShaderClass;		// 안개
 //class TransparentShaderClass;		// 투명도 적용된 클래스
@@ -26,7 +26,10 @@ class Model3DClass;		// 3D 모델
 //class FadeShaderClass;		// 페이드 효과 적용된 클래스
 //class RefractionShaderClass;	// 굴절 적용된 클래스
 //class FireShaderClass;		// 불
-class DepthShaderClass;		// 깊이 버퍼 셰이더 클래스
+//class DepthShaderClass;		// 깊이 버퍼 셰이더 클래스
+class HorizontalBlurShaderClass;	// 수평 블러 클래스
+class VerticalBlurShaderClass;	// 수직 블러 클래스
+class OrthoWindowClass;		// 3D 공간의 사각형을 2D 화면으로 투영하는 클래스(다운샘플링)
 
 // 이 프로젝트에서 사용되는 모든 그래픽 객체에 대한 호출을 담당하는 클래스
 class GraphicsClass
@@ -55,12 +58,21 @@ private:
 	bool RenderReflectionToTexture();
 	bool RenderWaterScene();
 
+	// 블러 처리를 위한 함수
+	// 장면을 텍스처로 렌더링 -> 텍스처 크기를 절반 이하로 다운샘플링 -> 수평 및 수직 블러 수행 -> 원래 크기로 업샘플링 -> 블러처리 된 텍스처를 화면에 렌더링
+	bool RenderSceneToTexture();
+	bool DownSampleTexture();
+	bool RenderHorizontalBlurToTexture();
+	bool RenderVerticalBlurToTexture();
+	bool UpSampleTexture();
+	bool Render2DTextureScene();
+
 private:
 	D3DClass* m_Direct3D = nullptr;
 	CameraClass* m_Camera = nullptr;
 	//ModelClass* m_Model = nullptr;
 	//ModelTextureClass* m_ModelTexture = nullptr;
-	//TextureShaderClass* m_TextureShader = nullptr;
+	TextureShaderClass* m_TextureShader = nullptr;
 	Model3DClass* m_Model3D = nullptr;
 	//ModelLightClass* m_ModelLight = nullptr;
 	//LightShaderClass* m_LightShader = nullptr;
@@ -76,7 +88,7 @@ private:
 	//FrustumClass* m_Frustum = nullptr;
 	//ModelListClass* m_ModelList = nullptr;
 	//BumpMapShaderClass* m_BumpMapShader = nullptr;
-	//RenderTextureClass* m_RenderTexture = nullptr;
+	RenderTextureClass* m_RenderTexture = nullptr;
 	//DebugWindowClass* m_DebugWindow = nullptr;
 	//FogShaderClass* m_FogShader = nullptr;
 	//ReflectionShaderClass* m_ReflectionShader = nullptr;
@@ -84,7 +96,7 @@ private:
 	//RefractionShaderClass* m_RefractionShader = nullptr;
 	//FireShaderClass* m_FireShader = nullptr;
 	//Model3DClass* m_Billboard = nullptr;
-	DepthShaderClass* m_DepthShader = nullptr;
+	//DepthShaderClass* m_DepthShader = nullptr;
 
 	
 
@@ -110,4 +122,14 @@ private:
 	float m_waterHeight = 0;
 	float m_waterTranslation = 0;
 	*/
+
+	// 블러 효과에 사용하는 변수
+	HorizontalBlurShaderClass* m_HorizontalBlurShader = nullptr;
+	VerticalBlurShaderClass* m_VerticalBlurShader = nullptr;
+	RenderTextureClass* m_DownSampleTexture = nullptr;
+	RenderTextureClass* m_HorizontalBlurTexture = nullptr;
+	RenderTextureClass* m_VerticalBlurTexture = nullptr;
+	RenderTextureClass* m_UpSampleTexture = nullptr;
+	OrthoWindowClass* m_SmallWindow = nullptr;
+	OrthoWindowClass* m_FullScreenWindow = nullptr;
 };

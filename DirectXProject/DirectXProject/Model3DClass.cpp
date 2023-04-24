@@ -16,8 +16,8 @@ bool Model3DClass::Initialize(ID3D11Device* device, const WCHAR* modelFilename, 
 	//CalculateModelVectors();	// 모델의 법선, 접선, 이항벡터 계산
 	if (!InitializeBuffers(device))	return false;
 	//return LoadTextures(device, textureFilename1, textureFilename2, textureFilename3);
-	//return LoadTexture(device, textureFilename1);
-	return InitializeBuffers(device);
+	return LoadTexture(device, textureFilename1);
+	//return InitializeBuffers(device);
 }
 
 void Model3DClass::Shutdown()

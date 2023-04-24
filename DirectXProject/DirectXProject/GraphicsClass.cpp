@@ -2,7 +2,7 @@
 #include "GraphicsClass.h"
 #include "D3DClass.h"
 #include "CameraClass.h"
-//#include "TextureShaderClass.h"
+#include "TextureShaderClass.h"
 #include "Model3DClass.h"
 //#include "LightShaderClass.h"
 //#include "LightClass.h"
@@ -12,7 +12,7 @@
 //#include "FrustumClass.h"
 //#include "ModelListClass.h"
 //#include "BumpMapShaderClass.h"
-//#include "RenderTextureClass.h"
+#include "RenderTextureClass.h"
 //#include "DebugWindowClass.h"
 //#include "FogShaderClass.h"
 //#include "TransparentShaderClass.h"
@@ -20,7 +20,10 @@
 //#include "FadeShaderClass.h"
 //#include "RefractionShaderClass.h"
 //#include "FireShaderClass.h"
-#include "DepthShaderClass.h"
+//#include "DepthShaderClass.h"
+#include "HorizontalBlurShaderClass.h"
+#include "VerticalBlurShaderClass.h"
+#include "OrthoWindowClass.h"
 
 #include <iostream>
 using namespace std;
@@ -60,13 +63,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!m_Camera) { return false; }
 	// 카메라 위치 설정
 	XMMATRIX baseViewMatrix;
-	m_Camera->SetPosition(0.0f, 2.0f, -10.0f);
+	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
 	m_Camera->Render();
 	m_Camera->GetViewMatrix(baseViewMatrix);
 
 	m_Model3D = new Model3DClass;
 	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/floor.txt", L"./Textures/grid01.dds")) {
+	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/checkboard.dds")) {
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
@@ -78,13 +81,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	//m_TextureShader = new TextureShaderClass;
-	//if (!m_TextureShader) { return false; }
-	//// 텍스쳐 셰이더 객체 초기화
-	//if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-	//	MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-	//	return false;
-	//}
+	m_TextureShader = new TextureShaderClass;
+	if (!m_TextureShader) { return false; }
+	// 텍스쳐 셰이더 객체 초기화
+	if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+		return false;
+	}
 
 	//m_LightShader = new LightShaderClass;
 	//if (!m_LightShader) { return false; }
@@ -284,10 +287,77 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	m_DepthShader = new DepthShaderClass;
-	if (!m_DepthShader) { return false; }
-	if (!m_DepthShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
+	//m_DepthShader = new DepthShaderClass;
+	//if (!m_DepthShader) { return false; }
+	//if (!m_DepthShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	// 블러 효과
+	int downSampleWidth = screenWidth / 2;
+	int downSampleHeight = screenHeight / 2;
+
+	m_HorizontalBlurShader = new HorizontalBlurShaderClass;
+	if (!m_HorizontalBlurShader) { return false; }
+	if (!m_HorizontalBlurShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the horizontal blur shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_VerticalBlurShader = new VerticalBlurShaderClass;
+	if (!m_VerticalBlurShader) { return false; }
+	if (!m_VerticalBlurShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the vertical blur shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_RenderTexture = new RenderTextureClass;
+	if (!m_RenderTexture) { return false; }
+	if (!m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) {
+		MessageBox(hwnd, L"Could not initialize the render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_DownSampleTexture = new RenderTextureClass;
+	if (!m_DownSampleTexture) { return false; }
+	if (!m_DownSampleTexture->Initialize(m_Direct3D->GetDevice(), downSampleWidth, downSampleHeight, SCREEN_DEPTH, SCREEN_NEAR)) {
+		MessageBox(hwnd, L"Could not initialize the down sample render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_HorizontalBlurTexture = new RenderTextureClass;
+	if (!m_HorizontalBlurTexture) { return false; }
+	if (!m_HorizontalBlurTexture->Initialize(m_Direct3D->GetDevice(), downSampleWidth, downSampleHeight, SCREEN_DEPTH, SCREEN_NEAR)) {
+		MessageBox(hwnd, L"Could not initialize the horizontal blur render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_VerticalBlurTexture = new RenderTextureClass;
+	if (!m_VerticalBlurTexture) { return false; }
+	if (!m_VerticalBlurTexture->Initialize(m_Direct3D->GetDevice(), downSampleWidth, downSampleHeight, SCREEN_DEPTH, SCREEN_NEAR)) {
+		MessageBox(hwnd, L"Could not initialize the vertical blur render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_UpSampleTexture = new RenderTextureClass;
+	if (!m_UpSampleTexture) { return false; }
+	if (!m_UpSampleTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) {
+		MessageBox(hwnd, L"Could not initialize the up sample render to texture object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_SmallWindow = new OrthoWindowClass;
+	if (!m_SmallWindow) { return false; }
+	if (!m_SmallWindow->Initialize(m_Direct3D->GetDevice(), downSampleWidth, downSampleHeight)) {
+		MessageBox(hwnd, L"Could not initialize the small ortho window object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_FullScreenWindow = new OrthoWindowClass;
+	if (!m_FullScreenWindow) { return false; }
+	if (!m_FullScreenWindow->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight)) {
+		MessageBox(hwnd, L"Could not initialize the full screen ortho window object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -296,11 +366,57 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 void GraphicsClass::Shutdown()
 {
-	if (m_DepthShader) {
-		m_DepthShader->Shutdown();
-		delete m_DepthShader;
-		m_DepthShader = 0;
+	if (m_FullScreenWindow) {
+		m_FullScreenWindow->Shutdown();
+		delete m_FullScreenWindow;
+		m_FullScreenWindow = 0;
 	}
+	if (m_SmallWindow) {
+		m_SmallWindow->Shutdown();
+		delete m_SmallWindow;
+		m_SmallWindow = 0;
+	}
+	if (m_UpSampleTexture) {
+		m_UpSampleTexture->Shutdown();
+		delete m_UpSampleTexture;
+		m_UpSampleTexture = 0;
+	}
+	if (m_VerticalBlurTexture) {
+		m_VerticalBlurTexture->Shutdown();
+		delete m_VerticalBlurTexture;
+		m_VerticalBlurTexture = 0;
+	}
+	if (m_HorizontalBlurTexture) {
+		m_HorizontalBlurTexture->Shutdown();
+		delete m_HorizontalBlurTexture;
+		m_HorizontalBlurTexture = 0;
+	}
+	if (m_DownSampleTexture) {
+		m_DownSampleTexture->Shutdown();
+		delete m_DownSampleTexture;
+		m_DownSampleTexture = 0;
+	}
+	if (m_RenderTexture) {
+		m_RenderTexture->Shutdown();
+		delete m_RenderTexture;
+		m_RenderTexture = 0;
+	}
+	if (m_VerticalBlurShader) {
+		m_VerticalBlurShader->Shutdown();
+		delete m_VerticalBlurShader;
+		m_VerticalBlurShader = 0;
+	}
+	if (m_HorizontalBlurShader) {
+		m_HorizontalBlurShader->Shutdown();
+		delete m_HorizontalBlurShader;
+		m_HorizontalBlurShader = 0;
+	}
+
+	//if (m_DepthShader) {
+	//	m_DepthShader->Shutdown();
+	//	delete m_DepthShader;
+	//	m_DepthShader = 0;
+	//}
 
 	//if (m_Billboard) {
 	//	m_Billboard->Shutdown();
@@ -471,11 +587,11 @@ void GraphicsClass::Shutdown()
 	//}
 
 	// 셰이더 객체 반환
-	//if (m_TextureShader) {
-	//	m_TextureShader->Shutdown();
-	//	delete m_TextureShader;
-	//	m_TextureShader = 0;
-	//}
+	if (m_TextureShader) {
+		m_TextureShader->Shutdown();
+		delete m_TextureShader;
+		m_TextureShader = 0;
+	}
 
 	// 모델 객체 반환
 	//if (m_ModelLight) {
@@ -575,10 +691,18 @@ bool GraphicsClass::Render()
 	//if (!RenderReflectionToTexture()) return false;
 	//if (!RenderWaterScene()) return false;
 
+	// 블러 과정
+	if (!RenderSceneToTexture()) return false;
+	if (!DownSampleTexture()) return false;
+	if (!RenderHorizontalBlurToTexture()) return false;
+	if (!RenderVerticalBlurToTexture()) return false;
+	if (!UpSampleTexture()) return false;
+	if (!Render2DTextureScene()) return false;
+
 	// 전체 장면을 먼저 텍스처로 렌더링
 	//if (!RenderToTexture()) return false;
 	// 백 버퍼의 장면 렌더링
-	if (!RenderScene())	return false;
+	//if (!RenderScene())	return false;
 
 	return true;
 }
@@ -646,7 +770,7 @@ bool GraphicsClass::RenderScene()
 
 	// 텍스쳐 셰이더를 이용하여 모델 렌더링
 	m_Model3D->Render(m_Direct3D->GetDeviceContext());
-	if (!m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
+	//if (!m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
 
 	// 버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();
@@ -774,6 +898,237 @@ bool GraphicsClass::RenderWaterScene()
 }
 */
 
+bool GraphicsClass::RenderSceneToTexture()
+{
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	// 렌더링 대상을 RTT로 설정
+	m_RenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// RTT 초기화
+	m_RenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬을 생성합니다.
+	m_Camera->Render();
+
+	// 모델 회전용 코드
+	static float rotation = 0.0f;
+
+	// 각 프레임의 회전을 업데이트
+	rotation += (float)XM_PI * 0.0025f;
+	if (rotation > 360.0f)	rotation -= 360.0f;
+
+	// 모델이 회전할 수 있도록 회전 값으로 세계 행렬 세팅
+	worldMatrix = XMMatrixRotationY(rotation);
+
+	// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
+	m_Model3D->Render(m_Direct3D->GetDeviceContext());
+
+	// 텍스쳐 셰이더와 반사 뷰 행렬을 사용하여 모델 렌더링
+	if(!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture()))	return false;
+
+	// 렌더링 대상을 다시 원래 백버퍼로 설정
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// 뷰포트를 원본으로 다시 설정
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
+bool GraphicsClass::DownSampleTexture()
+{
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_DownSampleTexture->GetOrthoMatrix(orthoMatrix);
+
+	// 렌더링 대상을 RTT로 설정
+	m_DownSampleTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// RTT 초기화
+	m_DownSampleTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 1.0f, 0.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬을 생성합니다.
+	m_Camera->Render();
+
+	// 2D 렌더링을 위해 Z 버퍼 OFF
+	m_Direct3D->TurnZBufferOff();
+
+	// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
+	m_SmallWindow->Render(m_Direct3D->GetDeviceContext());
+
+	// 텍스쳐 셰이더와 반사 뷰 행렬을 사용하여 모델 렌더링
+	if(!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_SmallWindow->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_RenderTexture->GetShaderResourceView()))	return false;
+
+	// 2D 렌더링이 완료되었으면 Z 버퍼 ON
+	m_Direct3D->TurnZBufferOn();
+
+	// 렌더링 대상을 다시 원래 백버퍼로 설정
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// 뷰포트를 원본으로 다시 설정
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
+bool GraphicsClass::RenderHorizontalBlurToTexture()
+{
+	// 수평 블러 셰이더에서 사용될 화면 폭 저장
+	float screenSizeX = static_cast<float>(m_HorizontalBlurTexture->GetTextureWidth());
+
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_HorizontalBlurTexture->GetOrthoMatrix(orthoMatrix);
+
+	// 렌더링 대상을 RTT로 설정
+	m_HorizontalBlurTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// RTT 초기화
+	m_HorizontalBlurTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬을 생성합니다.
+	m_Camera->Render();
+
+	// 2D 렌더링을 위해 Z 버퍼 OFF
+	m_Direct3D->TurnZBufferOff();
+
+	// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
+	m_SmallWindow->Render(m_Direct3D->GetDeviceContext());
+
+	// 텍스쳐 셰이더와 반사 뷰 행렬을 사용하여 모델 렌더링
+	if (!m_HorizontalBlurShader->Render(m_Direct3D->GetDeviceContext(), m_SmallWindow->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_DownSampleTexture->GetShaderResourceView(), screenSizeX))	return false;
+
+	// 2D 렌더링이 완료되었으면 Z 버퍼 ON
+	m_Direct3D->TurnZBufferOn();
+
+	// 렌더링 대상을 다시 원래 백버퍼로 설정
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// 뷰포트를 원본으로 다시 설정
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
+bool GraphicsClass::RenderVerticalBlurToTexture()
+{
+	// 수직 블러 셰이더에서 사용될 화면 높이 저장
+	float screenSizeY = static_cast<float>(m_VerticalBlurTexture->GetTextureHeight());
+
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_VerticalBlurTexture->GetOrthoMatrix(orthoMatrix);
+
+	// 렌더링 대상을 RTT로 설정
+	m_VerticalBlurTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// RTT 초기화
+	m_VerticalBlurTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬을 생성합니다.
+	m_Camera->Render();
+
+	// 2D 렌더링을 위해 Z 버퍼 OFF
+	m_Direct3D->TurnZBufferOff();
+
+	// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
+	m_SmallWindow->Render(m_Direct3D->GetDeviceContext());
+
+	// 텍스쳐 셰이더와 반사 뷰 행렬을 사용하여 모델 렌더링
+	if (!m_VerticalBlurShader->Render(m_Direct3D->GetDeviceContext(), m_SmallWindow->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_HorizontalBlurTexture->GetShaderResourceView(), screenSizeY))	return false;
+
+	// 2D 렌더링이 완료되었으면 Z 버퍼 ON
+	m_Direct3D->TurnZBufferOn();
+
+	// 렌더링 대상을 다시 원래 백버퍼로 설정
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// 뷰포트를 원본으로 다시 설정
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
+bool GraphicsClass::UpSampleTexture()
+{
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_UpSampleTexture->GetOrthoMatrix(orthoMatrix);
+
+	// 렌더링 대상을 RTT로 설정
+	m_UpSampleTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// RTT 초기화
+	m_UpSampleTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬을 생성합니다.
+	m_Camera->Render();
+
+	// 2D 렌더링을 위해 Z 버퍼 OFF
+	m_Direct3D->TurnZBufferOff();
+
+	// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
+	m_FullScreenWindow->Render(m_Direct3D->GetDeviceContext());
+
+	// 텍스쳐 셰이더와 반사 뷰 행렬을 사용하여 모델 렌더링
+	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_VerticalBlurTexture->GetShaderResourceView()))	return false;
+
+	// 2D 렌더링이 완료되었으면 Z 버퍼 ON
+	m_Direct3D->TurnZBufferOn();
+
+	// 렌더링 대상을 다시 원래 백버퍼로 설정
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// 뷰포트를 원본으로 다시 설정
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
+bool GraphicsClass::Render2DTextureScene()
+{
+	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	// Scene을 그리기 위해 버퍼 삭제
+	m_Direct3D->BeginScene(1.0f, 0.0f, 0.0f, 0.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬 생성
+	m_Camera->Render();
+
+	// 2D 렌더링을 위해 Z 버퍼 OFF
+	m_Direct3D->TurnZBufferOff();
+
+	// 텍스쳐 셰이더를 이용하여 모델 렌더링
+	m_FullScreenWindow->Render(m_Direct3D->GetDeviceContext());
+	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_UpSampleTexture->GetShaderResourceView()))	return false;
+
+	// 2D 렌더링이 완료되었으면 Z 버퍼 ON
+	m_Direct3D->TurnZBufferOn();
+
+	// 버퍼의 내용을 화면에 출력
+	m_Direct3D->EndScene();
+
+	return true;
+}
+
 /* ---------------------------------------- 코드 정리--------------------------------------------
 
 // 렌더링할 모델 세팅
@@ -889,6 +1244,7 @@ worldMatrix = XMMatrixRotationY(rotation);
 //m_Model3D->Render(m_Direct3D->GetDeviceContext());
 //if (!m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 400, 300))	return false;
 //if (!m_DebugWindow->Render(m_Direct3D->GetDeviceContext(), 50, 50))	return false;
+//if (!m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
 
 // 셰이더를 사용하여 모델 렌더링
 //if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;

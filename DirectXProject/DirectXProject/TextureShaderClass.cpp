@@ -124,28 +124,28 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	// 텍스쳐 샘플러 상태 생성
 	if (FAILED(device->CreateSamplerState(&samplerDesc, &m_sampleState)))	return false;
 
-	// 텍스처 이동 버퍼 구조체 설정
-	D3D11_BUFFER_DESC translateBufferDesc;
-	translateBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	translateBufferDesc.ByteWidth = sizeof(TranslateBufferType);
-	translateBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	translateBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	translateBufferDesc.MiscFlags = 0;
-	translateBufferDesc.StructureByteStride = 0;
+	//// 텍스처 이동 버퍼 구조체 설정
+	//D3D11_BUFFER_DESC translateBufferDesc;
+	//translateBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	//translateBufferDesc.ByteWidth = sizeof(TranslateBufferType);
+	//translateBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	//translateBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	//translateBufferDesc.MiscFlags = 0;
+	//translateBufferDesc.StructureByteStride = 0;
 
-	// 텍스처 이동 버퍼 생성
-	if (FAILED(device->CreateBuffer(&translateBufferDesc, NULL, &m_translateBuffer)))	return false;
+	//// 텍스처 이동 버퍼 생성
+	//if (FAILED(device->CreateBuffer(&translateBufferDesc, NULL, &m_translateBuffer)))	return false;
 
 	return true;
 }
 
 void TextureShaderClass::ShutdownShader()
 {
-	// 텍스처 이동 버퍼 해제
-	if (m_translateBuffer) {
-		m_translateBuffer->Release();
-		m_translateBuffer = 0;
-	}
+	//// 텍스처 이동 버퍼 해제
+	//if (m_translateBuffer) {
+	//	m_translateBuffer->Release();
+	//	m_translateBuffer = 0;
+	//}
 
 	// 샘플러 상태 해제
 	if (m_sampleState) {
@@ -230,7 +230,7 @@ bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	// 상수버퍼 메모리 해제
 	deviceContext->Unmap(m_constantBuffer, 0);
-	unsigned bufferNumber = 0;
+	unsigned int bufferNumber = 0;
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_constantBuffer);
 
 	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정

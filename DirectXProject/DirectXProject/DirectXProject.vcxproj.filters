@@ -15,32 +15,14 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="font.ps" />
-    <None Include="font.vs" />
     <None Include="PixelShader.ps" />
     <None Include="texture.ps" />
     <None Include="texture.vs" />
     <None Include="VertexShader.vs" />
-    <None Include="BumpMap.vs" />
-    <None Include="BumpMap.ps" />
-    <None Include="Fog.vs" />
-    <None Include="Fog.ps" />
-    <None Include="Transparent.vs" />
-    <None Include="Transparent.ps" />
-    <None Include="Reflection.vs" />
-    <None Include="Reflection.ps" />
-    <None Include="Fade.vs" />
-    <None Include="Fade.ps" />
-    <None Include="Water.vs" />
-    <None Include="Water.ps" />
-    <None Include="Refraction.vs" />
-    <None Include="Refraction.ps" />
-    <None Include="Light.vs" />
-    <None Include="Light.ps" />
-    <None Include="Fire.vs" />
-    <None Include="Fire.ps" />
-    <None Include="Depth.vs" />
-    <None Include="Depth.ps" />
+    <None Include="HorizontalBlur.vs" />
+    <None Include="HorizontalBlur.ps" />
+    <None Include="VerticalBlur.vs" />
+    <None Include="VerticalBlur.ps" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -98,6 +80,15 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DepthShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="HorizontalBlurShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="VerticalBlurShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="OrthoWindowClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -163,6 +154,15 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="DepthShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="HorizontalBlurShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="VerticalBlurShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="OrthoWindowClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
