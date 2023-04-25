@@ -33,6 +33,15 @@ bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCou
 
 	return true;
 }
+bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+{
+	// 렌더링에 사용할 셰이더 매개변수 설정
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture))	return false;
+
+	RenderShader(deviceContext, vertexCount, instanceCount);
+
+	return true;
+}
 
 bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const WCHAR* vsFilename, const WCHAR* psFilename)
 {
@@ -62,7 +71,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 
 	// 정점 입력 레이아웃 구조체 설정
 	// ModelClass와 셰이더의 VertexType 구조와 일치해야한다.
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -78,6 +87,17 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
+
+	// 인스턴싱을 위하여 설정을 추가
+	// 추가 시맨틱을 사용하기 때문에 index, slot 값을 하나 늘리고, 정렬할 필요가 없기 때문에 AlignedByteOffset을 0으로 설정
+	// 또한 InputSlotClass를 Vertex_Data가 아닌 Instance_Data로 수정하고, InstanceDataStepRate를 설정하여 인스턴스 데이터 하나당 하나의 인스턴스를 그리도록 설정
+	polygonLayout[2].SemanticName = "TEXCOORD";
+	polygonLayout[2].SemanticIndex = 1;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[2].InputSlot = 1;
+	polygonLayout[2].AlignedByteOffset = 0;
+	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[2].InstanceDataStepRate = 1;
 
 	// 레이아웃 요소 수
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -266,4 +286,20 @@ void TextureShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int in
 
 	// 삼각형을 그린다
 	deviceContext->DrawIndexed(indexCount, 0, 0);
+}
+
+void TextureShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount)
+{
+	// 정점 입력 레이아웃 설정
+	deviceContext->IASetInputLayout(m_layout);
+
+	// 삼각형을 그릴 정점셰이더와 픽셀셰이더 설정
+	deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+	deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+
+	// 픽셀셰이더에서 샘플러 상태 설정
+	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+
+	// 삼각형을 그린다
+	deviceContext->DrawInstanced(vertexCount, instanceCount, 0, 0);
 }

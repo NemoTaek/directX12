@@ -3,7 +3,7 @@
 #include "D3DClass.h"
 #include "CameraClass.h"
 #include "TextureShaderClass.h"
-#include "Model3DClass.h"
+//#include "Model3DClass.h"
 //#include "LightShaderClass.h"
 //#include "LightClass.h"
 //#include "ExampleWaterShaderClass.h"
@@ -21,9 +21,10 @@
 //#include "RefractionShaderClass.h"
 //#include "FireShaderClass.h"
 //#include "DepthShaderClass.h"
-#include "HorizontalBlurShaderClass.h"
-#include "VerticalBlurShaderClass.h"
-#include "OrthoWindowClass.h"
+//#include "HorizontalBlurShaderClass.h"
+//#include "VerticalBlurShaderClass.h"
+//#include "OrthoWindowClass.h"
+#include "ModelInstanceClass.h"
 
 #include <iostream>
 using namespace std;
@@ -67,12 +68,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Camera->Render();
 	m_Camera->GetViewMatrix(baseViewMatrix);
 
-	m_Model3D = new Model3DClass;
-	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/checkboard.dds")) {
-		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
-		return false;
-	}
+	//m_Model3D = new Model3DClass;
+	//if (!m_Model3D) { return false; }
+	//if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/checkboard.dds")) {
+	//	MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	//m_BumpMapShader = new BumpMapShaderClass;
 	//if (!m_BumpMapShader) { return false; }
@@ -294,6 +295,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
+	/*
 	// 블러 효과
 	int downSampleWidth = screenWidth / 2;
 	int downSampleHeight = screenHeight / 2;
@@ -360,178 +362,25 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		MessageBox(hwnd, L"Could not initialize the full screen ortho window object.", L"Error", MB_OK);
 		return false;
 	}
+	*/
+
+	m_ModelInstance = new ModelInstanceClass;
+	if (!m_ModelInstance) { return false; }
+	if (!m_ModelInstance->Initialize(m_Direct3D->GetDevice(), L"./Textures/checkboard.dds")) {
+		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
+		return false;
+	}
 
 	return true;
 }
 
 void GraphicsClass::Shutdown()
 {
-	if (m_FullScreenWindow) {
-		m_FullScreenWindow->Shutdown();
-		delete m_FullScreenWindow;
-		m_FullScreenWindow = 0;
+	if (m_ModelInstance) {
+		m_ModelInstance->Shutdown();
+		delete m_ModelInstance;
+		m_ModelInstance = 0;
 	}
-	if (m_SmallWindow) {
-		m_SmallWindow->Shutdown();
-		delete m_SmallWindow;
-		m_SmallWindow = 0;
-	}
-	if (m_UpSampleTexture) {
-		m_UpSampleTexture->Shutdown();
-		delete m_UpSampleTexture;
-		m_UpSampleTexture = 0;
-	}
-	if (m_VerticalBlurTexture) {
-		m_VerticalBlurTexture->Shutdown();
-		delete m_VerticalBlurTexture;
-		m_VerticalBlurTexture = 0;
-	}
-	if (m_HorizontalBlurTexture) {
-		m_HorizontalBlurTexture->Shutdown();
-		delete m_HorizontalBlurTexture;
-		m_HorizontalBlurTexture = 0;
-	}
-	if (m_DownSampleTexture) {
-		m_DownSampleTexture->Shutdown();
-		delete m_DownSampleTexture;
-		m_DownSampleTexture = 0;
-	}
-	if (m_RenderTexture) {
-		m_RenderTexture->Shutdown();
-		delete m_RenderTexture;
-		m_RenderTexture = 0;
-	}
-	if (m_VerticalBlurShader) {
-		m_VerticalBlurShader->Shutdown();
-		delete m_VerticalBlurShader;
-		m_VerticalBlurShader = 0;
-	}
-	if (m_HorizontalBlurShader) {
-		m_HorizontalBlurShader->Shutdown();
-		delete m_HorizontalBlurShader;
-		m_HorizontalBlurShader = 0;
-	}
-
-	//if (m_DepthShader) {
-	//	m_DepthShader->Shutdown();
-	//	delete m_DepthShader;
-	//	m_DepthShader = 0;
-	//}
-
-	//if (m_Billboard) {
-	//	m_Billboard->Shutdown();
-	//	delete m_Billboard;
-	//	m_Billboard = 0;
-	//}
-
-	//if (m_FireShader) {
-	//	m_FireShader->Shutdown();
-	//	delete m_FireShader;
-	//	m_FireShader = 0;
-	//}
-
-	//if (m_Model3D2) {
-	//	m_Model3D2->Shutdown();
-	//	delete m_Model3D2;
-	//	m_Model3D2 = 0;
-	//}
-
-	//if (m_RefractionShader) {
-	//	m_RefractionShader->Shutdown();
-	//	delete m_RefractionShader;
-	//	m_RefractionShader = 0;
-	//}
-
-	/*
-	if (m_RefractionShader) {
-		m_RefractionShader->Shutdown();
-		delete m_RefractionShader;
-		m_RefractionShader = 0;
-	}
-	if (m_WaterShader) {
-		m_WaterShader->Shutdown();
-		delete m_WaterShader;
-		m_WaterShader = 0;
-	}
-	if (m_RefractionTexture) {
-		m_RefractionTexture->Shutdown();
-		delete m_RefractionTexture;
-		m_RefractionTexture = 0;
-	}
-	if (m_ReflectionTexture) {
-		m_ReflectionTexture->Shutdown();
-		delete m_ReflectionTexture;
-		m_ReflectionTexture = 0;
-	}
-	if (m_ExampleWaterShader) {
-		m_ExampleWaterShader->Shutdown();
-		delete m_ExampleWaterShader;
-		m_ExampleWaterShader = 0;
-	}
-	if (m_WaterModel) {
-		m_WaterModel->Shutdown();
-		delete m_WaterModel;
-		m_WaterModel = 0;
-	}
-	if (m_BathModel) {
-		m_BathModel->Shutdown();
-		delete m_BathModel;
-		m_BathModel = 0;
-	}
-	if (m_WallModel) {
-		m_WallModel->Shutdown();
-		delete m_WallModel;
-		m_WallModel = 0;
-	}
-	if (m_GroundModel) {
-		m_GroundModel->Shutdown();
-		delete m_GroundModel;
-		m_GroundModel = 0;
-	}
-	*/
-
-	//if (m_FadeShader) {
-	//	m_FadeShader->Shutdown();
-	//	delete m_FadeShader;
-	//	m_FadeShader = 0;
-	//}
-
-	//if (m_ReflectionShader) {
-	//	m_ReflectionShader->Shutdown();
-	//	delete m_ReflectionShader;
-	//	m_ReflectionShader = 0;
-	//}
-
-	//if (m_FogShader)
-	//{
-	//	delete m_FogShader;
-	//	m_FogShader = 0;
-	//}
-
-	//if (m_DebugWindow)
-	//{
-	//	delete m_DebugWindow;
-	//	m_DebugWindow = 0;
-	//}
-
-	//if (m_RenderTexture)
-	//{
-	//	delete m_RenderTexture;
-	//	m_RenderTexture = 0;
-	//}
-
-	//// 절두체 객체 반환
-	//if (m_Frustum) {
-	//	delete m_Frustum;
-	//	m_Frustum = 0;
-	//}
-
-	//// 랜덤 모델 리스트 객체 반환
-	//if (m_ModelList) {
-	//	m_ModelList->Shutdown();
-	//	delete m_ModelList;
-	//	m_ModelList = 0;
-	//}
 
 	//// 텍스트 객체 반환
 	//if (m_Text) {
@@ -547,32 +396,6 @@ void GraphicsClass::Shutdown()
 	//	m_Bitmap = 0;
 	//}
 
-	// light 객체 반환
-	//if (m_Light5)
-	//{
-	//	delete m_Light5;
-	//	m_Light5 = 0;
-	//}
-	//if (m_Light4)
-	//{
-	//	delete m_Light4;
-	//	m_Light4 = 0;
-	//}
-	//if (m_Light3)
-	//{
-	//	delete m_Light3;
-	//	m_Light3 = 0;
-	//}
-	//if (m_Light2)
-	//{
-	//	delete m_Light2;
-	//	m_Light2 = 0;
-	//}
-	//if (m_Light1)
-	//{
-	//	delete m_Light1;
-	//	m_Light1 = 0;
-	//}
 	//if (m_Light)
 	//{
 	//	delete m_Light;
@@ -608,11 +431,11 @@ void GraphicsClass::Shutdown()
 	//}
 
 	// 모델 객체 반환
-	if (m_Model3D) {
-		m_Model3D->Shutdown();
-		delete m_Model3D;
-		m_Model3D = 0;
-	}
+	//if (m_Model3D) {
+	//	m_Model3D->Shutdown();
+	//	delete m_Model3D;
+	//	m_Model3D = 0;
+	//}
 
 	// 카메라 객체 반환
 	if (m_Camera) {
@@ -691,6 +514,7 @@ bool GraphicsClass::Render()
 	//if (!RenderReflectionToTexture()) return false;
 	//if (!RenderWaterScene()) return false;
 
+	/*
 	// 블러 과정
 	if (!RenderSceneToTexture()) return false;
 	if (!DownSampleTexture()) return false;
@@ -698,11 +522,12 @@ bool GraphicsClass::Render()
 	if (!RenderVerticalBlurToTexture()) return false;
 	if (!UpSampleTexture()) return false;
 	if (!Render2DTextureScene()) return false;
+	*/
 
 	// 전체 장면을 먼저 텍스처로 렌더링
 	//if (!RenderToTexture()) return false;
 	// 백 버퍼의 장면 렌더링
-	//if (!RenderScene())	return false;
+	if (!RenderScene())	return false;
 
 	return true;
 }
@@ -769,8 +594,8 @@ bool GraphicsClass::RenderScene()
 	m_Camera->Render();
 
 	// 텍스쳐 셰이더를 이용하여 모델 렌더링
-	m_Model3D->Render(m_Direct3D->GetDeviceContext());
-	//if (!m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
+	m_ModelInstance->Render(m_Direct3D->GetDeviceContext());
+	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_ModelInstance->GetVertexCount(), m_ModelInstance->GetInstanceCount(), worldMatrix, viewMatrix, projectionMatrix, m_ModelInstance->GetTexture()))	return false;
 
 	// 버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();
@@ -898,6 +723,7 @@ bool GraphicsClass::RenderWaterScene()
 }
 */
 
+/*
 bool GraphicsClass::RenderSceneToTexture()
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
@@ -1128,6 +954,7 @@ bool GraphicsClass::Render2DTextureScene()
 
 	return true;
 }
+*/
 
 /* ---------------------------------------- 코드 정리--------------------------------------------
 

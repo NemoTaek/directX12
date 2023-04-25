@@ -17,6 +17,7 @@ struct VertexInputType
 {
 	float4 position : POSITION;
 	float2 tex : TEXCOORD0;
+	float3 instancePosition : TEXCOORD1;
 };
 
 struct PixelInputType
@@ -32,6 +33,11 @@ PixelInputType TextureVertexShader(VertexInputType input)
 
 	// 올바르게 행렬 연산을 하기 위하여 position 벡터를 w까지 있는 4성분이 있는 것으로 사용한다.
 	input.position.w = 1.0f;
+
+	// 특정 인스턴스에 대한 데이터를 기반으로 정점의 위치를 설정
+	input.position.x += input.instancePosition.x;
+	input.position.y += input.instancePosition.y;
+	input.position.z += input.instancePosition.z;
 
 	// 정점의 위치를 월드, 뷰, 사영의 순으로 계산.
 	output.position = mul(input.position, worldMatrix);
