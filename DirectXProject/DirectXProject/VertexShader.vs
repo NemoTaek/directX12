@@ -17,62 +17,37 @@ cbuffer CameraBuffer : register(b1)
 
 struct VertexInputType
 {
-	float4 position : POSITION;
-
-	// float4 color : COLOR;
+	float3 position : POSITION;
+	float4 color : COLOR;
 
 	// TEXCOORD 시맨틱은 픽셀셰이더에서 텍스쳐 좌표를 나타낸다.
 	// 텍스쳐 좌표계에는 (u, v) 좌표로 나타내며 각각 0~1의 크기를 갖고 있다.
-	float2 tex : TEXCOORD0;
+	// float2 tex : TEXCOORD0;
 	
 	// 방향 조명
 	// 방향벡터와 법선벡터가 필요
 	// 방향벡터는 직접 지정, 법선벡터는 정점들에 의해 만들어지는 평면으로 계산
-	float3 normal : NORMAL;
+	// float3 normal : NORMAL;
 };
 
-struct PixelInputType
+// 소프트웨어에서 처리하면 그래픽카드에 수많은 다각형을 보내어 비효율적이고 렌더링 성능에도 병목 현상이 일어날 수 있음
+// 테셀레이션을 하드웨어에서 처리하기 위하여 Hull Shader와 Domian Shader 과정을 추가
+// 기본 다각형을 그래픽카드에 보내고 그래픽카드 안에서 분할 알고리즘을 수행
+struct HullInputType
 {
-	float4 position : SV_POSITION;
-	// float4 color : COLOR;
-	float2 tex : TEXCOORD0;
-	float3 normal : NORMAL;
-	// float3 viewDirection : TEXCOORD1;	// 시야 방향
+	float3 position : POSITION;
+	float4 color : COLOR;
 };
 
-PixelInputType VS(VertexInputType input)
+HullInputType TessellationVertexShader(VertexInputType input)
 {
-	PixelInputType output;
-	float4 worldPosition;
+	HullInputType output;
 
-	// 적절한 행렬 계산을 위해 위치벡터를 4단위로 변경
-	input.position.w = 1.0f;
-
-	// world, view, projection 행렬에 대한 정점의 위치 계산
-	output.position = mul(input.position, worldMatrix);
-	output.position = mul(output.position, viewMatrix);
-	output.position = mul(output.position, projectionMatrix);
+	// 정점의 위치 계산
+	output.position = input.position;
 
 	// 픽셀셰이더가 사용할 입력 색상 저장
-	// output.color = input.color;
-
-	// 픽셀셰이더가 사용할 텍스쳐 저장
-	output.tex = input.tex;
-
-	// 세계 행렬에 대한 법선벡터 계산
-	output.normal = mul(input.normal, (float3x3)worldMatrix);
-
-	// 법선벡터 정규화
-	output.normal = normalize(output.normal);
-
-	// 세계 정점 위치 계산
-	// worldPosition = mul(input.position, worldMatrix);
-
-	// 카메라 위치와 세계 정점 위치를 기준으로 시야 방향 계산
-	// output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
-
-	// 시야 방향벡터 정규화
-	// output.viewDirection = normalize(output.viewDirection);
+	output.color = input.color;
 
 	return output;
 }

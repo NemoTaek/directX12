@@ -16,13 +16,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PixelShader.ps" />
-    <None Include="texture.ps" />
-    <None Include="texture.vs" />
+    <None Include="Texture.ps" />
+    <None Include="Texture.vs" />
     <None Include="VertexShader.vs" />
     <None Include="HorizontalBlur.vs" />
     <None Include="HorizontalBlur.ps" />
     <None Include="VerticalBlur.vs" />
     <None Include="VerticalBlur.ps" />
+    <None Include="HullShader.hs" />
+    <None Include="DomainShader.ds" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -92,6 +94,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="ModelInstanceClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TessellationShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelTessellationClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -169,6 +177,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ModelInstanceClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TessellationShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelTessellationClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

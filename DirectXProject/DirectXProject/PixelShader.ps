@@ -13,14 +13,19 @@ cbuffer LightBuffer
 struct PixelInputType
 {
 	float4 position : SV_POSITION;
-	// float4 color : COLOR;
-	float2 tex : TEXCOORD0;
-	float3 normal : NORMAL;
+	float4 color : COLOR;
+	// float2 tex : TEXCOORD0;
+	// float3 normal : NORMAL;
 	// float3 viewDirection : TEXCOORD1;
 };
 
-float4 PS(PixelInputType input) : SV_TARGET
+float4 TessellationPixelShader(PixelInputType input) : SV_TARGET
 {
+	return input.color;
+
+
+	/*
+	// 조명 설정
 	float4 textureColor;
 	float3 lightDir;		// 시야 방향
 	float lightIntensity;	// 조명값
@@ -45,7 +50,6 @@ float4 PS(PixelInputType input) : SV_TARGET
 	lightIntensity = saturate(dot(input.normal, lightDir));
 
 	// 법선벡터와 빛벡터의 내적이 0보다 클 때
-	/*
 	if(lightIntensity > 0.0f) {
 		// 조명값을 주변광에 더해줌
 		color += (diffuseColor * lightIntensity);
@@ -63,7 +67,6 @@ float4 PS(PixelInputType input) : SV_TARGET
 
 	// 정반사 효과 적용, 이로 인해 더욱 입체적이게 될 것
 	color = saturate(color + specular);
-	*/
 
 	if(lightIntensity > 0.0f) {
 		color += (diffuseColor * lightIntensity);
@@ -73,7 +76,7 @@ float4 PS(PixelInputType input) : SV_TARGET
 
 	return color;
 
-	/*
+	// 알파블렌딩
 	float4 textureColor1;
 	float4 textureColor2;
 	float4 blendColor;	// 2개 텍스쳐 혼합한 텍스쳐

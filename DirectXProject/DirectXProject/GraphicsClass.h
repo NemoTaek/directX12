@@ -7,7 +7,7 @@ const float SCREEN_NEAR = 0.1f;
 
 class D3DClass;				
 class CameraClass;
-class TextureShaderClass;	// 텍스쳐 셰이더
+//class TextureShaderClass;	// 텍스쳐 셰이더
 //class Model3DClass;		// 3D 모델
 //class LightShaderClass;	// 조명 셰이더
 //class LightClass;			// 조명 관련 값 설정 및 조회
@@ -30,7 +30,9 @@ class TextureShaderClass;	// 텍스쳐 셰이더
 //class HorizontalBlurShaderClass;	// 수평 블러 클래스
 //class VerticalBlurShaderClass;	// 수직 블러 클래스
 //class OrthoWindowClass;		// 3D 공간의 사각형을 2D 화면으로 투영하는 클래스(다운샘플링)
-class ModelInstanceClass;	// 인스턴스화 된 모델 클래스
+//class ModelInstanceClass;	// 인스턴스화 된 모델 클래스
+class TessellationShaderClass;	// 하드웨어에 테셀레이션을 하도록 하는 클래스
+class ModelTessellationClass;	// 테셀레이션을 위한 모델 클래스
 
 
 // 이 프로젝트에서 사용되는 모든 그래픽 객체에 대한 호출을 담당하는 클래스
@@ -74,7 +76,7 @@ private:
 	CameraClass* m_Camera = nullptr;
 	//ModelClass* m_Model = nullptr;
 	//ModelTextureClass* m_ModelTexture = nullptr;
-	TextureShaderClass* m_TextureShader = nullptr;
+	//TextureShaderClass* m_TextureShader = nullptr;
 	//Model3DClass* m_Model3D = nullptr;
 	//ModelLightClass* m_ModelLight = nullptr;
 	//LightShaderClass* m_LightShader = nullptr;
@@ -99,8 +101,9 @@ private:
 	//FireShaderClass* m_FireShader = nullptr;
 	//Model3DClass* m_Billboard = nullptr;
 	//DepthShaderClass* m_DepthShader = nullptr;
-	ModelInstanceClass* m_ModelInstance = nullptr;
-
+	//ModelInstanceClass* m_ModelInstance = nullptr;
+	ModelTessellationClass* m_ModelTessellation = nullptr;
+	TessellationShaderClass* m_TessellationShader = nullptr;
 	
 
 	/*

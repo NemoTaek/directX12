@@ -128,11 +128,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="DomainShader.ds" />
     <None Include="HorizontalBlur.ps" />
     <None Include="HorizontalBlur.vs" />
+    <None Include="HullShader.hs" />
     <None Include="PixelShader.ps" />
-    <None Include="texture.ps" />
-    <None Include="texture.vs" />
+    <None Include="Texture.ps" />
+    <None Include="Texture.vs" />
     <None Include="VertexShader.vs" />
     <None Include="VerticalBlur.ps" />
     <None Include="VerticalBlur.vs" />
@@ -151,12 +153,14 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model3DClass.cpp" />
     <ClCompile Include="ModelInstanceClass.cpp" />
+    <ClCompile Include="ModelTessellationClass.cpp" />
     <ClCompile Include="OrthoWindowClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
     <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="SoundClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
+    <ClCompile Include="TessellationShaderClass.cpp" />
     <ClCompile Include="TextureClass.cpp" />
     <ClCompile Include="TextureShaderClass.cpp" />
     <ClCompile Include="TimeClass.cpp" />
@@ -177,6 +181,7 @@
     <ClInclude Include="LightShaderClass.h" />
     <ClInclude Include="Model3DClass.h" />
     <ClInclude Include="ModelInstanceClass.h" />
+    <ClInclude Include="ModelTessellationClass.h" />
     <ClInclude Include="OrthoWindowClass.h" />
     <ClInclude Include="PositionClass.h" />
     <ClInclude Include="RenderTextureClass.h" />
@@ -184,6 +189,7 @@
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />
     <ClInclude Include="Targetver.h" />
+    <ClInclude Include="TessellationShaderClass.h" />
     <ClInclude Include="TextureClass.h" />
     <ClInclude Include="TextureShaderClass.h" />
     <ClInclude Include="TimerClass.h" />
