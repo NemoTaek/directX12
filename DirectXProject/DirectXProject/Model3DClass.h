@@ -50,6 +50,9 @@ public:
 	ID3D11ShaderResourceView* GetTexture3();
 	//ID3D11ShaderResourceView** GetTextureArray();
 
+	void SetPosition(float, float, float);
+	void GetPosition(float&, float&, float&);
+
 private:
 	bool InitializeBuffers(ID3D11Device*);
 	void ShutdownBuffers();
@@ -76,4 +79,5 @@ private:
 	TextureClass* m_texture3 = nullptr;
 	//TextureArrayClass* m_textureArray = nullptr;
 	ModelType* m_model3D = nullptr;
+	XMFLOAT3 m_position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 };

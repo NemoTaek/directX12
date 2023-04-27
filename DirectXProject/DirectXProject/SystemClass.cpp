@@ -191,7 +191,7 @@ void SystemClass::Run()
 
 bool SystemClass::Frame()
 {
-	XMFLOAT3 position(0.0f, 0.0f, 0.0f);
+	XMFLOAT3 position, rotation;
 
 	// 시스템 통계 업데이트
 	m_Timer->Frame();
@@ -220,12 +220,15 @@ bool SystemClass::Frame()
 
 	// 현재 위치 세팅
 	m_Position->GetPosition(position);
+	m_Position->GetRotation(rotation);
 
 	// graphic 객체의 프레임 처리 수행
+	//if (!m_Graphics->Frame())	return false;
 	//if (!m_Graphics->Frame(position))	return false;
+	if (!m_Graphics->Frame(position, rotation))	return false;
 
 	// 시간에 따라 처리되어야 하는 내용이 수행되어야 하면 아래를 실행
-	// if (!m_Graphics->Frame(m_Timer->GetTime()))	return false;
+	 //if (!m_Graphics->Frame(m_Timer->GetTime()))	return false;
 
 	return m_Graphics->Render();
 }

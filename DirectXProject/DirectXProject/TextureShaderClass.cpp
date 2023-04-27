@@ -88,16 +88,24 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
+	polygonLayout[2].SemanticName = "COLOR";
+	polygonLayout[2].SemanticIndex = 0;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	polygonLayout[2].InputSlot = 0;
+	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[2].InstanceDataStepRate = 0;
+
 	// 인스턴싱을 위하여 설정을 추가
 	// 추가 시맨틱을 사용하기 때문에 index, slot 값을 하나 늘리고, 정렬할 필요가 없기 때문에 AlignedByteOffset을 0으로 설정
 	// 또한 InputSlotClass를 Vertex_Data가 아닌 Instance_Data로 수정하고, InstanceDataStepRate를 설정하여 인스턴스 데이터 하나당 하나의 인스턴스를 그리도록 설정
-	polygonLayout[2].SemanticName = "TEXCOORD";
-	polygonLayout[2].SemanticIndex = 1;
-	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	polygonLayout[2].InputSlot = 1;
-	polygonLayout[2].AlignedByteOffset = 0;
-	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
-	polygonLayout[2].InstanceDataStepRate = 1;
+	//polygonLayout[2].SemanticName = "TEXCOORD";
+	//polygonLayout[2].SemanticIndex = 1;
+	//polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	//polygonLayout[2].InputSlot = 1;
+	//polygonLayout[2].AlignedByteOffset = 0;
+	//polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	//polygonLayout[2].InstanceDataStepRate = 1;
 
 	// 레이아웃 요소 수
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);

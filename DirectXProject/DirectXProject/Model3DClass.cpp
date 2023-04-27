@@ -360,3 +360,12 @@ void Model3DClass::CalculateNormal(VectorType tangent, VectorType binormal, Vect
 	normal.y = normal.y / length;
 	normal.z = normal.z / length;
 }
+
+void Model3DClass::SetPosition(float x, float y, float z) { m_position = { x, y, z }; }
+
+void Model3DClass::GetPosition(float& x, float& y, float& z)
+{
+	x = m_position.x;
+	y = m_position.y;
+	z = m_position.z;
+}

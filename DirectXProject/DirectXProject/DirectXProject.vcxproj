@@ -128,11 +128,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="Depth.ps" />
+    <None Include="Depth.vs" />
     <None Include="DomainShader.ds" />
     <None Include="HorizontalBlur.ps" />
     <None Include="HorizontalBlur.vs" />
     <None Include="HullShader.hs" />
     <None Include="PixelShader.ps" />
+    <None Include="Shadow.ps" />
+    <None Include="Shadow.vs" />
     <None Include="Texture.ps" />
     <None Include="Texture.vs" />
     <None Include="VertexShader.vs" />
@@ -155,6 +159,7 @@
     <ClCompile Include="ModelInstanceClass.cpp" />
     <ClCompile Include="ModelTessellationClass.cpp" />
     <ClCompile Include="OrthoWindowClass.cpp" />
+    <ClCompile Include="ParticleSystemClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
     <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="SoundClass.cpp" />
@@ -183,6 +188,7 @@
     <ClInclude Include="ModelInstanceClass.h" />
     <ClInclude Include="ModelTessellationClass.h" />
     <ClInclude Include="OrthoWindowClass.h" />
+    <ClInclude Include="ParticleSystemClass.h" />
     <ClInclude Include="PositionClass.h" />
     <ClInclude Include="RenderTextureClass.h" />
     <ClInclude Include="SoundClass.h" />

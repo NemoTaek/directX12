@@ -17,13 +17,15 @@ struct VertexInputType
 {
 	float4 position : POSITION;
 	float2 tex : TEXCOORD0;
-	float3 instancePosition : TEXCOORD1;
+	float4 color : COLOR;
+	// float3 instancePosition : TEXCOORD1;
 };
 
 struct PixelInputType
 {
 	float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
+	float4 color : COLOR;
 	// float clip : SV_ClipDistance0;
 };
 
@@ -35,17 +37,18 @@ PixelInputType TextureVertexShader(VertexInputType input)
 	input.position.w = 1.0f;
 
 	// 특정 인스턴스에 대한 데이터를 기반으로 정점의 위치를 설정
-	input.position.x += input.instancePosition.x;
-	input.position.y += input.instancePosition.y;
-	input.position.z += input.instancePosition.z;
+	// input.position.x += input.instancePosition.x;
+	// input.position.y += input.instancePosition.y;
+	// input.position.z += input.instancePosition.z;
 
 	// 정점의 위치를 월드, 뷰, 사영의 순으로 계산.
 	output.position = mul(input.position, worldMatrix);
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);
 
-	// 픽셀 쉐이더의 텍스처 좌표를 저장한다.
+	// 픽셀 쉐이더의 텍스처 좌표 및 색상을 저장한다.
 	output.tex = input.tex;
+	output.color = input.color;
 
 	// 클리핑면을 설정한다.
 	// output.clip = dot(mul(input.position, worldMatrix), clipPlane);

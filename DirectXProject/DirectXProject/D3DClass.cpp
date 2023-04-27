@@ -216,8 +216,8 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	rasterDesc.DepthBias = 0;
 	rasterDesc.DepthBiasClamp = 0.0f;
 	rasterDesc.DepthClipEnable = true;
-	//rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;	// 테셀레이션을 위하여 삼각형의 와이어프레임을 그리도록 함
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	//rasterDesc.FillMode = D3D11_FILL_WIREFRAME;	// 테셀레이션을 위하여 삼각형의 와이어프레임을 그리도록 함
 	rasterDesc.FrontCounterClockwise = false;
 	rasterDesc.MultisampleEnable = false;
 	rasterDesc.ScissorEnable = false;
@@ -288,8 +288,14 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// dest: 후면 버퍼에 있는 픽셀 색상
 	// 블렌딩을 적용하지 않으면 src가 dest를 덮어쓴다
 	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
-	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	//blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	//blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+
+	// 파티클이 겹치면 서로의 색상을 더하면 additive 블렌딩 사용
+	// color = (1 * source) + (1 * destination)
+	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+
 	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
