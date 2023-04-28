@@ -223,9 +223,9 @@ bool SystemClass::Frame()
 	m_Position->GetRotation(rotation);
 
 	// graphic 객체의 프레임 처리 수행
-	//if (!m_Graphics->Frame())	return false;
+	if (!m_Graphics->Frame())	return false;
 	//if (!m_Graphics->Frame(position))	return false;
-	if (!m_Graphics->Frame(position, rotation))	return false;
+	//if (!m_Graphics->Frame(position, rotation))	return false;
 
 	// 시간에 따라 처리되어야 하는 내용이 수행되어야 하면 아래를 실행
 	 //if (!m_Graphics->Frame(m_Timer->GetTime()))	return false;

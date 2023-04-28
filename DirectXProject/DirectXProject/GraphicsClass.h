@@ -9,9 +9,11 @@ const int SHADOWMAP_HEIGHT = 1024;
 
 class D3DClass;				
 class CameraClass;
+class ViewPointClass;	// 텍스처를 투영하는 관점에서 장면을 볼 시점 포인트 클래스
+class TextureClass;
 //class TextureShaderClass;	// 텍스쳐 셰이더
 class Model3DClass;		// 3D 모델
-class LightShaderClass;	// 조명 셰이더
+//class LightShaderClass;	// 조명 셰이더
 class LightClass;			// 조명 관련 값 설정 및 조회
 //class ExampleWaterShaderClass;	// 물의 반사와 굴절을 표현하기 위한 예시 클래스
 //class BitmapClass;		// 2D 모델
@@ -20,7 +22,7 @@ class LightClass;			// 조명 관련 값 설정 및 조회
 //class FrustumClass;			// 절단
 //class ModelListClass;		// 여러개의 랜덤 모델
 //class BumpMapShaderClass;	// 범프 매핑, 반사 매핑
-class RenderTextureClass;	// 백버퍼 대신 텍스처로 렌더링 대상을 설정
+//class RenderTextureClass;	// 백버퍼 대신 텍스처로 렌더링 대상을 설정
 //class DebugWindowClass;		// 텍스처를 가지지 않는 2D 모델 (RTT 목적)
 //class FogShaderClass;		// 안개
 //class TransparentShaderClass;		// 투명도 적용된 클래스
@@ -28,7 +30,7 @@ class RenderTextureClass;	// 백버퍼 대신 텍스처로 렌더링 대상을 설정
 //class FadeShaderClass;		// 페이드 효과 적용된 클래스
 //class RefractionShaderClass;	// 굴절 적용된 클래스
 //class FireShaderClass;		// 불
-class DepthShaderClass;		// 깊이 버퍼 셰이더 클래스
+//class DepthShaderClass;		// 깊이 버퍼 셰이더 클래스
 //class HorizontalBlurShaderClass;	// 수평 블러 클래스
 //class VerticalBlurShaderClass;	// 수직 블러 클래스
 //class OrthoWindowClass;		// 3D 공간의 사각형을 2D 화면으로 투영하는 클래스(다운샘플링)
@@ -36,7 +38,7 @@ class DepthShaderClass;		// 깊이 버퍼 셰이더 클래스
 //class TessellationShaderClass;	// 하드웨어에 테셀레이션을 하도록 하는 클래스
 //class ModelTessellationClass;	// 테셀레이션을 위한 모델 클래스
 //class ParticleSystemClass;		// 파티클 클래스
-
+class ProjectionShaderClass;	// 투영 클래스
 
 // 이 프로젝트에서 사용되는 모든 그래픽 객체에 대한 호출을 담당하는 클래스
 class GraphicsClass
@@ -78,12 +80,14 @@ private:
 private:
 	D3DClass* m_Direct3D = nullptr;
 	CameraClass* m_Camera = nullptr;
+	ViewPointClass* m_ViewPoint = nullptr;
 	//ModelClass* m_Model = nullptr;
 	//ModelTextureClass* m_ModelTexture = nullptr;
+	TextureClass* m_ProjectionTexture = nullptr;
 	//TextureShaderClass* m_TextureShader = nullptr;
 	Model3DClass* m_Model3D = nullptr;
 	//ModelLightClass* m_ModelLight = nullptr;
-	LightShaderClass* m_LightShader = nullptr;
+	//LightShaderClass* m_LightShader = nullptr;
 	LightClass* m_Light = nullptr;
 	//LightClass* m_Light1 = nullptr;
 	//LightClass* m_Light2 = nullptr;
@@ -96,7 +100,7 @@ private:
 	//FrustumClass* m_Frustum = nullptr;
 	//ModelListClass* m_ModelList = nullptr;
 	//BumpMapShaderClass* m_BumpMapShader = nullptr;
-	RenderTextureClass* m_RenderTexture = nullptr;
+	//RenderTextureClass* m_RenderTexture = nullptr;
 	//DebugWindowClass* m_DebugWindow = nullptr;
 	//FogShaderClass* m_FogShader = nullptr;
 	//ReflectionShaderClass* m_ReflectionShader = nullptr;
@@ -104,13 +108,13 @@ private:
 	//RefractionShaderClass* m_RefractionShader = nullptr;
 	//FireShaderClass* m_FireShader = nullptr;
 	//Model3DClass* m_Billboard = nullptr;
-	DepthShaderClass* m_DepthShader = nullptr;
+	//DepthShaderClass* m_DepthShader = nullptr;
 	//ModelInstanceClass* m_ModelInstance = nullptr;
 	//ModelTessellationClass* m_ModelTessellation = nullptr;
 	//TessellationShaderClass* m_TessellationShader = nullptr;
 	//ParticleSystemClass* m_ParticleSystem = nullptr;
 	Model3DClass* m_GroundModel = nullptr;
-	Model3DClass* m_SphereModel = nullptr;
+	ProjectionShaderClass* m_ProjectionShader = nullptr;
 
 
 	/*

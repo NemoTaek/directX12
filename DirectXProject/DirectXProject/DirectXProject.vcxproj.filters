@@ -29,6 +29,8 @@
     <None Include="Shadow.ps" />
     <None Include="Depth.ps" />
     <None Include="Depth.vs" />
+    <None Include="Projection.vs" />
+    <None Include="Projection.ps" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp">
@@ -107,6 +109,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystemClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ProjectionShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewPointClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -193,6 +201,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ParticleSystemClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectionShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewPointClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

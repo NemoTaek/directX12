@@ -135,6 +135,8 @@
     <None Include="HorizontalBlur.vs" />
     <None Include="HullShader.hs" />
     <None Include="PixelShader.ps" />
+    <None Include="Projection.ps" />
+    <None Include="Projection.vs" />
     <None Include="Shadow.ps" />
     <None Include="Shadow.vs" />
     <None Include="Texture.ps" />
@@ -161,6 +163,7 @@
     <ClCompile Include="OrthoWindowClass.cpp" />
     <ClCompile Include="ParticleSystemClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
+    <ClCompile Include="ProjectionShaderClass.cpp" />
     <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="SoundClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
@@ -170,6 +173,7 @@
     <ClCompile Include="TextureShaderClass.cpp" />
     <ClCompile Include="TimeClass.cpp" />
     <ClCompile Include="VerticalBlurShaderClass.cpp" />
+    <ClCompile Include="ViewPointClass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BitmapClass.h" />
@@ -190,6 +194,7 @@
     <ClInclude Include="OrthoWindowClass.h" />
     <ClInclude Include="ParticleSystemClass.h" />
     <ClInclude Include="PositionClass.h" />
+    <ClInclude Include="ProjectionShaderClass.h" />
     <ClInclude Include="RenderTextureClass.h" />
     <ClInclude Include="SoundClass.h" />
     <ClInclude Include="Stdafx.h" />
@@ -200,6 +205,7 @@
     <ClInclude Include="TextureShaderClass.h" />
     <ClInclude Include="TimerClass.h" />
     <ClInclude Include="VerticalBlurShaderClass.h" />
+    <ClInclude Include="ViewPointClass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
