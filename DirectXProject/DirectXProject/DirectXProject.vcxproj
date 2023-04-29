@@ -165,6 +165,7 @@
     <ClCompile Include="PositionClass.cpp" />
     <ClCompile Include="ProjectionShaderClass.cpp" />
     <ClCompile Include="RenderTextureClass.cpp" />
+    <ClCompile Include="ShaderManagerClass.cpp" />
     <ClCompile Include="SoundClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="PositionClass.h" />
     <ClInclude Include="ProjectionShaderClass.h" />
     <ClInclude Include="RenderTextureClass.h" />
+    <ClInclude Include="ShaderManagerClass.h" />
     <ClInclude Include="SoundClass.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />

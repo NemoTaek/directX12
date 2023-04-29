@@ -16,7 +16,13 @@ private:
 	{
 		XMFLOAT4 ambientColor;
 		XMFLOAT4 diffuseColor;
-		XMFLOAT3 lightDirection;
+		//XMFLOAT3 lightDirection;
+		//float padding;
+	};
+
+	struct LightPositionBufferType
+	{
+		XMFLOAT3 lightPosition;
 		float padding;
 	};
 
@@ -45,4 +51,5 @@ private:
 	ID3D11Buffer* m_constantBuffer = nullptr;
 	ID3D11SamplerState* m_sampleState = nullptr;
 	ID3D11Buffer* m_lightBuffer = nullptr;
+	ID3D11Buffer* m_lightPositionBuffer = nullptr;
 };

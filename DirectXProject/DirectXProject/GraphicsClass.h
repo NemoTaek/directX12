@@ -38,7 +38,8 @@ class LightClass;			// 조명 관련 값 설정 및 조회
 //class TessellationShaderClass;	// 하드웨어에 테셀레이션을 하도록 하는 클래스
 //class ModelTessellationClass;	// 테셀레이션을 위한 모델 클래스
 //class ParticleSystemClass;		// 파티클 클래스
-class ProjectionShaderClass;	// 투영 클래스
+//class ProjectionShaderClass;	// 투영 클래스
+class ShaderManagerClass;	// 셰이더 관리 클래스
 
 // 이 프로젝트에서 사용되는 모든 그래픽 객체에 대한 호출을 담당하는 클래스
 class GraphicsClass
@@ -80,10 +81,10 @@ private:
 private:
 	D3DClass* m_Direct3D = nullptr;
 	CameraClass* m_Camera = nullptr;
-	ViewPointClass* m_ViewPoint = nullptr;
+	//ViewPointClass* m_ViewPoint = nullptr;
 	//ModelClass* m_Model = nullptr;
 	//ModelTextureClass* m_ModelTexture = nullptr;
-	TextureClass* m_ProjectionTexture = nullptr;
+	//TextureClass* m_ProjectionTexture = nullptr;
 	//TextureShaderClass* m_TextureShader = nullptr;
 	Model3DClass* m_Model3D = nullptr;
 	//ModelLightClass* m_ModelLight = nullptr;
@@ -113,9 +114,10 @@ private:
 	//ModelTessellationClass* m_ModelTessellation = nullptr;
 	//TessellationShaderClass* m_TessellationShader = nullptr;
 	//ParticleSystemClass* m_ParticleSystem = nullptr;
-	Model3DClass* m_GroundModel = nullptr;
-	ProjectionShaderClass* m_ProjectionShader = nullptr;
-
+	//Model3DClass* m_GroundModel = nullptr;
+	//ProjectionShaderClass* m_ProjectionShader = nullptr;
+	ShaderManagerClass* m_ShaderManager = nullptr;
+	Model3DClass* m_Model2 = nullptr;
 
 	/*
 	// 페이드 효과에 사용하는 변수

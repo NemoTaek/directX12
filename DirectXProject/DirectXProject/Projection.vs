@@ -7,6 +7,12 @@ cbuffer MatrixBuffer
 	matrix projectionMatrix2;
 };
 
+cbuffer LightPositionBuffer
+{
+	float3 lightPosition;
+	float padding;
+};
+
 struct VertexInputType
 {
 	float4 position : POSITION;
@@ -20,11 +26,13 @@ struct PixelInputType
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 	float4 viewPosition : TEXCOORD1;
+	float3 lightPos : TEXCOORD2;
 };
 
 PixelInputType ProjectionVertexShader(VertexInputType input)
 {
 	PixelInputType output;
+	float4 worldPosition;
 
 	// 올바르게 행렬 연산을 하기 위하여 position 벡터를 w까지 있는 4성분이 있는 것으로 사용한다.
 	input.position.w = 1.0f;
@@ -45,6 +53,13 @@ PixelInputType ProjectionVertexShader(VertexInputType input)
 	// 세계 행렬에 대한 법선 벡터 계산
 	output.normal = mul(input.normal, (float3x3)worldMatrix);
 	output.normal = normalize(output.normal);
+
+	// 세계 행렬의 정점 위치 계산
+	worldPosition = mul(input.position, worldMatrix);
+
+	// 빛의 위치와 세계 정점 위치를 기반으로 최종 빛의 위치 계산
+	output.lightPos = lightPosition.xyz - worldPosition.xyz;
+	output.lightPos = normalize(output.lightPos);
 
 	return output;
 }
