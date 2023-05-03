@@ -5,9 +5,9 @@
 //#include "ViewPointClass.h"
 //#include "TextureClass.h"
 //#include "TextureShaderClass.h"
-#include "Model3DClass.h"
+//#include "Model3DClass.h"
 //#include "LightShaderClass.h"
-#include "LightClass.h"
+//#include "LightClass.h"
 //#include "ExampleWaterShaderClass.h"
 //#include "BitmapClass.h"
 //#include "TextClass.h"
@@ -31,7 +31,7 @@
 //#include "ModelTessellationClass.h"
 //#include "ParticleSystemClass.h"
 //#include "ProjectionShaderClass.h"
-#include "ShaderManagerClass.h"
+//#include "ShaderManagerClass.h"
 
 #include <iostream>
 using namespace std;
@@ -71,8 +71,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!m_Camera) { return false; }
 	// 카메라 위치 설정
 	XMMATRIX baseViewMatrix;
-	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
-	m_Camera->SetRotation(70.0f, 0.0f, 0.0f);
+	m_Camera->SetPosition(XMFLOAT3(0.0f, 0.0f, -10.0f));
+	m_Camera->SetRotation(XMFLOAT3(70.0f, 0.0f, 0.0f));
 	m_Camera->Render();
 	m_Camera->GetViewMatrix(baseViewMatrix);
 
@@ -84,12 +84,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//m_ViewPoint->GenerateViewMatrix();
 	//m_ViewPoint->GenerateProjectionMatrix();
 
-	m_Model3D = new Model3DClass;
-	if (!m_Model3D) { return false; }
-	if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/checkboard.dds")) {
-		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
-		return false;
-	}
+	//m_Model3D = new Model3DClass;
+	//if (!m_Model3D) { return false; }
+	//if (!m_Model3D->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/checkboard.dds")) {
+	//	MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	//m_BumpMapShader = new BumpMapShaderClass;
 	//if (!m_BumpMapShader) { return false; }
@@ -120,14 +120,14 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	m_Light = new LightClass;
-	if (!m_Light) { return false; }
-	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
-	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
+	//m_Light = new LightClass;
+	//if (!m_Light) { return false; }
+	//m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
+	//m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//m_Light->SetDirection(0.0f, 0.0f, 1.0f);
 	//m_Light->SetPosition(2.0f, 5.0f, -2.0f);
-	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetSpecularPower(64.0f);
+	//m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//m_Light->SetSpecularPower(64.0f);
 
 	//m_Light1 = new LightClass;
 	//if (!m_Light1) { return false; }
@@ -416,18 +416,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//	return false;
 	//}
 
-	m_Model2 = new Model3DClass;
-	if (!m_Model2->Initialize(m_Direct3D->GetDevice(), L"./data/cube.txt", L"./Textures/ice.dds")) {
-		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
-		return false;
-	}
-
-	m_ShaderManager = new ShaderManagerClass;
-	if (!m_ShaderManager) { return false; }
-	if (!m_ShaderManager->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the shader manager object", L"Error", MB_OK);
-		return false;
-	}
+	//m_ShaderManager = new ShaderManagerClass;
+	//if (!m_ShaderManager) { return false; }
+	//if (!m_ShaderManager->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the shader manager object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	return true;
 }
@@ -435,17 +429,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 void GraphicsClass::Shutdown()
 {
 	// 셰이더 객체 반환
-	if (m_ShaderManager) {
-		m_ShaderManager->Shutdown();
-		delete m_ShaderManager;
-		m_ShaderManager = 0;
-	}
-
-	if (m_Model2) {
-		m_Model2->Shutdown();
-		delete m_Model2;
-		m_Model2 = 0;
-	}
+	//if (m_ShaderManager) {
+	//	m_ShaderManager->Shutdown();
+	//	delete m_ShaderManager;
+	//	m_ShaderManager = 0;
+	//}
 
 	//// 텍스트 객체 반환
 	//if (m_Text) {
@@ -461,11 +449,11 @@ void GraphicsClass::Shutdown()
 	//	m_Bitmap = 0;
 	//}
 
-	if (m_Light)
-	{
-		delete m_Light;
-		m_Light = 0;
-	}
+	//if (m_Light)
+	//{
+	//	delete m_Light;
+	//	m_Light = 0;
+	//}
 
 	 // 셰이더 객체 반환
 	//if (m_LightShader) {
@@ -502,11 +490,11 @@ void GraphicsClass::Shutdown()
 	//}
 
 	// 모델 객체 반환
-	if (m_Model3D) {
-		m_Model3D->Shutdown();
-		delete m_Model3D;
-		m_Model3D = 0;
-	}
+	//if (m_Model3D) {
+	//	m_Model3D->Shutdown();
+	//	delete m_Model3D;
+	//	m_Model3D = 0;
+	//}
 
 	//if (m_ViewPoint) {
 	//	delete m_ViewPoint;
@@ -681,36 +669,6 @@ bool GraphicsClass::RenderToTexture()
 
 bool GraphicsClass::RenderScene()
 {
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, translateMatrix;
-
-	// 모델 회전용 코드
-	static float rotation = 0.0f;
-
-	// 각 프레임의 회전을 업데이트
-	rotation += (float)XM_PI * 0.0025f;
-	if (rotation > 360.0f)	rotation -= 360.0f;
-
-	// Scene을 그리기 위해 버퍼 삭제
-	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
-
-	// 카메라의 위치에 따라 뷰 행렬 생성
-	m_Camera->Render();
-
-	m_Direct3D->GetWorldMatrix(worldMatrix);
-	m_Camera->GetViewMatrix(viewMatrix);
-	m_Direct3D->GetProjectionMatrix(projectionMatrix);
-
-	// 모델의 정점과 인덱스 버퍼를 그래픽 파이프라인에 묶어 렌더링을 준비
-	worldMatrix = XMMatrixRotationY(rotation);
-	translateMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-	worldMatrix = XMMatrixMultiply(worldMatrix, translateMatrix);
-
-	m_Model3D->Render(m_Direct3D->GetDeviceContext());
-	if (!m_ShaderManager->RenderTextureShader(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture()))	return false;
-
-	// 버퍼의 내용을 화면에 출력
-	m_Direct3D->EndScene();
-
 	return true;
 }
 
@@ -1183,6 +1141,9 @@ worldMatrix = XMMatrixRotationY(rotation);
 //if (!m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 400, 300))	return false;
 //if (!m_DebugWindow->Render(m_Direct3D->GetDeviceContext(), 50, 50))	return false;
 //if (!m_DepthShader->Render(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
+
+// 셰이더 매니저를 통한 렌더링
+//if (!m_ShaderManager->RenderTextureShader(m_Direct3D->GetDeviceContext(), m_Model3D->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model3D->GetTexture()))	return false;
 
 // 셰이더를 사용하여 모델 렌더링
 //if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;

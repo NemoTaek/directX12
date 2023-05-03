@@ -165,3 +165,31 @@ bool InputClass::IsRightArrowPressed()
 	if (m_keyboardState[DIK_RIGHT] & 0x80)	return true;
 	return false;
 }
+
+bool InputClass::IsAPressed()
+{
+	// 위 화살표를 누르고 있는지 비트값을 계산하여 확인
+	if (m_keyboardState[DIK_A] & 0x80)	return true;
+	return false;
+}
+
+bool InputClass::IsZPressed()
+{
+	// 위 화살표를 누르고 있는지 비트값을 계산하여 확인
+	if (m_keyboardState[DIK_Z] & 0x80)	return true;
+	return false;
+}
+
+bool InputClass::IsPageUpPressed()
+{
+	// 위 화살표를 누르고 있는지 비트값을 계산하여 확인
+	if (m_keyboardState[DIK_PGUP] & 0x80)	return true;
+	return false;
+}
+
+bool InputClass::IsPageDownPressed()
+{
+	// 위 화살표를 누르고 있는지 비트값을 계산하여 확인
+	if (m_keyboardState[DIK_PGDN] & 0x80)	return true;
+	return false;
+}

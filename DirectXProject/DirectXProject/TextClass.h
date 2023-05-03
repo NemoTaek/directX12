@@ -28,18 +28,21 @@ public:
 
 	bool Initialize(ID3D11Device*, ID3D11DeviceContext*, HWND, int, int, XMMATRIX);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, XMMATRIX, XMMATRIX);
+	bool Render(ID3D11DeviceContext*, FontShaderClass*, XMMATRIX, XMMATRIX);
+	bool SetVideoCardInfo(const char*, int, ID3D11DeviceContext*);
 	bool SetMousePosition(int, int, ID3D11DeviceContext*);
 	bool SetKeyboardInput(int, ID3D11DeviceContext*);
 	bool SetFps(int, ID3D11DeviceContext*);
 	bool SetCpu(int, ID3D11DeviceContext*);
+	bool SetCameraPosition(XMFLOAT3, ID3D11DeviceContext*);
+	bool SetCameraRotation(XMFLOAT3, ID3D11DeviceContext*);
 	bool SetRenderCount(int, ID3D11DeviceContext*);
 
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);
 	bool UpdateSentence(SentenceType*, const char*, int, int, float, float, float, ID3D11DeviceContext*);
 	void ReleaseSentence(SentenceType**);
-	bool RenderSentence(ID3D11DeviceContext*, SentenceType*, XMMATRIX, XMMATRIX);
+	bool RenderSentence(ID3D11DeviceContext*, SentenceType*, FontShaderClass*, XMMATRIX, XMMATRIX);
 
 private:
 	FontClass* m_font = nullptr;
@@ -52,4 +55,9 @@ private:
 	SentenceType* m_sentence3 = nullptr;
 	SentenceType* m_sentence4 = nullptr;
 	SentenceType* m_sentence5 = nullptr;
+	SentenceType* m_sentence6 = nullptr;
+	SentenceType* m_sentence7 = nullptr;
+	SentenceType* m_sentence8 = nullptr;
+	SentenceType* m_sentence9 = nullptr;
+	SentenceType* m_sentence10 = nullptr;
 };

@@ -1,6 +1,6 @@
 #include "Stdafx.h"
 #include "TextureShaderClass.h"
-#include "LightShaderClass.h"
+//#include "LightShaderClass.h"
 //#include "BumpMapShaderClass.h"
 #include "ShaderManagerClass.h"
 
@@ -18,12 +18,12 @@ bool ShaderManagerClass::Initialize(ID3D11Device* device, HWND hwnd)
 		return false;
 	}
 
-	m_lightShader = new LightShaderClass;
-	if (!m_lightShader) { return false; }
-	if (!m_lightShader->Initialize(device, hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the light shader object", L"Error", MB_OK);
-		return false;
-	}
+	//m_lightShader = new LightShaderClass;
+	//if (!m_lightShader) { return false; }
+	//if (!m_lightShader->Initialize(device, hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the light shader object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	//m_bumpMapShader = new BumpMapShaderClass;
 	//if (!m_bumpMapShader) { return false; }
@@ -41,11 +41,11 @@ void ShaderManagerClass::Shutdown()
 	//	m_bumpMapShader = 0;
 	//}
 
-	if (m_lightShader) {
-		m_lightShader->Shutdown();
-		delete m_lightShader;
-		m_lightShader = 0;
-	}
+	//if (m_lightShader) {
+	//	m_lightShader->Shutdown();
+	//	delete m_lightShader;
+	//	m_lightShader = 0;
+	//}
 
 	if (m_textureShader) {
 		m_textureShader->Shutdown();
@@ -59,11 +59,11 @@ bool ShaderManagerClass::RenderTextureShader(ID3D11DeviceContext* deviceContext,
 	return m_textureShader->Render(deviceContext, indexCount, worldMatrix, viewMatrix, projectionMatrix, texture);
 }
 
-bool ShaderManagerClass::RenderLightShader(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	XMMATRIX lightViewMatrix, XMMATRIX lightProjectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* depthMapTexture, XMFLOAT3 lightPosition, XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor)
-{
-	return m_lightShader->Render(deviceContext, indexCount, worldMatrix, viewMatrix, projectionMatrix, lightViewMatrix, lightProjectionMatrix, texture, depthMapTexture, lightPosition, ambientColor, diffuseColor);
-}
+//bool ShaderManagerClass::RenderLightShader(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
+//	XMMATRIX lightViewMatrix, XMMATRIX lightProjectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* depthMapTexture, XMFLOAT3 lightPosition, XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor)
+//{
+//	return m_lightShader->Render(deviceContext, indexCount, worldMatrix, viewMatrix, projectionMatrix, lightViewMatrix, lightProjectionMatrix, texture, depthMapTexture, lightPosition, ambientColor, diffuseColor);
+//}
 
 //bool ShaderManagerClass::RenderBumpMapShader(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray,
 //	XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor, XMFLOAT3 cameraPosition, XMFLOAT4 specularColor, float specularPower)

@@ -128,86 +128,64 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="Depth.ps" />
-    <None Include="Depth.vs" />
-    <None Include="DomainShader.ds" />
-    <None Include="HorizontalBlur.ps" />
-    <None Include="HorizontalBlur.vs" />
-    <None Include="HullShader.hs" />
-    <None Include="PixelShader.ps" />
-    <None Include="Projection.ps" />
-    <None Include="Projection.vs" />
-    <None Include="Shadow.ps" />
-    <None Include="Shadow.vs" />
-    <None Include="Texture.ps" />
-    <None Include="Texture.vs" />
-    <None Include="VertexShader.vs" />
-    <None Include="VerticalBlur.ps" />
-    <None Include="VerticalBlur.vs" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="ApplicationClass.cpp" />
     <ClCompile Include="BitmapClass.cpp" />
     <ClCompile Include="CameraClass.cpp" />
-    <ClCompile Include="DepthShaderClass.cpp" />
+    <ClCompile Include="ColorShaderClass.cpp" />
+    <ClCompile Include="CpuClass.cpp" />
     <ClCompile Include="D3DClass.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="FontClass.cpp" />
+    <ClCompile Include="FontShaderClass.cpp" />
+    <ClCompile Include="FpsClass.cpp" />
     <ClCompile Include="GraphicsClass.cpp" />
-    <ClCompile Include="HorizontalBlurShaderClass.cpp" />
     <ClCompile Include="InputClass.cpp" />
-    <ClCompile Include="LightClass.cpp" />
-    <ClCompile Include="LightShaderClass.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model3DClass.cpp" />
-    <ClCompile Include="ModelInstanceClass.cpp" />
-    <ClCompile Include="ModelTessellationClass.cpp" />
-    <ClCompile Include="OrthoWindowClass.cpp" />
-    <ClCompile Include="ParticleSystemClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
-    <ClCompile Include="ProjectionShaderClass.cpp" />
-    <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="ShaderManagerClass.cpp" />
     <ClCompile Include="SoundClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
-    <ClCompile Include="TessellationShaderClass.cpp" />
+    <ClCompile Include="TerrainClass.cpp" />
+    <ClCompile Include="TextClass.cpp" />
     <ClCompile Include="TextureClass.cpp" />
     <ClCompile Include="TextureShaderClass.cpp" />
     <ClCompile Include="TimeClass.cpp" />
-    <ClCompile Include="VerticalBlurShaderClass.cpp" />
-    <ClCompile Include="ViewPointClass.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ApplicationClass.h" />
     <ClInclude Include="BitmapClass.h" />
     <ClInclude Include="BumpMapShaderClass.h" />
     <ClInclude Include="CameraClass.h" />
-    <ClInclude Include="DepthShaderClass.h" />
+    <ClInclude Include="ColorShaderClass.h" />
+    <ClInclude Include="CpuClass.h" />
     <ClInclude Include="D3DClass.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DxDefine.h" />
+    <ClInclude Include="FontClass.h" />
+    <ClInclude Include="FontShaderClass.h" />
+    <ClInclude Include="FpsClass.h" />
     <ClInclude Include="GraphicsClass.h" />
-    <ClInclude Include="HorizontalBlurShaderClass.h" />
     <ClInclude Include="InputClass.h" />
-    <ClInclude Include="LightClass.h" />
-    <ClInclude Include="LightShaderClass.h" />
     <ClInclude Include="Model3DClass.h" />
-    <ClInclude Include="ModelInstanceClass.h" />
-    <ClInclude Include="ModelTessellationClass.h" />
-    <ClInclude Include="OrthoWindowClass.h" />
-    <ClInclude Include="ParticleSystemClass.h" />
     <ClInclude Include="PositionClass.h" />
-    <ClInclude Include="ProjectionShaderClass.h" />
-    <ClInclude Include="RenderTextureClass.h" />
     <ClInclude Include="ShaderManagerClass.h" />
     <ClInclude Include="SoundClass.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />
     <ClInclude Include="Targetver.h" />
-    <ClInclude Include="TessellationShaderClass.h" />
+    <ClInclude Include="TerrainClass.h" />
+    <ClInclude Include="TextClass.h" />
     <ClInclude Include="TextureClass.h" />
     <ClInclude Include="TextureShaderClass.h" />
     <ClInclude Include="TimerClass.h" />
-    <ClInclude Include="VerticalBlurShaderClass.h" />
-    <ClInclude Include="ViewPointClass.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Color.ps" />
+    <None Include="Color.vs" />
+    <None Include="Font.ps" />
+    <None Include="Font.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

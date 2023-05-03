@@ -2,13 +2,7 @@
 
 // WinAPI 윈도우 프로그래밍 클래스화
 
-class InputClass;
-class GraphicsClass;
-class SoundClass;
-//class FpsClass;
-//class CpuClass;
-class TimerClass;
-class PositionClass;
+class ApplicationClass;
 
 class SystemClass
 {
@@ -35,13 +29,7 @@ private:
 	HWND m_hwnd;
 
 	// 입력과 그래픽을 처리할 두 객체에 대한 포인터
-	InputClass* m_Input = nullptr;
-	GraphicsClass* m_Graphics = nullptr;
-	SoundClass* m_Sound = nullptr;
-	//FpsClass* m_Fps = nullptr;
-	//CpuClass* m_Cpu = nullptr;
-	TimerClass* m_Timer = nullptr;
-	PositionClass* m_Position = nullptr;
+	ApplicationClass* m_Application = nullptr;
 };
 
 static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);

@@ -1,11 +1,5 @@
 #include "Stdafx.h"
-#include "InputClass.h"
-#include "GraphicsClass.h"
-#include "SoundClass.h"
-//#include "FpsClass.h"
-//#include "CpuClass.h"
-#include "TimerClass.h"
-#include "PositionClass.h"
+#include "ApplicationClass.h"
 #include "SystemClass.h"
 
 SystemClass::SystemClass() {}
@@ -21,89 +15,10 @@ bool SystemClass::initialize()
 	// 윈도우 생성 초기화
 	InitializeWindows(screenWidth, screenHeight);
 
-	// m_Input 객체 생성
-	m_Input = new InputClass;
-	if (!m_Input) {
-		return false;
-	}
-
-	// m_Input 객체 초기화
-	if (!(m_Input->Initialize(m_hinstance, m_hwnd, screenWidth, screenHeight)))
-	{
-		MessageBox(m_hwnd, L"Could not initialize the input object", L"Error", MB_OK);
-		return false;
-	}
-
-	// m_Graphics 객체 생성
-	// 그래픽 랜더링 처리 하기 위한 객체
-	m_Graphics = new GraphicsClass;
-	if (!m_Graphics) {
-		return false;
-	}
-
-	// m_Graphics 객체 초기화
-	if (!(m_Graphics->Initialize(screenWidth, screenHeight, m_hwnd)))
-	{
-		MessageBox(m_hwnd, L"Could not initialize the graphic object", L"Error", MB_OK);
-		return false;
-	}
-
-	
-	// m_Sound 객체 생성
-	m_Sound = new SoundClass;
-	if (!m_Sound) {
-		return false;
-	}
-	
-	// m_Sound 객체 초기화
-	if (!(m_Sound->Initialize(m_hwnd)))
-	{
-		MessageBox(m_hwnd, L"Could not initialize the Direct Sound", L"Error", MB_OK);
-		return false;
-	}
-	/*
-	// m_Fps 객체 생성
-	m_Fps = new FpsClass;
-	if (!m_Fps) {
-		return false;
-	}
-
-	// m_Fps 객체 초기화
-	m_Fps->Initialize();
-
-	// m_Cpu 객체 생성
-	m_Cpu = new CpuClass;
-	if (!m_Cpu) {
-		return false;
-	}
-
-	// m_Cpu 객체 초기화
-	m_Cpu->Initialize();
-	*/
-
-	// m_Timer 객체 생성
-	m_Timer = new TimerClass;
-	if (!m_Timer) {
-		return false;
-	}
-
-	// m_Timer 객체 초기화
-	if (!(m_Timer->Initialize()))
-	{
-		MessageBox(m_hwnd, L"Could not initialize the Timer Object", L"Error", MB_OK);
-		return false;
-	}
-
-	// m_Position 객체 생성
-	m_Position = new PositionClass;
-	if (!m_Position) {
-		return false;
-	}
-	m_Position->SetPosition(0.0f, 2.0f, -12.0f);
-
-	// m_Position 객체 초기화
-	if (!(m_Position))
-	{
+	m_Application = new ApplicationClass;
+	if (!m_Application) return false;
+	if (!m_Application->Initialize(m_hinstance, m_hwnd, screenWidth, screenHeight)) {
+		MessageBox(m_hwnd, L"Could not initialize the application object", L"Error", MB_OK);
 		return false;
 	}
 
@@ -112,49 +27,10 @@ bool SystemClass::initialize()
 
 void SystemClass::Shutdown()
 {
-	// m_Position 객체 반환
-	if (m_Position) {
-		delete m_Position;
-		m_Position = 0;
-	}
-
-	// m_Timer 객체 반환
-	if (m_Timer) {
-		delete m_Timer;
-		m_Timer = 0;
-	}
-
-	/*
-	// m_Cpu 객체 반환
-	if (m_Cpu) {
-		delete m_Cpu;
-		m_Cpu = 0;
-	}
-
-	// m_Fps 객체 반환
-	if (m_Fps) {
-		delete m_Fps;
-		m_Fps = 0;
-	}
-	*/
-	// m_Sound 객체 반환
-	if (m_Sound) {
-		delete m_Sound;
-		m_Sound = 0;
-	}
-	
-
-	// m_Input 객체 반환
-	if (m_Input) {
-		delete m_Input;
-		m_Input = 0;
-	}
-
-	// m_Graphics 객체 반환
-	if (m_Graphics) {
-		m_Graphics->Shutdown();
-		delete m_Graphics;
-		m_Graphics = 0;
+	// m_Application 객체 반환
+	if (m_Application) {
+		delete m_Application;
+		m_Application = 0;
 	}
 
 	// 윈도우 종료
@@ -171,66 +47,69 @@ void SystemClass::Run()
 	while (true) {
 		// 윈도우 메세지 처리
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+			// 종료 메세지를 받을 경우 break
+			if (msg.message == WM_QUIT)	break;
+
 			// 메세지가 없으면 즉시 제어권 반환
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		// 종료 메세지를 받을 경우 break
-		if (msg.message == WM_QUIT)	break;
+		
 		else {
 			if (!Frame()) {
-				MessageBox(m_hwnd, L"Frame Processing Failed", L"Error", MB_OK);
+				//MessageBox(m_hwnd, L"Frame Processing Failed", L"Error", MB_OK);
 				break;
 			}
 		}
 
 		// ESC키 입력 확인 후 눌렀다면 종료 처리
-		if (m_Input->IsEscapePressed())	break;
+		//if (m_Input->IsEscapePressed())	break;
 	}
 }
 
 bool SystemClass::Frame()
 {
-	XMFLOAT3 position, rotation;
+	//XMFLOAT3 position, rotation;
 
-	// 시스템 통계 업데이트
-	m_Timer->Frame();
-	//m_Fps->Frame();
-	//m_Cpu->Frame();
-	if (!m_Input->Frame())	return false;
+	//// 시스템 통계 업데이트
+	//m_Timer->Frame();
+	////m_Fps->Frame();
+	////m_Cpu->Frame();
+	//if (!m_Input->Frame())	return false;
 
-	// 업데이트 된 위치를 계산하기 위한 프레임 시간 설정
-	m_Position->SetFrameTime(m_Timer->GetTime());
+	//// 업데이트 된 위치를 계산하기 위한 프레임 시간 설정
+	//m_Position->SetFrameTime(m_Timer->GetTime());
 
-	// Direct Input 처리
-	int mouseX = 0;
-	int mouseY = 0;
-	int keyCount = 0;
+	//// Direct Input 처리
+	//int mouseX = 0;
+	//int mouseY = 0;
+	//int keyCount = 0;
 
-	// input 객체의 프레임 처리 수행
-	if (!m_Input->Frame())	return false;
+	//// input 객체의 프레임 처리 수행
+	//if (!m_Input->Frame())	return false;
 
-	// input 객체에서 마우스 위치와 키보드 입력을 읽어옴
-	//m_Input->GetMouseLocation(mouseX, mouseY);
-	//m_Input->GetKeyCount(keyCount);
-	bool keydownLeft = m_Input->IsLeftArrowPressed();
-	m_Position->MoveLeft(keydownLeft);
-	bool keydownRight = m_Input->IsRightArrowPressed();
-	m_Position->MoveRight(keydownRight);
+	//// input 객체에서 마우스 위치와 키보드 입력을 읽어옴
+	////m_Input->GetMouseLocation(mouseX, mouseY);
+	////m_Input->GetKeyCount(keyCount);
+	//bool keydownLeft = m_Input->IsLeftArrowPressed();
+	//m_Position->MoveLeft(keydownLeft);
+	//bool keydownRight = m_Input->IsRightArrowPressed();
+	//m_Position->MoveRight(keydownRight);
 
-	// 현재 위치 세팅
-	m_Position->GetPosition(position);
-	m_Position->GetRotation(rotation);
+	//// 현재 위치 세팅
+	//m_Position->GetPosition(position);
+	//m_Position->GetRotation(rotation);
 
 	// graphic 객체의 프레임 처리 수행
-	if (!m_Graphics->Frame())	return false;
+	//if (!m_Graphics->Frame())	return false;
 	//if (!m_Graphics->Frame(position))	return false;
 	//if (!m_Graphics->Frame(position, rotation))	return false;
 
 	// 시간에 따라 처리되어야 하는 내용이 수행되어야 하면 아래를 실행
 	 //if (!m_Graphics->Frame(m_Timer->GetTime()))	return false;
 
-	return m_Graphics->Render();
+	//return m_Graphics->Render();
+	return m_Application->Frame();
 }
 
 LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)

@@ -9,12 +9,12 @@ const int SHADOWMAP_HEIGHT = 1024;
 
 class D3DClass;				
 class CameraClass;
-class ViewPointClass;	// 텍스처를 투영하는 관점에서 장면을 볼 시점 포인트 클래스
-class TextureClass;
+//class ViewPointClass;	// 텍스처를 투영하는 관점에서 장면을 볼 시점 포인트 클래스
+//class TextureClass;
 //class TextureShaderClass;	// 텍스쳐 셰이더
-class Model3DClass;		// 3D 모델
+//class Model3DClass;		// 3D 모델
 //class LightShaderClass;	// 조명 셰이더
-class LightClass;			// 조명 관련 값 설정 및 조회
+//class LightClass;			// 조명 관련 값 설정 및 조회
 //class ExampleWaterShaderClass;	// 물의 반사와 굴절을 표현하기 위한 예시 클래스
 //class BitmapClass;		// 2D 모델
 //class TextClass;			// 텍스트 모델
@@ -39,7 +39,7 @@ class LightClass;			// 조명 관련 값 설정 및 조회
 //class ModelTessellationClass;	// 테셀레이션을 위한 모델 클래스
 //class ParticleSystemClass;		// 파티클 클래스
 //class ProjectionShaderClass;	// 투영 클래스
-class ShaderManagerClass;	// 셰이더 관리 클래스
+//class ShaderManagerClass;	// 셰이더 관리 클래스
 
 // 이 프로젝트에서 사용되는 모든 그래픽 객체에 대한 호출을 담당하는 클래스
 class GraphicsClass
@@ -86,10 +86,10 @@ private:
 	//ModelTextureClass* m_ModelTexture = nullptr;
 	//TextureClass* m_ProjectionTexture = nullptr;
 	//TextureShaderClass* m_TextureShader = nullptr;
-	Model3DClass* m_Model3D = nullptr;
+	//Model3DClass* m_Model3D = nullptr;
 	//ModelLightClass* m_ModelLight = nullptr;
 	//LightShaderClass* m_LightShader = nullptr;
-	LightClass* m_Light = nullptr;
+	//LightClass* m_Light = nullptr;
 	//LightClass* m_Light1 = nullptr;
 	//LightClass* m_Light2 = nullptr;
 	//LightClass* m_Light3 = nullptr;
@@ -116,8 +116,7 @@ private:
 	//ParticleSystemClass* m_ParticleSystem = nullptr;
 	//Model3DClass* m_GroundModel = nullptr;
 	//ProjectionShaderClass* m_ProjectionShader = nullptr;
-	ShaderManagerClass* m_ShaderManager = nullptr;
-	Model3DClass* m_Model2 = nullptr;
+	//ShaderManagerClass* m_ShaderManager = nullptr;
 
 	/*
 	// 페이드 효과에 사용하는 변수

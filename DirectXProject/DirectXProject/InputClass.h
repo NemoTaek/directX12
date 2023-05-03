@@ -17,6 +17,10 @@ public:
 	bool IsDownArrowPressed();
 	bool IsLeftArrowPressed();
 	bool IsRightArrowPressed();
+	bool IsAPressed();
+	bool IsZPressed();
+	bool IsPageUpPressed();
+	bool IsPageDownPressed();
 
 private:
 	bool ReadKeyboard();

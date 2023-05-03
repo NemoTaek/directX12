@@ -24,35 +24,17 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 		return false;
 	}
 
-	// 폰트 객체 생성 및 초기화
-	m_fontShader = new FontShaderClass;
-	if (!m_fontShader) return false;
-	if (!(m_fontShader->Initialize(device, hwnd))) {
-		MessageBox(hwnd, L"Could not initialize font shader object", L"Error", MB_OK);
-		return false;
-	}
-
-	// 첫번째 문장 초기화 및 업데이트
-	if (!(InitializeSentence(&m_sentence1, SENTENCE_MAX_LENGTH, device)))	return false;
-	if (!(UpdateSentence(m_sentence1, "fasdes", 200, 100, 1.0f, 0.0f, 1.0f, deviceContext)))	return false;
-
-	/*
-	// 두번째 문장 초기화 및 업데이트
+	// 문장 초기화 및 업데이트
+	if (!(InitializeSentence(&m_sentence1, 150, device)))	return false;
 	if (!(InitializeSentence(&m_sentence2, SENTENCE_MAX_LENGTH, device)))	return false;
-	if (!(UpdateSentence(m_sentence2, "6544658465", 300, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
-
-	// 세번째 문장 초기화 및 업데이트
 	if (!(InitializeSentence(&m_sentence3, SENTENCE_MAX_LENGTH, device)))	return false;
-	if (!(UpdateSentence(m_sentence3, "6544658465", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
-
-	// 네번째 문장 초기화 및 업데이트
 	if (!(InitializeSentence(&m_sentence4, SENTENCE_MAX_LENGTH, device)))	return false;
-	if (!(UpdateSentence(m_sentence4, "4532342", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
-
-	// 다섯번째 문장 초기화 및 업데이트
 	if (!(InitializeSentence(&m_sentence5, SENTENCE_MAX_LENGTH, device)))	return false;
-	if (!(UpdateSentence(m_sentence5, "12342", 400, 200, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
-	*/
+	if (!(InitializeSentence(&m_sentence6, SENTENCE_MAX_LENGTH, device)))	return false;
+	if (!(InitializeSentence(&m_sentence7, SENTENCE_MAX_LENGTH, device)))	return false;
+	if (!(InitializeSentence(&m_sentence8, SENTENCE_MAX_LENGTH, device)))	return false;
+	if (!(InitializeSentence(&m_sentence9, SENTENCE_MAX_LENGTH, device)))	return false;
+	if (!(InitializeSentence(&m_sentence10, SENTENCE_MAX_LENGTH, device)))	return false;
 
 	return true;
 }
@@ -60,18 +42,15 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 void TextClass::Shutdown()
 {
 	ReleaseSentence(&m_sentence1);
-	/*
 	ReleaseSentence(&m_sentence2);
 	ReleaseSentence(&m_sentence3);
 	ReleaseSentence(&m_sentence4);
 	ReleaseSentence(&m_sentence5);
-	*/
-
-	if (m_fontShader) {
-		m_fontShader->Shutdown();
-		delete m_fontShader;
-		m_fontShader = 0;
-	}
+	ReleaseSentence(&m_sentence6);
+	ReleaseSentence(&m_sentence7);
+	ReleaseSentence(&m_sentence8);
+	ReleaseSentence(&m_sentence9);
+	ReleaseSentence(&m_sentence10);
 
 	if (m_font) {
 		m_font->Shutdown();
@@ -80,15 +59,51 @@ void TextClass::Shutdown()
 	}
 }
 
-bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
+bool TextClass::Render(ID3D11DeviceContext* deviceContext, FontShaderClass* fontShader, XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
 {
-	if (!RenderSentence(deviceContext, m_sentence1, worldMatrix, orthoMatrix))	return false;
-	/*
-	if (!RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix))	return false;
-	if (!RenderSentence(deviceContext, m_sentence3, worldMatrix, orthoMatrix))	return false;
-	if (!RenderSentence(deviceContext, m_sentence4, worldMatrix, orthoMatrix))	return false;
-	if (!RenderSentence(deviceContext, m_sentence5, worldMatrix, orthoMatrix))	return false;
-	*/
+	if (!RenderSentence(deviceContext, m_sentence1, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence2, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence3, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence4, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence5, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence6, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence7, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence8, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence9, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence10, fontShader, worldMatrix, orthoMatrix))	return false;
+
+	return true;
+}
+
+bool TextClass::SetVideoCardInfo(const char* videoCardName, int videoCardMemory, ID3D11DeviceContext* deviceContext)
+{
+	char dataString[150] = { 0, };
+	char tempString[16] = { 0, };
+	char memoryString[32] = { 0, };
+
+	// 비디오 카드 이름 문자열을 설정합니다.
+	strcpy_s(dataString, "Video Card: ");
+	strcat_s(dataString, videoCardName);
+
+	// 문장 정점 버퍼를 새 문자열 정보로 업데이트합니다.
+	if (!UpdateSentence(m_sentence1, dataString, 50, 10, 1.0f, 1.0f, 1.0f, deviceContext))	return false;
+
+	// 버퍼 오버플로우를 막기 위해 메모리 값을 자릅니다.
+	if (videoCardMemory > 9999999)
+	{
+		videoCardMemory = 9999999;
+	}
+
+	// 비디오 메모리 정수 값을 문자열 형식으로 변환합니다.
+	_itoa_s(videoCardMemory, tempString, 10);
+
+	// 비디오 메모리 문자열을 설정합니다.
+	strcpy_s(memoryString, "Video Memory: ");
+	strcat_s(memoryString, tempString);
+	strcat_s(memoryString, " MB");
+
+	// 문장 정점 버퍼를 새 문자열 정보로 업데이트합니다.
+	if (!UpdateSentence(m_sentence2, memoryString, 50, 30, 1.0f, 1.0f, 1.0f, deviceContext))	return false;
 
 	return true;
 }
@@ -175,7 +190,7 @@ bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 	}
 
 	// 문장을 FPS 값으로 업데이트
-	if (!(UpdateSentence(m_sentence4, fpsString, 20, 80, red, green, blue, deviceContext)))	return false;
+	if (!(UpdateSentence(m_sentence3, fpsString, 50, 70, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
 
 	return true;
 }
@@ -194,7 +209,85 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 	strcat_s(cpuString, "%");
 
 	// 문장을 CPU 값으로 업데이트
-	if (!(UpdateSentence(m_sentence5, cpuString, 20, 100, 1.0f, 1.0f, 1.0f, deviceContext)))	return false;
+	if (!(UpdateSentence(m_sentence4, cpuString, 50, 90, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+
+	return true;
+}
+
+bool TextClass::SetCameraPosition(XMFLOAT3 pos, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[SENTENCE_MAX_LENGTH];
+	char dataString[SENTENCE_MAX_LENGTH];
+
+	// 부동 소수점에서 정수로 위치를 변환합니다.
+	int positionX = (int)pos.x;
+	int positionY = (int)pos.y;
+	int positionZ = (int)pos.z;
+
+	// 9999 또는 -9999를 초과하면 위치를 자릅니다.
+	if (positionX > 9999) { positionX = 9999; }
+	if (positionY > 9999) { positionY = 9999; }
+	if (positionZ > 9999) { positionZ = 9999; }
+
+	if (positionX < -9999) { positionX = -9999; }
+	if (positionY < -9999) { positionY = -9999; }
+	if (positionZ < -9999) { positionZ = -9999; }
+
+	// X 위치 문자열을 설정합니다.
+	_itoa_s(positionX, tempString, 10);
+	strcpy_s(dataString, "X: ");
+	strcat_s(dataString, tempString);
+
+	if (!UpdateSentence(m_sentence5, dataString, 50, 130, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+
+	// Y 위치 문자열을 설정합니다.
+	_itoa_s(positionY, tempString, 10);
+	strcpy_s(dataString, "Y: ");
+	strcat_s(dataString, tempString);
+
+	if (!UpdateSentence(m_sentence6, dataString, 50, 150, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+
+	// Z 위치 문자열을 설정합니다.
+	_itoa_s(positionZ, tempString, 10);
+	strcpy_s(dataString, "Z: ");
+	strcat_s(dataString, tempString);
+
+	if (!UpdateSentence(m_sentence7, dataString, 50, 170, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+
+	return true;
+}
+
+
+bool TextClass::SetCameraRotation(XMFLOAT3 rot, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[SENTENCE_MAX_LENGTH];
+	char dataString[SENTENCE_MAX_LENGTH];
+
+	// 회전값을 정수로 변환합니다.
+	int rotationX = (int)rot.x;
+	int rotationY = (int)rot.y;
+	int rotationZ = (int)rot.z;
+
+	// X 회전 문자열을 설정합니다.
+	_itoa_s(rotationX, tempString, 10);
+	strcpy_s(dataString, "rX: ");
+	strcat_s(dataString, tempString);
+
+	if (!UpdateSentence(m_sentence8, dataString, 50, 210, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+
+	// Y 회전 문자열을 설정합니다.
+	_itoa_s(rotationY, tempString, 10);
+	strcpy_s(dataString, "rY: ");
+	strcat_s(dataString, tempString);
+
+	if (!UpdateSentence(m_sentence9, dataString, 50, 230, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+
+	// Z 회전 문자열을 설정합니다.
+	_itoa_s(rotationZ, tempString, 10);
+	strcpy_s(dataString, "rZ: ");
+	strcat_s(dataString, tempString);
+
+	if (!UpdateSentence(m_sentence10, dataString, 50, 250, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
 
 	return true;
 }
@@ -279,7 +372,7 @@ bool TextClass::UpdateSentence(SentenceType* sentence, const char* text, int pos
 
 	// 문장 길이
 	int numLetters = static_cast<int>(strlen(text));
-	if (numLetters > sentence->maxLength)	return true;
+	if (numLetters > sentence->maxLength)	return false;
 
 	// 정점 버퍼 자원에 자료를 올릴 수 있도록 포인터 생성
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -330,7 +423,7 @@ void TextClass::ReleaseSentence(SentenceType** sentence)
 	}
 }
 
-bool TextClass::RenderSentence(ID3D11DeviceContext* deviceContext, SentenceType* sentence, XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
+bool TextClass::RenderSentence(ID3D11DeviceContext* deviceContext, SentenceType* sentence, FontShaderClass* FontShader, XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
 {
 	// 정점 버퍼의 단위와 오프셋 설정
 	unsigned int stride = sizeof(VertexType);
@@ -347,7 +440,7 @@ bool TextClass::RenderSentence(ID3D11DeviceContext* deviceContext, SentenceType*
 	XMFLOAT4 pixelColor = XMFLOAT4(sentence->red, sentence->green, sentence->blue, 1.0f);
 
 	// 폰트 쉐이더로 텍스트 렌더링
-	if (!(m_fontShader->Render(deviceContext, sentence->indexCount, worldMatrix, m_baseViewMatrix, orthoMatrix, m_font->GetTexture(), pixelColor)))	return false;
+	if (!(FontShader->Render(deviceContext, sentence->indexCount, worldMatrix, m_baseViewMatrix, orthoMatrix, m_font->GetTexture(), pixelColor)))	return false;
 
 	return true;
 }

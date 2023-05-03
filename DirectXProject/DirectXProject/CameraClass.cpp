@@ -9,19 +9,9 @@ CameraClass::CameraClass()
 CameraClass::CameraClass(const CameraClass& other) {}
 CameraClass::~CameraClass() {}
 
-void CameraClass::SetPosition(float x, float y, float z)
-{
-	m_position.x = x;
-	m_position.y = y;
-	m_position.z = z;
-}
+void CameraClass::SetPosition(XMFLOAT3 position) { m_position = position; }
 
-void CameraClass::SetRotation(float x, float y, float z)
-{
-	m_rotation.x = x;
-	m_rotation.y = y;
-	m_rotation.z = z;
-}
+void CameraClass::SetRotation(XMFLOAT3 rotation) { m_rotation = rotation; }
 
 XMFLOAT3 CameraClass::GetPosition() { return m_position; }
 
@@ -51,20 +41,23 @@ void CameraClass::Render()
 	zRotation = m_rotation.z * 0.0174532925f;
 
 	// 카메라가 찾고있는 벡터
-	lookAt.x = sinf(yRotation) + m_position.x;
-	lookAt.y = m_position.y;
-	lookAt.z = cosf(yRotation) + m_position.z;
+	//lookAt.x = sinf(yRotation) + m_position.x;
+	//lookAt.y = m_position.y;
+	//lookAt.z = cosf(yRotation) + m_position.z;
+	lookAt.x = 0.0f;
+	lookAt.y = 0.0f;
+	lookAt.z = 1.0f;
 	lookAtVector = XMLoadFloat3(&lookAt);
 
 	//// 회전행렬 생성
-	//rotationMatrix = XMMatrixRotationRollPitchYaw(xRotation, yRotation, zRotation);
+	rotationMatrix = XMMatrixRotationRollPitchYaw(xRotation, yRotation, zRotation);
 
 	//// lookAt 및 up 벡터를 회전행렬로 변형하여 뷰가 원점에서 올바르게 회전하도록 한다
-	//lookAtVector = XMVector3TransformCoord(lookAtVector, rotationMatrix);
-	//upVector = XMVector3TransformCoord(upVector, rotationMatrix);
+	lookAtVector = XMVector3TransformCoord(lookAtVector, rotationMatrix);
+	upVector = XMVector3TransformCoord(upVector, rotationMatrix);
 
 	//// 회전된 카메라 위치를 뷰 위치로 변환
-	//lookAtVector = XMVectorAdd(positionVector, lookAtVector);
+	lookAtVector = XMVectorAdd(positionVector, lookAtVector);
 
 	// 3개의 업데이트된 벡터에서 뷰 행렬을 만든다
 	m_viewMatrix = XMMatrixLookAtLH(positionVector, lookAtVector, upVector);
