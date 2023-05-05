@@ -82,7 +82,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Terrain = new TerrainClass;
 	if (!m_Terrain) return false;
-	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), 100, 100)) {
+	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap01.bmp")) {
 		MessageBox(hwnd, L"Could not initialize the terrain object", L"Error", MB_OK);
 		return false;
 	}

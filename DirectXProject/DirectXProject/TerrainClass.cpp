@@ -1,15 +1,18 @@
 #include "Stdafx.h"
 #include "TerrainClass.h"
+#include <stdio.h>
 
 TerrainClass::TerrainClass() {}
 TerrainClass::TerrainClass(const TerrainClass& other) {}
 TerrainClass::~TerrainClass() {}
 
-bool TerrainClass::Initialize(ID3D11Device* device, int terrainWidth, int terrainHeight)
+bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename)
 {
-	// 지형의 너비와 높이 설정
-	m_terrainWidth = terrainWidth;
-	m_terrainHeight = terrainHeight;
+	// 지형의 너비와 높이 맵 로드
+	if (!LoadHeightMap(heightMapFilename))	return false;
+
+	// 높이 맵의 높이 정규화
+	NormalizeHeightMap();
 
 	return InitializeBuffers(device);
 }
@@ -17,6 +20,7 @@ bool TerrainClass::Initialize(ID3D11Device* device, int terrainWidth, int terrai
 void TerrainClass::Shutdown()
 {
 	ShutdownBuffers();
+	ShutdownHeightMap();
 }
 
 void TerrainClass::Render(ID3D11DeviceContext* deviceContext)
@@ -26,9 +30,76 @@ void TerrainClass::Render(ID3D11DeviceContext* deviceContext)
 
 int TerrainClass::GetIndexCount() { return m_indexCount; }
 
+bool TerrainClass::LoadHeightMap(const char* heightMapFilename)
+{
+	// 높이 맵 파일 오픈
+	FILE* filePtr = nullptr;
+	if (fopen_s(&filePtr, heightMapFilename, "rb") != 0)	return false;
+
+	// 비트맵 파일 헤더 읽어옴
+	BITMAPFILEHEADER bitmapFileHeader;
+	if (fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr) != 1)	return false;
+
+	BITMAPINFOHEADER bitmapInfoHeader;
+	if (fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr) != 1)	return false;
+
+	// 지형 크기 저장
+	m_terrainWidth = bitmapInfoHeader.biWidth;
+	m_terrainHeight = bitmapInfoHeader.biHeight;
+
+	// 비트맵 이미지 데이터 크기 계산
+	int imageSize = m_terrainWidth * m_terrainHeight * 3;
+
+	// 비트맵 이미지 데이터에 메모리 할당
+	unsigned char* bitmapImage = new unsigned char[imageSize];
+	if (!bitmapImage)	return false;
+
+	// 비트맵 데이터의 시작 부분으로 이동
+	fseek(filePtr, bitmapFileHeader.bfOffBits, SEEK_SET);
+
+	// 비트맵 이미지 데이터 읽어옴
+	if (fread(bitmapImage, 1, imageSize, filePtr) != imageSize)	return false;
+
+	if (fclose(filePtr) != 0)	return false;
+
+	// 높이 맵 데이터를 저장할 구조체 생성
+	m_heightMap = new HeightMapType[m_terrainWidth * m_terrainHeight];
+	if (!m_heightMap)	return false;
+
+	// 이미지 데이터 버퍼의 위치 초기화
+	int bufferPosition = 0;
+
+	// 이미지 데이터를 높이 맵으로 읽어옴
+	for (int i = 0; i < m_terrainHeight; i++) {
+		for (int j = 0; j < m_terrainWidth; j++) {
+			unsigned char height = bitmapImage[bufferPosition];
+			int index = (m_terrainHeight * i) + j;
+			m_heightMap[index].x = static_cast<float>(j);
+			m_heightMap[index].y = static_cast<float>(height);
+			m_heightMap[index].z = static_cast<float>(i);
+			bufferPosition += 3;
+		}
+	}
+
+	delete[] bitmapImage;
+	bitmapImage = 0;
+
+	return true;
+}
+
+void TerrainClass::NormalizeHeightMap()
+{
+	for (int i = 0; i < m_terrainHeight; i++) {
+		for (int j = 0; j < m_terrainWidth; j++) {
+			int index = (m_terrainHeight * i) + j;
+			m_heightMap[index].y /= 15.0f;
+		}
+	}
+}
+
 bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 {
-	m_vertexCount = (m_terrainWidth - 1) * (m_terrainHeight - 1) * 8;
+	m_vertexCount = (m_terrainWidth - 1) * (m_terrainHeight - 1) * 12;
 	m_indexCount = m_vertexCount;
 
 	VertexType* vertices = new VertexType[m_vertexCount];
@@ -41,78 +112,85 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 
 	for (int i = 0; i < (m_terrainHeight - 1); i++) {
 		for (int j = 0; j < (m_terrainWidth - 1); j++) {
+			int indexLeftBottom = (m_terrainHeight * i) + j;
+			int indexRightBottom = (m_terrainHeight * i) + (j + 1);
+			int indexLeftTop = (m_terrainHeight * (i + 1)) + j;
+			int indexRightTop = (m_terrainHeight * (i + 1)) + (j + 1);
+
 			// LINE 1
 			// 좌상
-			float positionX = static_cast<float>(j);
-			float positionZ = static_cast<float>(i + 1);
-
-			vertices[index].position = XMFLOAT3(positionX, 0.0f, positionZ);
+			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
 
 			// 우상
-			positionX = static_cast<float>(j + 1);
-			positionZ = static_cast<float>(i + 1);
-
-			vertices[index].position = XMFLOAT3(positionX, 0.0f, positionZ);
+			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
 
 			// LINE 2
 			// 우상
-			positionX = static_cast<float>(j + 1);
-			positionZ = static_cast<float>(i + 1);
-
-			vertices[index].position = XMFLOAT3(positionX, 0.0f, positionZ);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-			indices[index] = index;
-			index++;
-
-			// 우하
-			positionX = static_cast<float>(j + 1);
-			positionZ = static_cast<float>(i);
-
-			vertices[index].position = XMFLOAT3(positionX, 0.0f, positionZ);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-			indices[index] = index;
-			index++;
-
-			// LINE 3
-			// 우하
-			positionX = static_cast<float>(j + 1);
-			positionZ = static_cast<float>(i);
-
-			vertices[index].position = XMFLOAT3(positionX, 0.0f, positionZ);
+			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
 
 			// 좌하
-			positionX = static_cast<float>(j);
-			positionZ = static_cast<float>(i);
+			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
+			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			indices[index] = index;
+			index++;
 
-			vertices[index].position = XMFLOAT3(positionX, 0.0f, positionZ);
+			// LINE 3
+			// 좌하
+			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
+			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			indices[index] = index;
+			index++;
+
+			// 좌상
+			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
 
 			// LINE 4
 			// 좌하
-			positionX = static_cast<float>(j);
-			positionZ = static_cast<float>(i);
-
-			vertices[index].position = XMFLOAT3(positionX, 0.0f, positionZ);
+			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
 
-			// 좌상
-			positionX = static_cast<float>(j);
-			positionZ = static_cast<float>(i + 1);
+			// 우상
+			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
+			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			indices[index] = index;
+			index++;
 
-			vertices[index].position = XMFLOAT3(positionX, 0.0f, positionZ);
+			// LINE 5
+			// 우상
+			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
+			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			indices[index] = index;
+			index++;
+
+			// 우하
+			vertices[index].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
+			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			indices[index] = index;
+			index++;
+
+			// LINE 6
+			// 우하
+			vertices[index].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
+			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			indices[index] = index;
+			index++;
+
+			// 좌하
+			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
@@ -162,6 +240,14 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 	indices = nullptr;
 
 	return true;
+}
+
+void TerrainClass::ShutdownHeightMap()
+{
+	if (m_heightMap) {
+		delete[] m_heightMap;
+		m_heightMap = 0;
+	}
 }
 
 void TerrainClass::ShutdownBuffers()
