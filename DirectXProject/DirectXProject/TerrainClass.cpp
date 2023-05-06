@@ -14,6 +14,9 @@ bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilenam
 	// 높이 맵의 높이 정규화
 	NormalizeHeightMap();
 
+	// 지형 데이터의 법선 계산
+	if (!CalculateNormals())	return false;
+
 	return InitializeBuffers(device);
 }
 
@@ -73,10 +76,14 @@ bool TerrainClass::LoadHeightMap(const char* heightMapFilename)
 	for (int i = 0; i < m_terrainHeight; i++) {
 		for (int j = 0; j < m_terrainWidth; j++) {
 			unsigned char height = bitmapImage[bufferPosition];
+
+			// 높이 맵 배열의 정점 위치에 대한 인덱스
 			int index = (m_terrainHeight * i) + j;
+
 			m_heightMap[index].x = static_cast<float>(j);
 			m_heightMap[index].y = static_cast<float>(height);
 			m_heightMap[index].z = static_cast<float>(i);
+
 			bufferPosition += 3;
 		}
 	}
@@ -91,15 +98,148 @@ void TerrainClass::NormalizeHeightMap()
 {
 	for (int i = 0; i < m_terrainHeight; i++) {
 		for (int j = 0; j < m_terrainWidth; j++) {
+			// 높이 맵 배열의 정점 위치에 대한 인덱스
 			int index = (m_terrainHeight * i) + j;
 			m_heightMap[index].y /= 15.0f;
 		}
 	}
 }
 
+bool TerrainClass::CalculateNormals()
+{
+	// 3개의 정점과 2개의 벡터
+	float vertex1[3] = { 0.0f, 0.0f, 0.0f };
+	float vertex2[3] = { 0.0f, 0.0f, 0.0f };
+	float vertex3[3] = { 0.0f, 0.0f, 0.0f };
+	float vector1[3] = { 0.0f, 0.0f, 0.0f };
+	float vector2[3] = { 0.0f, 0.0f, 0.0f };
+
+	// 법선 벡터를 저장할 임시 배열
+	VectorType* normals = new VectorType[(m_terrainHeight - 1) * (m_terrainWidth - 1)];
+	if (!normals)	return false;
+
+	// 모델 데이터에 대한 인덱스 초기화
+	int index1 = 0;
+	int index2 = 0;
+	int index3 = 0;
+
+	// 높이 맵 배열의 정점 위치에 대한 인덱스
+	int index = 0;
+
+	// 모든 면을 살펴보고 법선 벡터 계산 
+	for (int i = 0; i < m_terrainHeight - 1; i++) {
+		for (int j = 0; j < m_terrainWidth - 1; j++) {
+			index1 = (m_terrainHeight * i) + j;
+			index2 = (m_terrainHeight * i) + (j + 1);
+			index3 = (m_terrainHeight * (i + 1)) + j;
+
+			// 면에서 3개의 꼭지점을 가져옴
+			vertex1[0] = m_heightMap[index1].x;
+			vertex1[1] = m_heightMap[index1].y;
+			vertex1[2] = m_heightMap[index1].z;
+
+			vertex2[0] = m_heightMap[index2].x;
+			vertex2[1] = m_heightMap[index2].y;
+			vertex2[2] = m_heightMap[index2].z;
+
+			vertex3[0] = m_heightMap[index3].x;
+			vertex3[1] = m_heightMap[index3].y;
+			vertex3[2] = m_heightMap[index3].z;
+
+			// 면에서 2개의 벡터 계산
+			vector1[0] = vertex1[0] - vertex3[0];
+			vector1[1] = vertex1[1] - vertex3[1];
+			vector1[2] = vertex1[2] - vertex3[2];
+
+			vector2[0] = vertex3[0] - vertex2[0];
+			vector2[1] = vertex3[1] - vertex2[1];
+			vector2[2] = vertex3[2] - vertex2[2];
+
+			index = ((m_terrainHeight - 1) * i) + j;
+			
+			// 법선을 구하기 위해 두 벡터의 외적 계산
+			normals[index].x = (vector1[1] * vector2[2]) - (vector1[2] * vector2[1]);
+			normals[index].y = (vector1[2] * vector2[0]) - (vector1[0] * vector2[2]);
+			normals[index].z = (vector1[0] * vector2[1]) - (vector1[1] * vector2[0]);
+		}
+	}
+
+	// 평균값을 구하기 위한 법선의 각 좌표값의 합, 개수, 길이
+	int count = 0;
+	float sum[3] = { 0.0f, 0.0f, 0.0f };
+	float length = 0.0f;
+
+	// 모든 면을 살펴보고 각 면의 평균 계산
+	for (int i = 0; i < m_terrainHeight; i++) {
+		for (int j = 0; j < m_terrainWidth; j++) {
+			sum[0] = 0.0f;
+			sum[1] = 0.0f;
+			sum[2] = 0.0f;
+			count = 0;
+
+			// 좌하 면
+			if ((j - 1) >= 0 && (i - 1) >= 0) {
+				index = ((m_terrainHeight - 1) * (i - 1)) + (j - 1);
+				sum[0] += normals[index].x;
+				sum[1] += normals[index].y;
+				sum[2] += normals[index].z;
+				count++;
+			}
+
+			// 우하 면
+			if (j < (m_terrainWidth - 1) && (i - 1) >= 0) {
+				index = ((m_terrainHeight - 1) * (i - 1)) + j;
+				sum[0] += normals[index].x;
+				sum[1] += normals[index].y;
+				sum[2] += normals[index].z;
+				count++;
+			}
+
+			// 좌상 면
+			if ((j - 1) >= 0 && i < (m_terrainHeight - 1)) {
+				index = ((m_terrainHeight - 1) * i) + (j - 1);
+				sum[0] += normals[index].x;
+				sum[1] += normals[index].y;
+				sum[2] += normals[index].z;
+				count++;
+			}
+
+			// 우하 면
+			if (j < (m_terrainWidth - 1) && i < (m_terrainHeight - 1)) {
+				index = ((m_terrainHeight - 1) * i) + j;
+				sum[0] += normals[index].x;
+				sum[1] += normals[index].y;
+				sum[2] += normals[index].z;
+				count++;
+			}
+
+			// 평균 계산
+			sum[0] = (sum[0] / static_cast<float>(count));
+			sum[1] = (sum[1] / static_cast<float>(count));
+			sum[2] = (sum[2] / static_cast<float>(count));
+
+			// 법선 길이 계산
+			length = sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2]));
+
+			// 높이 맵 배열의 정점 위치에 대한 인덱스
+			index = (m_terrainHeight * i) + j;
+
+			// 현재 정점의 최종 공유 법선을 표준화하여 높이 맵 배열에 저장
+			m_heightMap[index].nx = (sum[0] / length);
+			m_heightMap[index].ny = (sum[1] / length);
+			m_heightMap[index].nz = (sum[2] / length);
+		}
+	}
+
+	delete[] normals;
+	normals = 0;
+
+	return true;
+}
+
 bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 {
-	m_vertexCount = (m_terrainWidth - 1) * (m_terrainHeight - 1) * 12;
+	m_vertexCount = (m_terrainWidth - 1) * (m_terrainHeight - 1) * 6;
 	m_indexCount = m_vertexCount;
 
 	VertexType* vertices = new VertexType[m_vertexCount];
@@ -117,81 +257,39 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			int indexLeftTop = (m_terrainHeight * (i + 1)) + j;
 			int indexRightTop = (m_terrainHeight * (i + 1)) + (j + 1);
 
-			// LINE 1
 			// 좌상
 			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftTop].nx, m_heightMap[indexLeftTop].ny, m_heightMap[indexLeftTop].nz);
 			indices[index] = index;
 			index++;
 
 			// 우상
 			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-			indices[index] = index;
-			index++;
-
-			// LINE 2
-			// 우상
-			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
 			indices[index] = index;
 			index++;
 
 			// 좌하
 			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
 			indices[index] = index;
 			index++;
 
-			// LINE 3
 			// 좌하
 			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-			indices[index] = index;
-			index++;
-
-			// 좌상
-			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-			indices[index] = index;
-			index++;
-
-			// LINE 4
-			// 좌하
-			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
 			indices[index] = index;
 			index++;
 
 			// 우상
 			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-			indices[index] = index;
-			index++;
-
-			// LINE 5
-			// 우상
-			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
 			indices[index] = index;
 			index++;
 
 			// 우하
 			vertices[index].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-			indices[index] = index;
-			index++;
-
-			// LINE 6
-			// 우하
-			vertices[index].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-			indices[index] = index;
-			index++;
-
-			// 좌하
-			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
-			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			vertices[index].normal = XMFLOAT3(m_heightMap[indexRightBottom].nx, m_heightMap[indexRightBottom].ny, m_heightMap[indexRightBottom].nz);
 			indices[index] = index;
 			index++;
 		}
@@ -276,5 +374,5 @@ void TerrainClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	// 정점 버퍼로 그릴 기본형 설정
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }

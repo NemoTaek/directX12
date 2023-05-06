@@ -1,0 +1,37 @@
+SamplerState SampleType;
+
+cbuffer LightBuffer
+{
+	float4 ambientColor;
+	float4 diffuseColor;
+	float3 lightDirection;
+	float padding;
+}
+
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float3 normal : NORMAL;
+};
+
+float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
+{
+	float3 lightDir;
+	float lightIntensity;
+	float4 color;
+
+	// 모든 픽셀에 대해 기본 출력 색상을 주변 광원 값으로 설정
+	color = ambientColor;
+
+	// 빛 방향은 실제와 반대방향
+	lightDir = -lightDirection;
+
+	// 현재 픽셀의 빛의 양 계산
+	lightIntensity = saturate(dot(input.normal, lightDir));
+	if(lightIntensity > 0.0f) {
+		color += (diffuseColor * lightIntensity);
+	}
+	color = saturate(color);
+
+	return color;
+}

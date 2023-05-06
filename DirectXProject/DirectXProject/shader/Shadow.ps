@@ -1,0 +1,67 @@
+Texture2D shaderTexture;
+Texture2D depthMapTexture;	// 그림자 맵, 조명의 시점에서 그려진 깊이 버퍼
+SamplerState SampleTypeClamp;	// 깊이버퍼를 샘플링 할 때 사용
+SamplerState SampleTypeWrap;
+
+cbuffer LightBuffer
+{
+	float4 ambientColor;
+	float4 diffuseColor;
+}
+
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float2 tex : TEXCOORD0;
+	float3 normal : NORMAL;
+	
+	// 조명 시점으로 변환된 정점의 위치
+	float4 lightViewPosition : TEXCOORD1;
+	float3 lightPos : TEXCOORD2;
+};
+
+float4 ShadowPixelShader(PixelInputType input) : SV_TARGET
+{
+	float bias;
+	float4 color;
+	float2 projectTexCoord;
+	float depthValue;
+	float lightDepthValue;
+	float lightIntensity;
+	float4 textureColor;
+
+	// 그림자 매핑에서 빛의 깊이와 물체의 깊이를 비교할 때의 바이어스 보정 값 설정
+	bias = 0.001f;
+
+	// 모든 픽셀에 대해 기본 출력 색상을 주변 광원 값으로 설정
+	color = ambientColor;
+
+	// 투영된 텍스처 좌표 계산
+	projectTexCoord.x = input.lightViewPosition.x / input.lightViewPosition.w / 2.0f + 0.5f;
+	projectTexCoord.y = -input.lightViewPosition.y / input.lightViewPosition.w / 2.0f + 0.5f;
+
+	// 투영된 좌표가 조명의 시야에 있는지 확인. 없으면 해당 픽셀값이 주변광 값이 되도록 설정
+	if((saturate(projectTexCoord.x) == projectTexCoord.x) && (saturate(projectTexCoord.y) == projectTexCoord.y)) {
+		// 그림자 맵에서 깊이값을 샘플링. 이 값은 가장 가까운 물체까지의 거리이다.
+		depthValue = depthMapTexture.Sample(SampleTypeClamp, projectTexCoord).r;
+
+		// 조명의 깊이를 계산하여 조명이 물체의 앞인지 뒤인지 확인
+		lightDepthValue = input.lightViewPosition.z / input.lightViewPosition.w;
+		lightDepthValue = lightDepthValue - bias;
+
+		// 그림자 맵의 깊이값과 조명의 깊이값을 비교하여 그림자를 표현할지 아닐지 설정
+		if(lightDepthValue < depthValue) {
+			lightIntensity = saturate(dot(input.normal, input.lightPos));
+
+			if(lightIntensity > 0.0f) {
+				color += (diffuseColor * lightIntensity);
+				color = saturate(color);
+			}
+		}
+	}
+
+	textureColor = shaderTexture.Sample(SampleTypeWrap, input.tex);
+	color = color * textureColor;
+
+	return color;
+}

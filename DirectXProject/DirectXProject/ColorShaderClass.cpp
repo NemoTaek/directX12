@@ -19,7 +19,7 @@ ColorShaderClass::~ColorShaderClass()
 
 bool ColorShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 {
-	return InitializeShader(device, hwnd, L"./color.vs", L"./color.ps");
+	return InitializeShader(device, hwnd, L"./shader/Color.vs", L"./shader/Color.ps");
 }
 
 

@@ -11,6 +11,8 @@
 #include "FontShaderClass.h"
 #include "ColorShaderClass.h"
 #include "TerrainClass.h"
+#include "TerrainShaderClass.h"
+#include "LightClass.h"
 
 ApplicationClass::ApplicationClass() {}
 ApplicationClass::ApplicationClass(const ApplicationClass& other) {}
@@ -95,10 +97,34 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		MessageBox(hwnd, L"Could not set video card info in the text object", L"Error", MB_OK);
 		return false;
 	}
+
+	m_TerrainShader = new TerrainShaderClass;
+	if (!m_TerrainShader) return false;
+	if (!m_TerrainShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the terrain shader object", L"Error", MB_OK);
+		return false;
+	}
+
+	m_Light = new LightClass;
+	if (!m_Light) return false;
+	m_Light->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
+	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light->SetDirection(0.0f, 0.0f, 0.75f);
 }
 
 void ApplicationClass::Shutdown()
 {
+	if (m_Light) {
+		delete m_Light;
+		m_Light = 0;
+	}
+
+	if (m_TerrainShader) {
+		m_TerrainShader->Shutdown();
+		delete m_TerrainShader;
+		m_TerrainShader = 0;
+	}
+
 	if (m_Terrain) {
 		m_Terrain->Shutdown();
 		delete m_Terrain;
@@ -237,7 +263,10 @@ bool ApplicationClass::RenderGraphics()
 	m_Terrain->Render(m_Direct3D->GetDeviceContext());
 
 	// 컬러 셰이더를 사용하여 모델 렌더링
-	if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
+	//if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
+
+	// 지형 셰이더를 사용하여 모델 렌더링
+	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection()))	return false;
 
 	// 2D 렌더링을 위해 Z 버퍼 OFF
 	m_Direct3D->TurnZBufferOff();

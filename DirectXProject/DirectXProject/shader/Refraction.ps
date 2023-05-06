@@ -1,0 +1,86 @@
+Texture2D shaderTexture;	// 텍스쳐 자원으로써 모델에 텍스쳐를 그릴 때 사용한다.
+SamplerState SampleType;	// 텍스쳐 자원에서 표본을 추출할 때 어떤 필터링 방식과 좌표 지정모드를 적용할 것인지를 표본추출기로 지정한다.
+
+Texture2D colorTexture : register(t0);		// 매질의 기본 표면 색상
+Texture2D normalTexture : register(t1);		// 모든 법선 정보를 가지고 있는 룩업 테이블
+Texture2D refractionTexture : register(t2);	// 매질 뒤에 있는 씬이 2D로 렌더링된 내용
+
+cbuffer LightBuffer
+{
+	float4 ambientColor;	// 주변광
+	float4 diffuseColor;	// 분산조명
+	float3 lightDirection;	// 빛 방향
+	// float specularPower;	// 반사 강도
+	// float4 specularColor;	// 반영광 색
+};
+
+cbuffer GlassBuffer
+{
+	float refractionScale;	// 섭동의 크기 설정 변수 (여기서는 유리, 얼음)
+	float3 padding;
+};
+
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float2 tex : TEXCOORD0;
+	float4 refractionPosition : TEXCOORD1;
+
+	// float3 normal : NORMAL;	// 물
+	// float clip : SV_ClipDistance0;	// 물
+};
+
+float4 RefractionPixelShader(PixelInputType input) : SV_TARGET
+{
+	float2 refractTexCoord;
+	float4 normalMap;
+	float3 normal;
+	float4 refractionColor;
+	float4 textureColor;
+	float4 color;
+
+	// 투영된 굴절 텍스처 좌표 계산 (-1, 1)좌표를 (0, 1)좌표로 변환
+	refractTexCoord.x = input.refractionPosition.x / input.refractionPosition.w / 2.0f + 0.5f;
+	refractTexCoord.y = -input.refractionPosition.y / input.refractionPosition.w / 2.0f + 0.5f;
+
+	// 법선 맵 샘플링 후 역시 좌표 변환
+	normalMap = normalTexture.Sample(SampleType, input.tex);
+	normal = (normalMap.xyz * 2.0f) - 1.0f;
+
+	// 굴절 텍스처 좌표에 섭동 크기 변수를 노말값에 곱하여 재설정
+	refractTexCoord = refractTexCoord + (normal.xy * refractionScale);
+
+	refractionColor = refractionTexture.Sample(SampleType, refractTexCoord);
+	textureColor = colorTexture.Sample(SampleType, input.tex);
+
+	// 굴절 텍스쳐와 색상 텍스쳐를 혼합하여 최종 색 설정
+	color = lerp(refractionColor, textureColor, 0.5f);
+
+	/*
+	물
+	// 이 텍스쳐 좌표 위치에서 샘플러를 사용하여 텍스쳐에서 픽셀 색상을 샘플링
+	textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+	// 기본 출력 색을 주변광으로 설정
+	color = ambientColor;
+
+	// 빛 벡터는 입사광 진행방향과 반대이다
+	lightDir = -lightDirection;
+
+	// 픽셀의 빛의 양 계산
+	// saturate(x): 주어진 인수를 [0, 1] 구간으로 한정하는 함수
+	lightIntensity = saturate(dot(input.normal, lightDir));
+
+	// 법선벡터와 빛벡터의 내적이 0보다 클 때
+	if(lightIntensity > 0.0f) {
+		// 조명값을 주변광에 더해줌
+		color += (diffuseColor * lightIntensity);
+	}
+
+	// 최종 빛 색상 설정
+	color = saturate(color);
+	color = color * textureColor;
+	*/
+
+	return color;
+}

@@ -1,0 +1,27 @@
+Texture2D shaderTexture;
+SamplerState SampleType;
+
+cbuffer FadeBuffer
+{
+	// 0~1 사이의 값으로 텍스처의 색상 강도를 조절.
+	// 프레임마다 증가하며 이미지를 밝고 어둡게 하여 페이드 효과 생성
+	float fadeAmount;
+};
+
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float2 tex : TEXCOORD0;
+};
+
+float4 FadePixelShader(PixelInputType input) : SV_TARGET
+{
+	float4 color;
+
+	color = shaderTexture.Sample(SampleType, input.tex);
+
+	// 페이드 비율로 밝기 설정
+	color = color * fadeAmount;
+
+	return color;
+}

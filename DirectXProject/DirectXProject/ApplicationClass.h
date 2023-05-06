@@ -16,6 +16,8 @@ class TextClass;
 class FontShaderClass;
 class ColorShaderClass;
 class TerrainClass;
+class TerrainShaderClass;
+class LightClass;
 
 class ApplicationClass
 {
@@ -44,4 +46,6 @@ private:
 	FontShaderClass* m_FontShader = nullptr;
 	ColorShaderClass* m_ColorShader = nullptr;
 	TerrainClass* m_Terrain = nullptr;
+	TerrainShaderClass* m_TerrainShader = nullptr;
+	LightClass* m_Light = nullptr;
 };

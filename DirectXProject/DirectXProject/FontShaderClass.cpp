@@ -15,7 +15,7 @@ bool FontShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	//WCHAR ps[] = L"PS.hlsl";
 	//result = InitializeShader(device, hwnd, vs, ps);
 	//return result;
-	return InitializeShader(device, hwnd, L"./Font.vs", L"./Font.ps");
+	return InitializeShader(device, hwnd, L"./shader/Font.vs", L"./shader/Font.ps");
 }
 
 void FontShaderClass::Shutdown()

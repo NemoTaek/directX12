@@ -140,6 +140,7 @@
     <ClCompile Include="FpsClass.cpp" />
     <ClCompile Include="GraphicsClass.cpp" />
     <ClCompile Include="InputClass.cpp" />
+    <ClCompile Include="LightClass.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model3DClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
@@ -148,6 +149,7 @@
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
     <ClCompile Include="TerrainClass.cpp" />
+    <ClCompile Include="TerrainShaderClass.cpp" />
     <ClCompile Include="TextClass.cpp" />
     <ClCompile Include="TextureClass.cpp" />
     <ClCompile Include="TextureShaderClass.cpp" />
@@ -168,6 +170,7 @@
     <ClInclude Include="FpsClass.h" />
     <ClInclude Include="GraphicsClass.h" />
     <ClInclude Include="InputClass.h" />
+    <ClInclude Include="LightClass.h" />
     <ClInclude Include="Model3DClass.h" />
     <ClInclude Include="PositionClass.h" />
     <ClInclude Include="ShaderManagerClass.h" />
@@ -176,6 +179,7 @@
     <ClInclude Include="SystemClass.h" />
     <ClInclude Include="Targetver.h" />
     <ClInclude Include="TerrainClass.h" />
+    <ClInclude Include="TerrainShaderClass.h" />
     <ClInclude Include="TextClass.h" />
     <ClInclude Include="TextureClass.h" />
     <ClInclude Include="TextureShaderClass.h" />
@@ -186,6 +190,8 @@
     <None Include="Color.vs" />
     <None Include="Font.ps" />
     <None Include="Font.vs" />
+    <None Include="shader\Terrain.ps" />
+    <None Include="shader\Terrain.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
