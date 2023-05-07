@@ -84,7 +84,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Terrain = new TerrainClass;
 	if (!m_Terrain) return false;
-	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap01.bmp")) {
+	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap01.bmp", L"./Textures/ice.dds")) {
 		MessageBox(hwnd, L"Could not initialize the terrain object", L"Error", MB_OK);
 		return false;
 	}
@@ -109,7 +109,9 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	if (!m_Light) return false;
 	m_Light->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(0.0f, 0.0f, 0.75f);
+	m_Light->SetDirection(-0.5f, -1.0f, 0.0f);
+
+	return true;
 }
 
 void ApplicationClass::Shutdown()
@@ -246,18 +248,18 @@ bool ApplicationClass::HandleInput(float frameTime)
 
 bool ApplicationClass::RenderGraphics()
 {
+	// Scene을 그리기 위해 버퍼 삭제
+	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬 생성
+	m_Camera->Render();
+
 	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	m_Direct3D->GetWorldMatrix(worldMatrix);
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
-
-	// Scene을 그리기 위해 버퍼 삭제
-	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
-
-	// 카메라의 위치에 따라 뷰 행렬 생성
-	m_Camera->Render();
 
 	// 지형 버퍼 렌더링
 	m_Terrain->Render(m_Direct3D->GetDeviceContext());
@@ -266,7 +268,7 @@ bool ApplicationClass::RenderGraphics()
 	//if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
 
 	// 지형 셰이더를 사용하여 모델 렌더링
-	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection()))	return false;
+	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
 
 	// 2D 렌더링을 위해 Z 버퍼 OFF
 	m_Direct3D->TurnZBufferOff();

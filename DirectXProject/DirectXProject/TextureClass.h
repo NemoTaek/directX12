@@ -29,6 +29,5 @@ private:
 private:
 	//unsigned char* m_targaData = nullptr;
 	/*ID3D11Texture2D* m_texture = nullptr;*/
-	ID3D11Resource* m_texture = nullptr;
-	ID3D11ShaderResourceView* m_textureView = nullptr;
+	ID3D11ShaderResourceView* m_texture = nullptr;
 };

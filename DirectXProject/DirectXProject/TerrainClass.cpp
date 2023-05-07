@@ -1,12 +1,13 @@
 #include "Stdafx.h"
 #include "TerrainClass.h"
+#include "TextureClass.h"
 #include <stdio.h>
 
 TerrainClass::TerrainClass() {}
 TerrainClass::TerrainClass(const TerrainClass& other) {}
 TerrainClass::~TerrainClass() {}
 
-bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename)
+bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename, const WCHAR* textureFilename)
 {
 	// 지형의 너비와 높이 맵 로드
 	if (!LoadHeightMap(heightMapFilename))	return false;
@@ -17,11 +18,18 @@ bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilenam
 	// 지형 데이터의 법선 계산
 	if (!CalculateNormals())	return false;
 
+	// 텍스처 좌표를 계산
+	CalculateTextureCoordinates();
+
+	// 지형 텍스처 로드
+	if (!LoadTexture(device, textureFilename))	return false;
+
 	return InitializeBuffers(device);
 }
 
 void TerrainClass::Shutdown()
 {
+	ReleaseTexture();
 	ShutdownBuffers();
 	ShutdownHeightMap();
 }
@@ -32,6 +40,8 @@ void TerrainClass::Render(ID3D11DeviceContext* deviceContext)
 }
 
 int TerrainClass::GetIndexCount() { return m_indexCount; }
+
+ID3D11ShaderResourceView* TerrainClass::GetTexture() { return m_texture->GetTexture(); }
 
 bool TerrainClass::LoadHeightMap(const char* heightMapFilename)
 {
@@ -219,7 +229,7 @@ bool TerrainClass::CalculateNormals()
 			sum[2] = (sum[2] / static_cast<float>(count));
 
 			// 법선 길이 계산
-			length = sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2]));
+			length = static_cast<float>(sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2])));
 
 			// 높이 맵 배열의 정점 위치에 대한 인덱스
 			index = (m_terrainHeight * i) + j;
@@ -237,8 +247,61 @@ bool TerrainClass::CalculateNormals()
 	return true;
 }
 
+void TerrainClass::CalculateTextureCoordinates()
+{
+	// 텍스처 좌표를 얼마나 증가시킬지 계산
+	float incrementValue = static_cast<float>(TEXTURE_REPEAT) / static_cast<float>(m_terrainWidth);
+
+	// 텍스처를 얼마나 반복시킬지 계산
+	int incrementCount = m_terrainWidth / TEXTURE_REPEAT;
+
+	float tuCoordinate = 0.0f;
+	float tvCoordinate = 1.0f;
+	int tuCount = 0;
+	int tvCount = 0;
+
+	// 전체 높이 맵을 반복하고 각 정점의 tu, tv 좌표 계산
+	for (int i = 0; i < m_terrainHeight; i++) {
+		for (int j = 0; j < m_terrainWidth; j++) {
+			// 높이 맵에 텍스처 좌표 저장
+			m_heightMap[(m_terrainHeight * i) + j].tu = tuCoordinate;
+			m_heightMap[(m_terrainHeight * i) + j].tv = tvCoordinate;
+
+			// tu 텍스처 좌표 및 개수 증가
+			tuCoordinate += incrementValue;
+			tuCount++;
+
+			// 마지막 차례(오른 쪽 끝)면 초기화
+			if (tuCount == incrementCount) {
+				tuCoordinate = 0.0f;
+				tuCount = 0;
+			}
+		}
+
+		// tv 텍스처 좌표 및 개수 증가
+		tvCoordinate -= incrementValue;
+		tvCount++;
+
+		// 마지막 차례(최상단)면 초기화
+		if (tvCount == incrementCount) {
+			tvCoordinate = 1.0f;
+			tvCount = 0;
+		}
+	}
+}
+
+bool TerrainClass::LoadTexture(ID3D11Device* device, const WCHAR* filename)
+{
+	m_texture = new TextureClass;
+	if (!m_texture)	return false;
+	return m_texture->Initialize(device, filename);
+}
+
 bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 {
+	float tu = 0.0f;
+	float tv = 0.0f;
+
 	m_vertexCount = (m_terrainWidth - 1) * (m_terrainHeight - 1) * 6;
 	m_indexCount = m_vertexCount;
 
@@ -258,38 +321,68 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			int indexRightTop = (m_terrainHeight * (i + 1)) + (j + 1);
 
 			// 좌상
+			tu = m_heightMap[indexLeftTop].tu;
+			tv = m_heightMap[indexLeftTop].tv;
+			if (tv == 1.0f) tv = 0.0f;	// 상단 가장자리를 덮도록 텍스처 좌표 수정
+
 			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
 			vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftTop].nx, m_heightMap[indexLeftTop].ny, m_heightMap[indexLeftTop].nz);
+			vertices[index].texture = XMFLOAT2(tu, tv);
 			indices[index] = index;
 			index++;
 
 			// 우상
+			tu = m_heightMap[indexRightTop].tu;
+			tv = m_heightMap[indexRightTop].tv;
+			if (tu == 0.0f) tu = 1.0f;	// 우측 가장자리를 덮도록 텍스처 좌표 수정
+			if (tv == 1.0f) tv = 0.0f;	// 상단 가장자리를 덮도록 텍스처 좌표 수정
+
 			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
 			vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
+			vertices[index].texture = XMFLOAT2(tu, tv);
 			indices[index] = index;
 			index++;
 
 			// 좌하
+			tu = m_heightMap[indexLeftBottom].tu;
+			tv = m_heightMap[indexLeftBottom].tv;
+
 			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
 			vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
+			vertices[index].texture = XMFLOAT2(tu, tv);
 			indices[index] = index;
 			index++;
 
 			// 좌하
+			tu = m_heightMap[indexLeftBottom].tu;
+			tv = m_heightMap[indexLeftBottom].tv;
+
 			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
 			vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
+			vertices[index].texture = XMFLOAT2(tu, tv);
 			indices[index] = index;
 			index++;
 
 			// 우상
+			tu = m_heightMap[indexRightTop].tu;
+			tv = m_heightMap[indexRightTop].tv;
+			if (tu == 0.0f) tu = 1.0f;	// 우측 가장자리를 덮도록 텍스처 좌표 수정
+			if (tv == 1.0f) tv = 0.0f;	// 상단 가장자리를 덮도록 텍스처 좌표 수정
+
 			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
 			vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
+			vertices[index].texture = XMFLOAT2(tu, tv);
 			indices[index] = index;
 			index++;
 
 			// 우하
+			tu = m_heightMap[indexRightBottom].tu;
+			tv = m_heightMap[indexRightBottom].tv;
+			if (tu == 0.0f) tu = 1.0f;	// 우측 가장자리를 덮도록 텍스처 좌표 수정
+
 			vertices[index].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
 			vertices[index].normal = XMFLOAT3(m_heightMap[indexRightBottom].nx, m_heightMap[indexRightBottom].ny, m_heightMap[indexRightBottom].nz);
+			vertices[index].texture = XMFLOAT2(tu, tv);
 			indices[index] = index;
 			index++;
 		}
@@ -345,6 +438,15 @@ void TerrainClass::ShutdownHeightMap()
 	if (m_heightMap) {
 		delete[] m_heightMap;
 		m_heightMap = 0;
+	}
+}
+
+void TerrainClass::ReleaseTexture()
+{
+	if (m_texture) {
+		m_texture->Shutdown();
+		delete m_texture;
+		m_texture = 0;
 	}
 }
 

@@ -60,20 +60,13 @@ bool TextureClass::Initialize(ID3D11Device* device, const WCHAR* filename)
 
 
 	// 여기서부터는 dds 파일을 텍스쳐로 사용할 시 사용
-	if(FAILED(CreateDDSTextureFromFile(device, filename, &m_texture, &m_textureView)))	return false;
+	if(FAILED(CreateDDSTextureFromFile(device, filename, nullptr, &m_texture)))	return false;
 
 	return true;
 }
 
 void TextureClass::Shutdown()
 {
-	// 텍스쳐 뷰 리소스 해제
-	if (m_textureView)
-	{
-		m_textureView->Release();
-		m_textureView = 0;
-	}
-
 	// 텍스쳐 해제
 	if (m_texture)
 	{
@@ -89,7 +82,7 @@ void TextureClass::Shutdown()
 	//}
 }
 
-ID3D11ShaderResourceView* TextureClass::GetTexture() { return m_textureView; }
+ID3D11ShaderResourceView* TextureClass::GetTexture() { return m_texture; }
 
 /*
 bool TextureClass::LoadTarga(char* filename, int& width, int& height)
