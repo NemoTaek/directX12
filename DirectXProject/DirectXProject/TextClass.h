@@ -60,4 +60,5 @@ private:
 	SentenceType* m_sentence8 = nullptr;
 	SentenceType* m_sentence9 = nullptr;
 	SentenceType* m_sentence10 = nullptr;
+	SentenceType* m_sentence11 = nullptr;
 };

@@ -91,14 +91,14 @@ bool FrustumClass::CheckCube(float xCenter, float yCenter, float zCenter, float 
 {
 	for (int i = 0; i < 6; i++) {
 		// 절두체의 6개 평면 안에 정사각 큐브의 8개 꼭지점이 모두 있는지 확인
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - radius, yCenter - radius, zCenter - radius, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + radius, yCenter - radius, zCenter - radius, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - radius, yCenter + radius, zCenter - radius, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + radius, yCenter + radius, zCenter - radius, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - radius, yCenter - radius, zCenter + radius, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + radius, yCenter - radius, zCenter + radius, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - radius, yCenter - radius, zCenter + radius, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + radius, yCenter - radius, zCenter + radius, 1.0f))) < 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - radius, yCenter - radius, zCenter - radius, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + radius, yCenter - radius, zCenter - radius, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - radius, yCenter + radius, zCenter - radius, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + radius, yCenter + radius, zCenter - radius, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - radius, yCenter - radius, zCenter + radius, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + radius, yCenter - radius, zCenter + radius, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - radius, yCenter - radius, zCenter + radius, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + radius, yCenter - radius, zCenter + radius, 1.0f))) >= 0.0f)	continue;
 
 		return false;
 	}
@@ -120,14 +120,14 @@ bool FrustumClass::CheckRectangle(float xCenter, float yCenter, float zCenter, f
 {
 	for (int i = 0; i < 6; i++) {
 		// 절두체의 6개 평면 안에 일반적인 큐브의 8개 꼭지점이 모두 있는지 확인
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - xSize, yCenter - ySize, zCenter - zSize, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + xSize, yCenter - ySize, zCenter - zSize, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - xSize, yCenter + ySize, zCenter - zSize, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + xSize, yCenter + ySize, zCenter - zSize, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - xSize, yCenter - ySize, zCenter + zSize, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + xSize, yCenter - ySize, zCenter + zSize, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - xSize, yCenter - ySize, zCenter + zSize, 1.0f))) < 0.0f)	continue;
-		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + xSize, yCenter - ySize, zCenter + zSize, 1.0f))) < 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - xSize, yCenter - ySize, zCenter - zSize, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + xSize, yCenter - ySize, zCenter - zSize, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - xSize, yCenter + ySize, zCenter - zSize, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + xSize, yCenter + ySize, zCenter - zSize, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - xSize, yCenter - ySize, zCenter + zSize, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + xSize, yCenter - ySize, zCenter + zSize, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter - xSize, yCenter - ySize, zCenter + zSize, 1.0f))) >= 0.0f)	continue;
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter + xSize, yCenter - ySize, zCenter + zSize, 1.0f))) >= 0.0f)	continue;
 
 		return false;
 	}

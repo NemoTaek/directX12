@@ -36,6 +36,8 @@ public:
 
 	int GetIndexCount();
 	ID3D11ShaderResourceView* GetTexture();
+	int GetVertexCount();
+	void CopyVertexArray(void*);
 
 private:
 	bool LoadHeightMap(const char*);
@@ -60,4 +62,5 @@ private:
 	ID3D11Buffer* m_indexBuffer = nullptr;
 	HeightMapType* m_heightMap = nullptr;
 	TextureClass* m_texture = nullptr;
+	VertexType* m_vertices = nullptr;
 };

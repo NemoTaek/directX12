@@ -35,6 +35,7 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	if (!(InitializeSentence(&m_sentence8, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(InitializeSentence(&m_sentence9, SENTENCE_MAX_LENGTH, device)))	return false;
 	if (!(InitializeSentence(&m_sentence10, SENTENCE_MAX_LENGTH, device)))	return false;
+	if (!(InitializeSentence(&m_sentence11, SENTENCE_MAX_LENGTH, device)))	return false;
 
 	return true;
 }
@@ -51,6 +52,7 @@ void TextClass::Shutdown()
 	ReleaseSentence(&m_sentence8);
 	ReleaseSentence(&m_sentence9);
 	ReleaseSentence(&m_sentence10);
+	ReleaseSentence(&m_sentence11);
 
 	if (m_font) {
 		m_font->Shutdown();
@@ -71,6 +73,7 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, FontShaderClass* font
 	if (!RenderSentence(deviceContext, m_sentence8, fontShader, worldMatrix, orthoMatrix))	return false;
 	if (!RenderSentence(deviceContext, m_sentence9, fontShader, worldMatrix, orthoMatrix))	return false;
 	if (!RenderSentence(deviceContext, m_sentence10, fontShader, worldMatrix, orthoMatrix))	return false;
+	if (!RenderSentence(deviceContext, m_sentence11, fontShader, worldMatrix, orthoMatrix))	return false;
 
 	return true;
 }
@@ -292,6 +295,23 @@ bool TextClass::SetCameraRotation(XMFLOAT3 rot, ID3D11DeviceContext* deviceConte
 	return true;
 }
 
+bool TextClass::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[SENTENCE_MAX_LENGTH];
+	char renderString[SENTENCE_MAX_LENGTH];
+
+	if (count > 999999999) { count = 999999999; }
+
+	_itoa_s(count, tempString, 10);
+	strcpy_s(renderString, "Render Count: ");
+	strcat_s(renderString, tempString);
+
+	// 문장을 FPS 값으로 업데이트
+	if (!(UpdateSentence(m_sentence11, renderString, 50, 300, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+
+	return true;
+}
+
 bool TextClass::InitializeSentence(SentenceType** sentence, int maxLength, ID3D11Device* device)
 {
 	// SentenceType 객체 생성 및 초기화
@@ -441,24 +461,6 @@ bool TextClass::RenderSentence(ID3D11DeviceContext* deviceContext, SentenceType*
 
 	// 폰트 쉐이더로 텍스트 렌더링
 	if (!(FontShader->Render(deviceContext, sentence->indexCount, worldMatrix, m_baseViewMatrix, orthoMatrix, m_font->GetTexture(), pixelColor)))	return false;
-
-	return true;
-}
-
-bool TextClass::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
-{
-	char tempString[SENTENCE_MAX_LENGTH];
-	char countString[SENTENCE_MAX_LENGTH];
-
-	// 텍스트 개수를 문자열로 변경
-	_itoa_s(count, tempString, 10);
-
-	// 텍스트 개수 문자열 생성
-	strcpy_s(countString, "Render Count: ");
-	strcat_s(countString, tempString);
-
-	// 문장을 텍스트 개수 값으로 업데이트
-	if (!(UpdateSentence(m_sentence1, countString, 20, 20, 1.0f, 1.0f, 1.0f, deviceContext)))	return false;
 
 	return true;
 }

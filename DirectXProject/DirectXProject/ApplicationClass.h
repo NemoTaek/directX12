@@ -14,10 +14,12 @@ class FpsClass;
 class CpuClass;
 class TextClass;
 class FontShaderClass;
-class ColorShaderClass;
+//class ColorShaderClass;
 class TerrainClass;
 class TerrainShaderClass;
 class LightClass;
+class FrustumClass;
+class QuadTreeClass;
 
 class ApplicationClass
 {
@@ -44,8 +46,10 @@ private:
 	CpuClass* m_Cpu = nullptr;
 	TextClass* m_Text = nullptr;
 	FontShaderClass* m_FontShader = nullptr;
-	ColorShaderClass* m_ColorShader = nullptr;
+	//ColorShaderClass* m_ColorShader = nullptr;
 	TerrainClass* m_Terrain = nullptr;
 	TerrainShaderClass* m_TerrainShader = nullptr;
 	LightClass* m_Light = nullptr;
+	FrustumClass* m_Frustum = nullptr;
+	QuadTreeClass* m_QuadTree = nullptr;
 };

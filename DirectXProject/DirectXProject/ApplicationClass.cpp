@@ -9,10 +9,12 @@
 #include "CpuClass.h"
 #include "TextClass.h"
 #include "FontShaderClass.h"
-#include "ColorShaderClass.h"
+//#include "ColorShaderClass.h"
 #include "TerrainClass.h"
 #include "TerrainShaderClass.h"
 #include "LightClass.h"
+#include "FrustumClass.h"
+#include "QuadTreeClass.h"
 
 ApplicationClass::ApplicationClass() {}
 ApplicationClass::ApplicationClass(const ApplicationClass& other) {}
@@ -75,12 +77,12 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	m_ColorShader = new ColorShaderClass;
-	if (!m_ColorShader) return false;
-	if (!m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the color shader object", L"Error", MB_OK);
-		return false;
-	}
+	//m_ColorShader = new ColorShaderClass;
+	//if (!m_ColorShader) return false;
+	//if (!m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the color shader object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	m_Terrain = new TerrainClass;
 	if (!m_Terrain) return false;
@@ -111,11 +113,32 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(-0.5f, -1.0f, 0.0f);
 
+	m_Frustum = new FrustumClass;
+	if (!m_Frustum) return false;
+
+	m_QuadTree = new QuadTreeClass;
+	if (!m_QuadTree) return false;
+	if (!m_QuadTree->Initialize(m_Terrain, m_Direct3D->GetDevice())) {
+		MessageBox(hwnd, L"Could not initialize the quad tree object", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 void ApplicationClass::Shutdown()
 {
+	if (m_QuadTree) {
+		m_QuadTree->Shutdown();
+		delete m_QuadTree;
+		m_QuadTree = 0;
+	}
+
+	if (m_Frustum) {
+		delete m_Frustum;
+		m_Frustum = 0;
+	}
+
 	if (m_Light) {
 		delete m_Light;
 		m_Light = 0;
@@ -133,11 +156,11 @@ void ApplicationClass::Shutdown()
 		m_Terrain = 0;
 	}
 
-	if (m_ColorShader) {
-		m_ColorShader->Shutdown();
-		delete m_ColorShader;
-		m_ColorShader = 0;
-	}
+	//if (m_ColorShader) {
+	//	m_ColorShader->Shutdown();
+	//	delete m_ColorShader;
+	//	m_ColorShader = 0;
+	//}
 
 	if (m_FontShader) {
 		m_FontShader->Shutdown();
@@ -262,13 +285,23 @@ bool ApplicationClass::RenderGraphics()
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
 	// 지형 버퍼 렌더링
-	m_Terrain->Render(m_Direct3D->GetDeviceContext());
+	//m_Terrain->Render(m_Direct3D->GetDeviceContext());
+
+	// 절두체 생성
+	m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
 
 	// 컬러 셰이더를 사용하여 모델 렌더링
 	//if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
 
 	// 지형 셰이더를 사용하여 모델 렌더링
-	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
+	//if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
+	if (!m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
+
+	// 쿼드 트리 및 지형 셰이더를 사용하여 지형 렌더링
+	m_QuadTree->Render(m_Frustum, m_Direct3D->GetDeviceContext(), m_TerrainShader);
+
+	// 시야에 렌더링 된 삼각형 수 출력
+	if (!m_Text->SetRenderCount(m_QuadTree->GetDrawCount(), m_Direct3D->GetDeviceContext()))	return false;
 
 	// 2D 렌더링을 위해 Z 버퍼 OFF
 	m_Direct3D->TurnZBufferOff();

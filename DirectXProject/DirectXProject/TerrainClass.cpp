@@ -34,12 +34,14 @@ void TerrainClass::Shutdown()
 	ShutdownHeightMap();
 }
 
+/*
 void TerrainClass::Render(ID3D11DeviceContext* deviceContext)
 {
 	RenderBuffers(deviceContext);
 }
 
 int TerrainClass::GetIndexCount() { return m_indexCount; }
+*/
 
 ID3D11ShaderResourceView* TerrainClass::GetTexture() { return m_texture->GetTexture(); }
 
@@ -303,13 +305,13 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 	float tv = 0.0f;
 
 	m_vertexCount = (m_terrainWidth - 1) * (m_terrainHeight - 1) * 6;
-	m_indexCount = m_vertexCount;
+	//m_indexCount = m_vertexCount;
 
-	VertexType* vertices = new VertexType[m_vertexCount];
-	if (!vertices)	return false;
+	m_vertices = new VertexType[m_vertexCount];
+	if (!m_vertices)	return false;
 
-	unsigned long* indices = new unsigned long[m_indexCount];
-	if (!indices)	return false;
+	//unsigned long* indices = new unsigned long[m_indexCount];
+	//if (!indices)	return false;
 
 	int index = 0;
 
@@ -325,10 +327,10 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			tv = m_heightMap[indexLeftTop].tv;
 			if (tv == 1.0f) tv = 0.0f;	// 상단 가장자리를 덮도록 텍스처 좌표 수정
 
-			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
-			vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftTop].nx, m_heightMap[indexLeftTop].ny, m_heightMap[indexLeftTop].nz);
-			vertices[index].texture = XMFLOAT2(tu, tv);
-			indices[index] = index;
+			m_vertices[index].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
+			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftTop].nx, m_heightMap[indexLeftTop].ny, m_heightMap[indexLeftTop].nz);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//indices[index] = index;
 			index++;
 
 			// 우상
@@ -337,30 +339,30 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			if (tu == 0.0f) tu = 1.0f;	// 우측 가장자리를 덮도록 텍스처 좌표 수정
 			if (tv == 1.0f) tv = 0.0f;	// 상단 가장자리를 덮도록 텍스처 좌표 수정
 
-			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
-			vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
-			vertices[index].texture = XMFLOAT2(tu, tv);
-			indices[index] = index;
+			m_vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
+			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//indices[index] = index;
 			index++;
 
 			// 좌하
 			tu = m_heightMap[indexLeftBottom].tu;
 			tv = m_heightMap[indexLeftBottom].tv;
 
-			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
-			vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
-			vertices[index].texture = XMFLOAT2(tu, tv);
-			indices[index] = index;
+			m_vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
+			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//indices[index] = index;
 			index++;
 
 			// 좌하
 			tu = m_heightMap[indexLeftBottom].tu;
 			tv = m_heightMap[indexLeftBottom].tv;
 
-			vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
-			vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
-			vertices[index].texture = XMFLOAT2(tu, tv);
-			indices[index] = index;
+			m_vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
+			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//indices[index] = index;
 			index++;
 
 			// 우상
@@ -369,10 +371,10 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			if (tu == 0.0f) tu = 1.0f;	// 우측 가장자리를 덮도록 텍스처 좌표 수정
 			if (tv == 1.0f) tv = 0.0f;	// 상단 가장자리를 덮도록 텍스처 좌표 수정
 
-			vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
-			vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
-			vertices[index].texture = XMFLOAT2(tu, tv);
-			indices[index] = index;
+			m_vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
+			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//indices[index] = index;
 			index++;
 
 			// 우하
@@ -380,14 +382,15 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			tv = m_heightMap[indexRightBottom].tv;
 			if (tu == 0.0f) tu = 1.0f;	// 우측 가장자리를 덮도록 텍스처 좌표 수정
 
-			vertices[index].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
-			vertices[index].normal = XMFLOAT3(m_heightMap[indexRightBottom].nx, m_heightMap[indexRightBottom].ny, m_heightMap[indexRightBottom].nz);
-			vertices[index].texture = XMFLOAT2(tu, tv);
-			indices[index] = index;
+			m_vertices[index].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
+			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexRightBottom].nx, m_heightMap[indexRightBottom].ny, m_heightMap[indexRightBottom].nz);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//indices[index] = index;
 			index++;
 		}
 	}
 
+	/*
 	// 정점 버퍼 서술자 설정
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -429,9 +432,14 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 	vertices = nullptr;
 	delete[] indices;
 	indices = nullptr;
+	*/
 
 	return true;
 }
+
+int TerrainClass::GetVertexCount() { return m_vertexCount; }
+
+void TerrainClass::CopyVertexArray(void* vertexList) { memcpy(vertexList, m_vertices, sizeof(VertexType) * m_vertexCount); }
 
 void TerrainClass::ShutdownHeightMap()
 {
@@ -452,19 +460,25 @@ void TerrainClass::ReleaseTexture()
 
 void TerrainClass::ShutdownBuffers()
 {
-	//  인덱스 버퍼 해제
-	if (m_indexBuffer) {
-		m_indexBuffer->Release();
-		m_indexBuffer = nullptr;
+	if (m_vertices) {
+		delete[] m_vertices;
+		m_vertices = 0;
 	}
 
-	// 정점셰이더 해제
-	if (m_vertexBuffer) {
-		m_vertexBuffer->Release();
-		m_vertexBuffer = nullptr;
-	}
+	////  인덱스 버퍼 해제
+	//if (m_indexBuffer) {
+	//	m_indexBuffer->Release();
+	//	m_indexBuffer = nullptr;
+	//}
+
+	//// 정점셰이더 해제
+	//if (m_vertexBuffer) {
+	//	m_vertexBuffer->Release();
+	//	m_vertexBuffer = nullptr;
+	//}
 }
 
+/*
 void TerrainClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	// 정점 버퍼의 단위와 오프셋 설정
@@ -478,3 +492,4 @@ void TerrainClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	// 정점 버퍼로 그릴 기본형 설정
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
+*/
