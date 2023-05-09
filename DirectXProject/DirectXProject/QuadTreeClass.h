@@ -19,6 +19,11 @@ private:
 		XMFLOAT3 normal;
 	};
 
+	struct VectorType
+	{
+		float x, y, z;
+	};
+
 	struct NodeType
 	{
 		float positionX, positionZ, width;
@@ -26,6 +31,7 @@ private:
 		ID3D11Buffer* vertexBuffer;
 		ID3D11Buffer* indexBuffer;
 		NodeType* nodes[4];
+		VectorType* vertexArray;
 	};
 
 public:
@@ -37,6 +43,7 @@ public:
 	void Shutdown();
 	void Render(FrustumClass*, ID3D11DeviceContext*, TerrainShaderClass*);
 	int GetDrawCount();
+	bool GetHeightAtPosition(float, float, float&);
 
 private:
 	void CalculateMeshDimensions(int, float&, float&, float&);
@@ -45,6 +52,9 @@ private:
 	bool IsTriangleContained(int, float, float, float);
 	void ReleaseNode(NodeType*);
 	void RenderNode(NodeType*, FrustumClass*, ID3D11DeviceContext*, TerrainShaderClass*);
+
+	void FindNode(NodeType*, float, float, float&);
+	bool CheckHeightOfTriangle(float, float, float&, float[3], float[3], float[3]);
 
 private:
 	int m_triangleCount;

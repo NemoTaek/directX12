@@ -232,6 +232,17 @@ bool ApplicationClass::Frame()
 	// 프레임 입력 처리 수행
 	if (!HandleInput(m_Timer->GetTime()))	return false;
 
+	// 카메라 현재 위치 가져옴
+	XMFLOAT3 position = m_Camera->GetPosition();
+
+	// 카메라 위치 바로 아래에 있는 삼각형의 높이 가져옴
+	// 와! 1인칭 시점으로 캐릭터가 걷는 느낌 난다!
+	float height = 0.0f;
+	if (m_QuadTree->GetHeightAtPosition(position.x, position.z, height)) {
+		// 카메라 아래에 삼각형이 있는 경우 카메라를 두개의 단위로 배치
+		m_Camera->SetPosition(XMFLOAT3(position.x, height + 2.0f, position.z));
+	}
+
 	// 그래픽 렌더링
 	if (!RenderGraphics())	return false;
 
