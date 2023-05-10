@@ -1,13 +1,16 @@
 #include "Stdafx.h"
 #include "TerrainClass.h"
+#include "TerrainShaderClass.h"
 #include "TextureClass.h"
-#include <stdio.h>
+#include <stdlib.h>
+#include <fstream>
+using namespace std;
 
 TerrainClass::TerrainClass() {}
 TerrainClass::TerrainClass(const TerrainClass& other) {}
 TerrainClass::~TerrainClass() {}
 
-bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename, const WCHAR* textureFilename)
+bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename, const char* materialsFilename, const char* materialMapFilename, const char* colorMapFilename)
 {
 	// 지형의 너비와 높이 맵 로드
 	if (!LoadHeightMap(heightMapFilename))	return false;
@@ -19,29 +22,32 @@ bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilenam
 	if (!CalculateNormals())	return false;
 
 	// 텍스처 좌표를 계산
-	CalculateTextureCoordinates();
+	//CalculateTextureCoordinates();
 
 	// 지형 텍스처 로드
-	if (!LoadTexture(device, textureFilename))	return false;
+	//if (!LoadTexture(device, textureFilename))	return false;
+
+	// 컬러 맵을 지형에 로드
+	if (!LoadColorMap(colorMapFilename))	return false;
+
+	// 지형에 대한 머터리얼 그룹 로드
+	if (!LoadMaterialFile(materialsFilename, materialMapFilename, device))	return false;
 
 	return InitializeBuffers(device);
 }
 
 void TerrainClass::Shutdown()
 {
-	ReleaseTexture();
-	ShutdownBuffers();
+	//ReleaseTexture();
+	//ShutdownBuffers();
+	ReleaseMaterials();
 	ShutdownHeightMap();
 }
 
-/*
-void TerrainClass::Render(ID3D11DeviceContext* deviceContext)
-{
-	RenderBuffers(deviceContext);
-}
+
+void TerrainClass::Render(ID3D11DeviceContext* deviceContext) { RenderBuffers(deviceContext); }
 
 int TerrainClass::GetIndexCount() { return m_indexCount; }
-*/
 
 ID3D11ShaderResourceView* TerrainClass::GetTexture() { return m_texture->GetTexture(); }
 
@@ -299,19 +305,342 @@ bool TerrainClass::LoadTexture(ID3D11Device* device, const WCHAR* filename)
 	return m_texture->Initialize(device, filename);
 }
 
+bool TerrainClass::LoadColorMap(const char* colorMapfilename)
+{
+	// 컬러 맵 파일 오픈
+	FILE* filePtr = nullptr;
+	if (fopen_s(&filePtr, colorMapfilename, "rb") != 0)	return false;
+
+	// 비트맵 파일 헤더 읽어옴
+	BITMAPFILEHEADER bitmapFileHeader;
+	if (fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr) != 1)	return false;
+
+	BITMAPINFOHEADER bitmapInfoHeader;
+	if (fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr) != 1)	return false;
+
+	// 컬러 맵 크기 저장
+	int colorMapWidth = bitmapInfoHeader.biWidth;
+	int colorMapHeight = bitmapInfoHeader.biHeight;
+	if (colorMapWidth != m_terrainWidth || colorMapHeight != m_terrainHeight)	return false;
+
+	// 비트맵 이미지 데이터 크기 계산
+	int imageSize = colorMapWidth * colorMapHeight * 3;
+
+	// 비트맵 이미지 데이터에 메모리 할당
+	unsigned char* bitmapImage = new unsigned char[imageSize];
+	if (!bitmapImage)	return false;
+
+	// 비트맵 데이터의 시작 부분으로 이동
+	fseek(filePtr, bitmapFileHeader.bfOffBits, SEEK_SET);
+
+	// 비트맵 이미지 데이터 읽어옴
+	if (fread(bitmapImage, 1, imageSize, filePtr) != imageSize)	return false;
+
+	if (fclose(filePtr) != 0)	return false;
+
+	// 이미지 데이터 버퍼의 위치 초기화
+	int bufferPosition = 0;
+
+	// 이미지 데이터를 높이 맵 구조의 컬러 맵 부분으로 읽어옴
+	for (int i = 0; i < colorMapHeight; i++) {
+		for (int j = 0; j < colorMapWidth; j++) {
+			// 높이 맵 배열의 정점 위치에 대한 인덱스
+			int index = (colorMapHeight * i) + j;
+
+			m_heightMap[index].r = static_cast<float>(bitmapImage[bufferPosition + 2]) / 255.0f;
+			m_heightMap[index].g = static_cast<float>(bitmapImage[bufferPosition + 1]) / 255.0f;
+			m_heightMap[index].b = static_cast<float>(bitmapImage[bufferPosition]) / 255.0f;
+
+			bufferPosition += 3;
+		}
+	}
+
+	delete[] bitmapImage;
+	bitmapImage = 0;
+
+	return true;
+}
+
+bool TerrainClass::LoadMaterialFile(const char* filename, const char* materialMapFilename, ID3D11Device* device)
+{
+	size_t stringLength = 0;
+	char inputFilename[128] = { 0, };
+	wchar_t textureFilename[128] = { 0, };
+
+	ifstream fin;
+	// 텍스처 정보 텍스트 파일 오픈
+	fin.open(filename);
+	if (fin.fail())	return false;
+
+	// 텍스처 카운트 값까지 읽음
+	char input = 0;
+	fin.get(input);
+	while (input != ':')	fin.get(input);
+
+	// 텍스처 수
+	fin >> m_textureCount;
+
+	// 텍스처 오브젝트 배열 생성
+	m_texture = new TextureClass[m_textureCount];
+	if (!m_texture)	return false;
+
+	// 각 텍스처 로드
+	for (int i = 0; i < m_textureCount; i++) {
+		fin.get(input);
+		while (input != ':')	fin.get(input);
+		fin >> inputFilename;
+
+		// 문자 파일 이름을 WCHAR로 변환
+		if (mbstowcs_s(&stringLength, textureFilename, 128, inputFilename, 128) != 0)	return false;
+
+		// 텍스처 또는 알파맵 로드
+		if (!m_texture[i].Initialize(device, textureFilename))	return false;
+	}
+
+	// 머터리얼 카운트
+	fin.get(input);
+	while (input != ':')	fin.get(input);
+	fin >> m_materialCount;
+
+	// 머터리얼 그룹 배열 생성
+	m_material = new MaterialGroupType[m_materialCount];
+	if (!m_material)	return false;
+
+	for (int i = 0; i < m_materialCount; i++) {
+		m_material[i].vertexBuffer = 0;
+		m_material[i].indexBuffer = 0;
+		m_material[i].vertices = 0;
+		m_material[i].indices = 0;
+	}
+
+	for (int i = 0; i < m_materialCount; i++) {
+		fin.get(input);
+		while (input != ':')	fin.get(input);
+		fin >> m_material[i].textureIndex1 >> m_material[i].textureIndex2 >> m_material[i].alphaIndex;
+		fin >> m_material[i].red >> m_material[i].green >> m_material[i].blue;
+	}
+
+	fin.close();
+
+	// 머터리얼 인덱스 맵 로드
+	if (!LoadMaterialMap(materialMapFilename))	return false;
+
+	// 머터리얼 정점 버퍼 로드
+	if (!LoadMaterialBuffers(device))	return false;
+
+	return true;
+}
+
+bool TerrainClass::LoadMaterialMap(const char* materialMapFilename)
+{
+	// 높이 맵 파일 오픈
+	FILE* filePtr = nullptr;
+	if (fopen_s(&filePtr, materialMapFilename, "rb") != 0)	return false;
+
+	// 비트맵 파일 헤더 읽어옴
+	BITMAPFILEHEADER bitmapFileHeader;
+	if (fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr) != 1)	return false;
+
+	BITMAPINFOHEADER bitmapInfoHeader;
+	if (fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr) != 1)	return false;
+
+	// 지형 크기 저장
+	int materialMapWidth = bitmapInfoHeader.biWidth;
+	int materialMapHeight = bitmapInfoHeader.biHeight;
+	if (materialMapWidth != m_terrainWidth || materialMapHeight != m_terrainHeight)	return false;
+
+	// 비트맵 이미지 데이터 크기 계산
+	int imageSize = materialMapWidth * materialMapHeight * 3;
+
+	// 비트맵 이미지 데이터에 메모리 할당
+	unsigned char* bitmapImage = new unsigned char[imageSize];
+	if (!bitmapImage)	return false;
+
+	// 비트맵 데이터의 시작 부분으로 이동
+	fseek(filePtr, bitmapFileHeader.bfOffBits, SEEK_SET);
+
+	// 비트맵 이미지 데이터 읽어옴
+	if (fread(bitmapImage, 1, imageSize, filePtr) != imageSize)	return false;
+
+	if (fclose(filePtr) != 0)	return false;
+
+	// 이미지 데이터 버퍼의 위치 초기화
+	int bufferPosition = 0;
+
+	// 이미지 데이터를 높이 맵으로 읽어옴
+	for (int i = 0; i < m_terrainHeight; i++) {
+		for (int j = 0; j < m_terrainWidth; j++) {
+			int index = (m_terrainHeight * i) + j;
+
+			m_heightMap[index].rIndex = static_cast<int>(bitmapImage[bufferPosition + 2]);
+			m_heightMap[index].gIndex = static_cast<int>(bitmapImage[bufferPosition + 1]);
+			m_heightMap[index].bIndex = static_cast<int>(bitmapImage[bufferPosition]);
+
+			bufferPosition += 3;
+		}
+	}
+
+	delete[] bitmapImage;
+	bitmapImage = 0;
+
+	return true;
+}
+
+bool TerrainClass::LoadMaterialBuffers(ID3D11Device* device)
+{
+	int maxVertexCount = (m_terrainWidth - 1) * (m_terrainHeight - 1) * 6;
+	int maxIndexCount = maxVertexCount;
+
+	for (int i = 0; i < m_materialCount; i++) {
+		m_material[i].vertices = new VertexType[maxVertexCount];
+		if (!m_material[i].vertices)	return false;
+
+		m_material[i].indices = new unsigned long[maxIndexCount];
+		if (!m_material[i].indices)	return false;
+
+		m_material[i].vertexCount = 0;
+		m_material[i].indexCount = 0;
+	}
+
+	for (int i = 0; i < (m_terrainHeight - 1); i++) {
+		for (int j = 0; j < (m_terrainWidth - 1); j++) {
+			int indexLeftBottom = (m_terrainHeight * i) + j;
+			int indexRightBottom = (m_terrainHeight * i) + (j + 1);
+			int indexLeftTop = (m_terrainHeight * (i + 1)) + j;
+			int indexRightTop = (m_terrainHeight * (i + 1)) + (j + 1);
+
+			int redIndex = m_heightMap[indexLeftTop].rIndex;
+			int greenIndex = m_heightMap[indexLeftTop].gIndex;
+			int blueIndex = m_heightMap[indexLeftTop].bIndex;
+
+			// 현재 정점이 속하는 재료 그룹 찾기
+			int index = 0;
+			int found = false;
+			while (!found) {
+				if (redIndex == m_material[index].red && redIndex == m_material[index].green && redIndex == m_material[index].blue) {
+					found = true;
+				}
+				else {
+					index++;
+				}
+			}
+
+			// 정점 및 인덱스 배열의 인덱스 위치를 개수로 설정
+			int vIndex = m_material[index].vertexCount;
+
+			// 좌상
+			m_material[index].vertices[vIndex].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
+			m_material[index].vertices[vIndex].normal = XMFLOAT3(m_heightMap[indexLeftTop].nx, m_heightMap[indexLeftTop].ny, m_heightMap[indexLeftTop].nz);
+			m_material[index].vertices[vIndex].texture = XMFLOAT2(0.0f, 0.0f);
+			m_material[index].vertices[vIndex].color = XMFLOAT4(m_heightMap[indexLeftTop].r, m_heightMap[indexLeftTop].g, m_heightMap[indexLeftTop].b, 1.0f);
+			m_material[index].indices[vIndex] = vIndex;
+			vIndex++;
+
+			// 우상
+			m_material[index].vertices[vIndex].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
+			m_material[index].vertices[vIndex].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
+			m_material[index].vertices[vIndex].texture = XMFLOAT2(1.0f, 0.0f);
+			m_material[index].vertices[vIndex].color = XMFLOAT4(m_heightMap[indexRightTop].r, m_heightMap[indexRightTop].g, m_heightMap[indexRightTop].b, 1.0f);
+			m_material[index].indices[vIndex] = vIndex;
+			vIndex++;
+
+			// 좌하
+			m_material[index].vertices[vIndex].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
+			m_material[index].vertices[vIndex].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
+			m_material[index].vertices[vIndex].texture = XMFLOAT2(0.0f, 1.0f);
+			m_material[index].vertices[vIndex].color = XMFLOAT4(m_heightMap[indexLeftBottom].r, m_heightMap[indexLeftBottom].g, m_heightMap[indexLeftBottom].b, 1.0f);
+			m_material[index].indices[vIndex] = vIndex;
+			vIndex++;
+
+			// 좌하
+			m_material[index].vertices[vIndex].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
+			m_material[index].vertices[vIndex].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
+			m_material[index].vertices[vIndex].texture = XMFLOAT2(0.0f, 1.0f);
+			m_material[index].vertices[vIndex].color = XMFLOAT4(m_heightMap[indexLeftBottom].r, m_heightMap[indexLeftBottom].g, m_heightMap[indexLeftBottom].b, 1.0f);
+			m_material[index].indices[vIndex] = vIndex;
+			vIndex++;
+
+			// 우상
+			m_material[index].vertices[vIndex].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
+			m_material[index].vertices[vIndex].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
+			m_material[index].vertices[vIndex].texture = XMFLOAT2(1.0f, 0.0f);
+			m_material[index].vertices[vIndex].color = XMFLOAT4(m_heightMap[indexRightTop].r, m_heightMap[indexRightTop].g, m_heightMap[indexRightTop].b, 1.0f);
+			m_material[index].indices[vIndex] = vIndex;
+			vIndex++;
+
+			// 우하
+			m_material[index].vertices[vIndex].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
+			m_material[index].vertices[vIndex].normal = XMFLOAT3(m_heightMap[indexRightBottom].nx, m_heightMap[indexRightBottom].ny, m_heightMap[indexRightBottom].nz);
+			m_material[index].vertices[vIndex].texture = XMFLOAT2(1.0f, 1.0f);
+			m_material[index].vertices[vIndex].color = XMFLOAT4(m_heightMap[indexRightBottom].r, m_heightMap[indexRightBottom].g, m_heightMap[indexRightBottom].b, 1.0f);
+			m_material[index].indices[vIndex] = vIndex;
+			vIndex++;
+
+			m_material[index].vertexCount += 6;
+			m_material[index].indexCount += 6;
+		}
+	}
+
+	for (int i = 0; i < m_materialCount; i++) {
+		// 정점 버퍼 서술자 설정
+		D3D11_BUFFER_DESC vertexBufferDesc;
+		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_material[i].vertexCount;
+		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		vertexBufferDesc.CPUAccessFlags = 0;
+		vertexBufferDesc.MiscFlags = 0;
+		vertexBufferDesc.StructureByteStride = 0;
+
+		// 버퍼 초기화용 자료를 담은 시스템 메모리 배열을 가리키는 포인터
+		D3D11_SUBRESOURCE_DATA vertexData;
+		vertexData.pSysMem = m_material[i].vertices;
+		vertexData.SysMemPitch = 0;
+		vertexData.SysMemSlicePitch = 0;
+
+		// 정점 버퍼 생성
+		if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_material[i].vertexBuffer)))	return false;
+
+		// 인덱스 버퍼 서술자 설정
+		D3D11_BUFFER_DESC indexBufferDesc;
+		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_material[i].indexCount;
+		indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		indexBufferDesc.CPUAccessFlags = 0;
+		indexBufferDesc.MiscFlags = 0;
+		indexBufferDesc.StructureByteStride = 0;
+
+		// 인덱스 초기화용 자료를 담은 시스템 메모리 배열을 가리키는 포인터
+		D3D11_SUBRESOURCE_DATA indexData;
+		indexData.pSysMem = m_material[i].indices;
+		indexData.SysMemPitch = 0;
+		indexData.SysMemSlicePitch = 0;
+
+		// 인덱스 버퍼 생성
+		if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &m_material[i].indexBuffer)))	return false;
+
+		// 생성 후 정점 및 인덱스 버퍼 해제
+		delete[] m_material[i].vertices;
+		m_material[i].vertices = 0;
+		delete[] m_material[i].indices;
+		m_material[i].indices = 0;
+	}
+
+	return true;
+}
+
 bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 {
 	float tu = 0.0f;
 	float tv = 0.0f;
 
 	m_vertexCount = (m_terrainWidth - 1) * (m_terrainHeight - 1) * 6;
-	//m_indexCount = m_vertexCount;
+	m_indexCount = m_vertexCount;
 
 	m_vertices = new VertexType[m_vertexCount];
 	if (!m_vertices)	return false;
 
-	//unsigned long* indices = new unsigned long[m_indexCount];
-	//if (!indices)	return false;
+	unsigned long* indices = new unsigned long[m_indexCount];
+	if (!indices)	return false;
 
 	int index = 0;
 
@@ -330,7 +659,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftTop].nx, m_heightMap[indexLeftTop].ny, m_heightMap[indexLeftTop].nz);
 			m_vertices[index].texture = XMFLOAT2(tu, tv);
-			//indices[index] = index;
+			m_vertices[index].color = XMFLOAT4(m_heightMap[indexLeftTop].r, m_heightMap[indexLeftTop].g, m_heightMap[indexLeftTop].b, 1.0f);
+			indices[index] = index;
 			index++;
 
 			// 우상
@@ -342,7 +672,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
 			m_vertices[index].texture = XMFLOAT2(tu, tv);
-			//indices[index] = index;
+			m_vertices[index].color = XMFLOAT4(m_heightMap[indexRightTop].r, m_heightMap[indexRightTop].g, m_heightMap[indexRightTop].b, 1.0f);
+			indices[index] = index;
 			index++;
 
 			// 좌하
@@ -352,7 +683,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
 			m_vertices[index].texture = XMFLOAT2(tu, tv);
-			//indices[index] = index;
+			m_vertices[index].color = XMFLOAT4(m_heightMap[indexLeftBottom].r, m_heightMap[indexLeftBottom].g, m_heightMap[indexLeftBottom].b, 1.0f);
+			indices[index] = index;
 			index++;
 
 			// 좌하
@@ -362,7 +694,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
 			m_vertices[index].texture = XMFLOAT2(tu, tv);
-			//indices[index] = index;
+			m_vertices[index].color = XMFLOAT4(m_heightMap[indexLeftBottom].r, m_heightMap[indexLeftBottom].g, m_heightMap[indexLeftBottom].b, 1.0f);
+			indices[index] = index;
 			index++;
 
 			// 우상
@@ -374,7 +707,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
 			m_vertices[index].texture = XMFLOAT2(tu, tv);
-			//indices[index] = index;
+			m_vertices[index].color = XMFLOAT4(m_heightMap[indexRightTop].r, m_heightMap[indexRightTop].g, m_heightMap[indexRightTop].b, 1.0f);
+			indices[index] = index;
 			index++;
 
 			// 우하
@@ -385,12 +719,12 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexRightBottom].nx, m_heightMap[indexRightBottom].ny, m_heightMap[indexRightBottom].nz);
 			m_vertices[index].texture = XMFLOAT2(tu, tv);
-			//indices[index] = index;
+			m_vertices[index].color = XMFLOAT4(m_heightMap[indexRightBottom].r, m_heightMap[indexRightBottom].g, m_heightMap[indexRightBottom].b, 1.0f);
+			indices[index] = index;
 			index++;
 		}
 	}
 
-	/*
 	// 정점 버퍼 서술자 설정
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -402,7 +736,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 
 	// 버퍼 초기화용 자료를 담은 시스템 메모리 배열을 가리키는 포인터
 	D3D11_SUBRESOURCE_DATA vertexData;
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = m_vertices;
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
@@ -428,11 +762,10 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer)))	return false;
 
 	// 생성 후 정점 및 인덱스 버퍼 해제
-	delete[] vertices;
-	vertices = nullptr;
+	delete[] m_vertices;
+	m_vertices = nullptr;
 	delete[] indices;
 	indices = nullptr;
-	*/
 
 	return true;
 }
@@ -458,27 +791,61 @@ void TerrainClass::ReleaseTexture()
 	}
 }
 
-void TerrainClass::ShutdownBuffers()
+void TerrainClass::ReleaseMaterials()
 {
-	if (m_vertices) {
-		delete[] m_vertices;
-		m_vertices = 0;
+	if (m_material) {
+		for (int i = 0; i < m_materialCount; i++) {
+			if (m_material[i].vertexBuffer) {
+				m_material[i].vertexBuffer->Release();
+				m_material[i].vertexBuffer = 0;
+			}
+			if (m_material[i].indexBuffer) {
+				m_material[i].indexBuffer->Release();
+				m_material[i].indexBuffer = 0;
+			}
+			if (m_material[i].vertices) {
+				delete[] m_material[i].vertices;
+				m_material[i].vertices = 0;
+			}
+			if (m_material[i].indices) {
+				delete[] m_material[i].indices;
+				m_material[i].indices = 0;
+			}
+		}
+		delete[] m_material;
+		m_material = 0;
 	}
 
-	////  인덱스 버퍼 해제
-	//if (m_indexBuffer) {
-	//	m_indexBuffer->Release();
-	//	m_indexBuffer = nullptr;
-	//}
+	if (m_texture) {
+		for (int i = 0; i < m_textureCount; i++) {
+			m_texture[i].Shutdown();
+		}
 
-	//// 정점셰이더 해제
-	//if (m_vertexBuffer) {
-	//	m_vertexBuffer->Release();
-	//	m_vertexBuffer = nullptr;
-	//}
+		delete [] m_texture;
+		m_texture = 0;
+	}
 }
 
-/*
+void TerrainClass::ShutdownBuffers()
+{
+	//if (m_vertices) {
+	//	delete[] m_vertices;
+	//	m_vertices = 0;
+	//}
+
+	//  인덱스 버퍼 해제
+	if (m_indexBuffer) {
+		m_indexBuffer->Release();
+		m_indexBuffer = nullptr;
+	}
+
+	// 정점셰이더 해제
+	if (m_vertexBuffer) {
+		m_vertexBuffer->Release();
+		m_vertexBuffer = nullptr;
+	}
+}
+
 void TerrainClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	// 정점 버퍼의 단위와 오프셋 설정
@@ -492,4 +859,35 @@ void TerrainClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	// 정점 버퍼로 그릴 기본형 설정
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
-*/
+
+bool TerrainClass::RenderMaterials(ID3D11DeviceContext* deviceContext, TerrainShaderClass* shader, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
+	XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor, XMFLOAT3 lightDirection)
+{
+	// 정점 버퍼의 단위와 오프셋 설정
+	unsigned int stride = sizeof(VertexType);
+	unsigned int offset = 0;
+
+	if (!shader->SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ambientColor, diffuseColor, lightDirection, NULL))	return false;
+
+	for (int i = 0; i < m_materialCount; i++) {
+		// 렌더링 할 수 있도록 입력 어셈블러에서 정점 및 인덱스 버퍼를 활성으로 설정
+		deviceContext->IASetVertexBuffers(0, 1, &m_material[i].vertexBuffer, &stride, &offset);
+		deviceContext->IASetIndexBuffer(m_material[i].indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		// 머터리얼 그룹에 텍스처 인덱스가 있으면 알파블렌딩 처리 적용
+		if (m_material[i].textureIndex2 != -1) {
+			if (!shader->SetShaderTextures(deviceContext, m_texture[m_material[i].textureIndex1].GetTexture(), m_texture[m_material[i].textureIndex2].GetTexture(), 
+				m_texture[m_material[i].alphaIndex].GetTexture(), true))	return false;
+		}
+		else {
+			if (!shader->SetShaderTextures(deviceContext, m_texture[m_material[i].textureIndex1].GetTexture(), NULL, NULL, false))	return false;
+		}
+
+		shader->RenderShader(deviceContext, m_material[i].indexCount);
+	}
+
+	// 정점 버퍼로 그릴 기본형 설정
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	return true;
+}

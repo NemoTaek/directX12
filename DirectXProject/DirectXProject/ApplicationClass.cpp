@@ -86,7 +86,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Terrain = new TerrainClass;
 	if (!m_Terrain) return false;
-	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap01.bmp", L"./Textures/ice.dds")) {
+	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap01.bmp", "./data/legend.txt", "./Textures/materialmap01.bmp", "./Textures/colorm01.bmp")) {
 		MessageBox(hwnd, L"Could not initialize the terrain object", L"Error", MB_OK);
 		return false;
 	}
@@ -113,31 +113,31 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(-0.5f, -1.0f, 0.0f);
 
-	m_Frustum = new FrustumClass;
-	if (!m_Frustum) return false;
+	//m_Frustum = new FrustumClass;
+	//if (!m_Frustum) return false;
 
-	m_QuadTree = new QuadTreeClass;
-	if (!m_QuadTree) return false;
-	if (!m_QuadTree->Initialize(m_Terrain, m_Direct3D->GetDevice())) {
-		MessageBox(hwnd, L"Could not initialize the quad tree object", L"Error", MB_OK);
-		return false;
-	}
+	//m_QuadTree = new QuadTreeClass;
+	//if (!m_QuadTree) return false;
+	//if (!m_QuadTree->Initialize(m_Terrain, m_Direct3D->GetDevice())) {
+	//	MessageBox(hwnd, L"Could not initialize the quad tree object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	return true;
 }
 
 void ApplicationClass::Shutdown()
 {
-	if (m_QuadTree) {
-		m_QuadTree->Shutdown();
-		delete m_QuadTree;
-		m_QuadTree = 0;
-	}
+	//if (m_QuadTree) {
+	//	m_QuadTree->Shutdown();
+	//	delete m_QuadTree;
+	//	m_QuadTree = 0;
+	//}
 
-	if (m_Frustum) {
-		delete m_Frustum;
-		m_Frustum = 0;
-	}
+	//if (m_Frustum) {
+	//	delete m_Frustum;
+	//	m_Frustum = 0;
+	//}
 
 	if (m_Light) {
 		delete m_Light;
@@ -232,6 +232,7 @@ bool ApplicationClass::Frame()
 	// 프레임 입력 처리 수행
 	if (!HandleInput(m_Timer->GetTime()))	return false;
 
+	/*
 	// 카메라 현재 위치 가져옴
 	XMFLOAT3 position = m_Camera->GetPosition();
 
@@ -242,6 +243,7 @@ bool ApplicationClass::Frame()
 		// 카메라 아래에 삼각형이 있는 경우 카메라를 두개의 단위로 배치
 		m_Camera->SetPosition(XMFLOAT3(position.x, height + 2.0f, position.z));
 	}
+	*/
 
 	// 그래픽 렌더링
 	if (!RenderGraphics())	return false;
@@ -298,21 +300,25 @@ bool ApplicationClass::RenderGraphics()
 	// 지형 버퍼 렌더링
 	//m_Terrain->Render(m_Direct3D->GetDeviceContext());
 
+	// 머터리얼을 사용한 지형 버퍼 렌더링
+	// 여기서는 셰이더가 매개변수로 들어가 그 안에서 다 처리 가능하기 때문에 여기서는 따로 셰이더 처리를 하지 않음
+	m_Terrain->RenderMaterials(m_Direct3D->GetDeviceContext(), m_TerrainShader, worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection());
+
 	// 절두체 생성
-	m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
+	//m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
 
 	// 컬러 셰이더를 사용하여 모델 렌더링
 	//if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
 
 	// 지형 셰이더를 사용하여 모델 렌더링
 	//if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
-	if (!m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
+	//if (!m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
 
 	// 쿼드 트리 및 지형 셰이더를 사용하여 지형 렌더링
-	m_QuadTree->Render(m_Frustum, m_Direct3D->GetDeviceContext(), m_TerrainShader);
+	//m_QuadTree->Render(m_Frustum, m_Direct3D->GetDeviceContext(), m_TerrainShader);
 
 	// 시야에 렌더링 된 삼각형 수 출력
-	if (!m_Text->SetRenderCount(m_QuadTree->GetDrawCount(), m_Direct3D->GetDeviceContext()))	return false;
+	//if (!m_Text->SetRenderCount(m_QuadTree->GetDrawCount(), m_Direct3D->GetDeviceContext()))	return false;
 
 	// 2D 렌더링을 위해 Z 버퍼 OFF
 	m_Direct3D->TurnZBufferOff();

@@ -63,7 +63,7 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 
 	// 정점 입력 레이아웃 구조체 설정
 	// ModelClass와 셰이더의 VertexType 구조와 일치해야한다.
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -87,6 +87,14 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[2].InstanceDataStepRate = 0;
+
+	polygonLayout[3].SemanticName = "COLOR";
+	polygonLayout[3].SemanticIndex = 0;
+	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	polygonLayout[3].InputSlot = 0;
+	polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[3].InstanceDataStepRate = 0;
 
 	// 레이아웃 요소 수
 	UINT numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -145,11 +153,29 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
 	if (FAILED(device->CreateBuffer(&lightBufferDesc, NULL, &m_lightBuffer)))	return false;
 
+	// 픽셀 셰이더에있는 텍스처 정보 상수 버퍼 서술자 작성
+	D3D11_BUFFER_DESC textureInfoBufferDesc;
+	textureInfoBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	textureInfoBufferDesc.ByteWidth = sizeof(TextureInfoBufferType);
+	textureInfoBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	textureInfoBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	textureInfoBufferDesc.MiscFlags = 0;
+	textureInfoBufferDesc.StructureByteStride = 0;
+
+	// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
+	if (FAILED(device->CreateBuffer(&textureInfoBufferDesc, NULL, &m_textureInfoBuffer)))	return false;
+
 	return true;
 }
 
 void TerrainShaderClass::ShutdownShader()
 {
+	// 텍스처 정보 상수버퍼 해제
+	if (m_textureInfoBuffer) {
+		m_textureInfoBuffer->Release();
+		m_textureInfoBuffer = 0;
+	}
+
 	// 광원 상수버퍼 해제
 	if (m_lightBuffer) {
 		m_lightBuffer->Release();
@@ -256,7 +282,35 @@ bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
 
 	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(0, 1, &texture);
+	//deviceContext->PSSetShaderResources(0, 1, &texture);
+
+	return true;
+}
+
+bool TerrainShaderClass::SetShaderTextures(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture1, ID3D11ShaderResourceView* texture2, ID3D11ShaderResourceView* alphaMap, bool useAlpha)
+{
+	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
+	deviceContext->PSSetShaderResources(0, 1, &texture1);
+
+	// 알파블렌딩을 사용한다면 두번째 텍스처와 알파맵을 설정
+	if (useAlpha) {
+		deviceContext->PSSetShaderResources(1, 1, &texture2);
+		deviceContext->PSSetShaderResources(2, 1, &alphaMap);
+	}
+
+	// 상수 버퍼 자원에 자료를 올릴 수 있도록 포인터 생성
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	if (FAILED(deviceContext->Map(m_textureInfoBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	TextureInfoBufferType* textureInfoPtr = (TextureInfoBufferType*)mappedResource.pData;
+
+	// 상수버퍼에 행렬 복사
+	textureInfoPtr->useAlpha = useAlpha;
+	textureInfoPtr->padding2 = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+	// 상수버퍼 메모리 해제
+	deviceContext->Unmap(m_textureInfoBuffer, 0);
+	unsigned int bufferNumber = 1;
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_textureInfoBuffer);
 
 	return true;
 }

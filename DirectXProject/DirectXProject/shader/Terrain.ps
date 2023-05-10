@@ -1,4 +1,6 @@
-Texture2D shaderTexture;
+Texture2D shaderTexture1 : register(t0);
+Texture2D shaderTexture2 : register(t1);
+Texture2D alphaMap : register(t2);
 SamplerState SampleType;
 
 cbuffer LightBuffer
@@ -9,21 +11,29 @@ cbuffer LightBuffer
 	float padding;
 }
 
+cbuffer TextureInfoBuffer
+{
+	bool useAlpha;
+	float3 padding2;
+}
+
 struct PixelInputType
 {
 	float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
+	float4 color : COLOR;
 };
 
 float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 {
-	float4 textureColor;
+	float4 textureColor1;
+	float4 textureColor2;
 	float3 lightDir;
 	float lightIntensity;
 	float4 color;
-
-	textureColor = shaderTexture.Sample(SampleType, input.tex);
+	float4 alphaValue;
+	float4 blendColor;
 
 	// 모든 픽셀에 대해 기본 출력 색상을 주변 광원 값으로 설정
 	color = ambientColor;
@@ -38,8 +48,25 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 	}
 	color = saturate(color);
 
-	// 텍스처 픽셀과 빛을 곱하여 최종 색상 계산
-	color = color * textureColor;
+	if(useAlpha) {
+		textureColor1 = shaderTexture1.Sample(SampleType, input.tex);
+		textureColor2 = shaderTexture2.Sample(SampleType, input.tex);
+
+		// 알파 블렌딩 값 샘플링
+		alphaValue = alphaMap.Sample(SampleType, input.tex);
+
+		// 알파 값을 계산하여 블렌딩 색상 계산
+		blendColor = (alphaValue * textureColor2) + ((1.0 - alphaValue) * textureColor1);
+	} else {
+		// 알파 블렌딩을 적용 안한다면 일반 텍스처로 색상 사용
+		blendColor = shaderTexture1.Sample(SampleType, input.tex);
+	}
+
+	// 텍스처 픽셀과 빛을 곱하여 색상 계산
+	color = color * blendColor;
+
+	// 컬러 맵 값을 조합하여 최종 색상 계산
+	color = saturate(color * input.color * 2.0f);
 
 	return color;
 }

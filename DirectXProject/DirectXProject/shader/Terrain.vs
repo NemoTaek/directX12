@@ -10,6 +10,7 @@ struct VertexInputType
     float4 position : POSITION;
 	float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
+	float4 color : COLOR;
 };
 
 struct PixelInputType
@@ -17,6 +18,7 @@ struct PixelInputType
     float4 position : SV_POSITION;
 	float2 tex: TEXCOORD0;
     float3 normal : NORMAL;
+	float4 color : COLOR;
 };
 
 PixelInputType TerrainVertexShader(VertexInputType input)
@@ -37,6 +39,9 @@ PixelInputType TerrainVertexShader(VertexInputType input)
 	// ÇÈ¼¿ ½¦ÀÌ´õÀÇ ¹ý¼± º¤ÅÍ °è»ê
 	output.normal = mul(input.normal, (float3x3)worldMatrix);
 	output.normal = normalize(output.normal);
+
+	// ÇÈ¼¿ ½¦ÀÌ´õ¿¡ ÄÃ·¯ ¸ÊÀÇ »ö»ó Àü´Þ
+	output.color = input.color;
 
 	return output;
 }
