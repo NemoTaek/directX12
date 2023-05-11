@@ -18,8 +18,10 @@ class FontShaderClass;
 class TerrainClass;
 class TerrainShaderClass;
 class LightClass;
-class FrustumClass;
-class QuadTreeClass;
+//class FrustumClass;
+//class QuadTreeClass;
+class TextureShaderClass;
+class MiniMapClass;
 
 class ApplicationClass
 {
@@ -50,6 +52,8 @@ private:
 	TerrainClass* m_Terrain = nullptr;
 	TerrainShaderClass* m_TerrainShader = nullptr;
 	LightClass* m_Light = nullptr;
-	FrustumClass* m_Frustum = nullptr;
-	QuadTreeClass* m_QuadTree = nullptr;
+	//FrustumClass* m_Frustum = nullptr;
+	//QuadTreeClass* m_QuadTree = nullptr;
+	TextureShaderClass* m_TextureShader = nullptr;
+	MiniMapClass* m_MiniMap = nullptr;
 };

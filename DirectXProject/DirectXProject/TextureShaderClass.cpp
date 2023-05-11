@@ -15,7 +15,7 @@ bool TextureShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	//WCHAR ps[] = L"PS.hlsl";
 	//result = InitializeShader(device, hwnd, vs, ps);
 	//return result;
-	return InitializeShader(device, hwnd, L"./Texture.vs", L"./Texture.ps");
+	return InitializeShader(device, hwnd, L"./shader/Texture.vs", L"./shader/Texture.ps");
 }
 
 void TextureShaderClass::Shutdown()

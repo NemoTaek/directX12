@@ -102,6 +102,9 @@
     <ClCompile Include="FrustumClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="MiniMap.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraClass.h">
@@ -194,6 +197,9 @@
     <ClInclude Include="FrustumClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="MiniMap.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Font.ps">
@@ -212,6 +218,12 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="shader\Terrain.ps">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Texture.ps">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Texture.vs">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

@@ -10,7 +10,7 @@ TerrainClass::TerrainClass() {}
 TerrainClass::TerrainClass(const TerrainClass& other) {}
 TerrainClass::~TerrainClass() {}
 
-bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename, const char* materialsFilename, const char* materialMapFilename, const char* colorMapFilename)
+bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename, const WCHAR* textureFilename, const char* colorMapFilename)
 {
 	// 지형의 너비와 높이 맵 로드
 	if (!LoadHeightMap(heightMapFilename))	return false;
@@ -22,25 +22,25 @@ bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilenam
 	if (!CalculateNormals())	return false;
 
 	// 텍스처 좌표를 계산
-	//CalculateTextureCoordinates();
+	CalculateTextureCoordinates();
 
 	// 지형 텍스처 로드
-	//if (!LoadTexture(device, textureFilename))	return false;
+	if (!LoadTexture(device, textureFilename))	return false;
 
 	// 컬러 맵을 지형에 로드
 	if (!LoadColorMap(colorMapFilename))	return false;
 
 	// 지형에 대한 머터리얼 그룹 로드
-	if (!LoadMaterialFile(materialsFilename, materialMapFilename, device))	return false;
+	//if (!LoadMaterialFile(materialsFilename, materialMapFilename, device))	return false;
 
 	return InitializeBuffers(device);
 }
 
 void TerrainClass::Shutdown()
 {
-	//ReleaseTexture();
-	//ShutdownBuffers();
-	ReleaseMaterials();
+	ReleaseTexture();
+	ShutdownBuffers();
+	//ReleaseMaterials();
 	ShutdownHeightMap();
 }
 
@@ -50,6 +50,12 @@ void TerrainClass::Render(ID3D11DeviceContext* deviceContext) { RenderBuffers(de
 int TerrainClass::GetIndexCount() { return m_indexCount; }
 
 ID3D11ShaderResourceView* TerrainClass::GetTexture() { return m_texture->GetTexture(); }
+
+void TerrainClass::GetTerrainSize(int& width, int& height)
+{
+	width = m_terrainWidth;
+	height = m_terrainHeight;
+}
 
 bool TerrainClass::LoadHeightMap(const char* heightMapFilename)
 {
@@ -361,6 +367,7 @@ bool TerrainClass::LoadColorMap(const char* colorMapfilename)
 	return true;
 }
 
+/*
 bool TerrainClass::LoadMaterialFile(const char* filename, const char* materialMapFilename, ID3D11Device* device)
 {
 	size_t stringLength = 0;
@@ -627,6 +634,7 @@ bool TerrainClass::LoadMaterialBuffers(ID3D11Device* device)
 
 	return true;
 }
+*/
 
 bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 {

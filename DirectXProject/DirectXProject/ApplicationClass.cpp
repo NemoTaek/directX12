@@ -13,8 +13,10 @@
 #include "TerrainClass.h"
 #include "TerrainShaderClass.h"
 #include "LightClass.h"
-#include "FrustumClass.h"
-#include "QuadTreeClass.h"
+//#include "FrustumClass.h"
+//#include "QuadTreeClass.h"
+#include "TextureShaderClass.h"
+#include "MiniMap.h"
 
 ApplicationClass::ApplicationClass() {}
 ApplicationClass::ApplicationClass(const ApplicationClass& other) {}
@@ -86,10 +88,13 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Terrain = new TerrainClass;
 	if (!m_Terrain) return false;
-	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap01.bmp", "./data/legend.txt", "./Textures/materialmap01.bmp", "./Textures/colorm01.bmp")) {
+	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap01.bmp", L"./Textures/dirt01.dds", "./Textures/colorm01.bmp")) {
 		MessageBox(hwnd, L"Could not initialize the terrain object", L"Error", MB_OK);
 		return false;
 	}
+	int terrainWidth = 0;
+	int terrainHeight = 0;
+	m_Terrain->GetTerrainSize(terrainWidth, terrainHeight);
 
 	// 비디오 카드 정보
 	char cardName[128] = { 0, };
@@ -123,11 +128,37 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	//	return false;
 	//}
 
+	m_TextureShader = new TextureShaderClass;
+	if (!m_TextureShader) { return false; }
+	if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+		return false;
+	}
+
+	m_MiniMap = new MiniMapClass;
+	if (!m_MiniMap) { return false; }
+	if (!m_MiniMap->Initialize(m_Direct3D->GetDevice(), hwnd, screenWidth, screenHeight, baseViewMatrix, static_cast<float>(terrainWidth-1), static_cast<float>(terrainHeight - 1))) {
+		MessageBox(hwnd, L"Could not initialize the mini-map object", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 void ApplicationClass::Shutdown()
 {
+	if (m_MiniMap) {
+		m_MiniMap->Shutdown();
+		delete m_MiniMap;
+		m_MiniMap = 0;
+	}
+
+	if (m_TextureShader) {
+		m_TextureShader->Shutdown();
+		delete m_TextureShader;
+		m_TextureShader = 0;
+	}
+
 	//if (m_QuadTree) {
 	//	m_QuadTree->Shutdown();
 	//	delete m_QuadTree;
@@ -279,6 +310,9 @@ bool ApplicationClass::HandleInput(float frameTime)
 	if (!m_Text->SetCameraPosition(position, m_Direct3D->GetDeviceContext()))	return false;
 	if (!m_Text->SetCameraRotation(rotation, m_Direct3D->GetDeviceContext()))	return false;
 
+	// 미니맵에서 카메라 위치 업데이트
+	m_MiniMap->PositionUpdate(position.x, position.z);
+
 	return true;
 }
 
@@ -298,11 +332,11 @@ bool ApplicationClass::RenderGraphics()
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
 	// 지형 버퍼 렌더링
-	//m_Terrain->Render(m_Direct3D->GetDeviceContext());
+	m_Terrain->Render(m_Direct3D->GetDeviceContext());
 
 	// 머터리얼을 사용한 지형 버퍼 렌더링
 	// 여기서는 셰이더가 매개변수로 들어가 그 안에서 다 처리 가능하기 때문에 여기서는 따로 셰이더 처리를 하지 않음
-	m_Terrain->RenderMaterials(m_Direct3D->GetDeviceContext(), m_TerrainShader, worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection());
+	//m_Terrain->RenderMaterials(m_Direct3D->GetDeviceContext(), m_TerrainShader, worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection());
 
 	// 절두체 생성
 	//m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
@@ -311,7 +345,7 @@ bool ApplicationClass::RenderGraphics()
 	//if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
 
 	// 지형 셰이더를 사용하여 모델 렌더링
-	//if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
+	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
 	//if (!m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
 
 	// 쿼드 트리 및 지형 셰이더를 사용하여 지형 렌더링
@@ -322,6 +356,9 @@ bool ApplicationClass::RenderGraphics()
 
 	// 2D 렌더링을 위해 Z 버퍼 OFF
 	m_Direct3D->TurnZBufferOff();
+
+	// 미니맵 렌더링
+	if (!m_MiniMap->Render(m_Direct3D->GetDeviceContext(), worldMatrix, orthoMatrix, m_TextureShader))	return false;
 
 	// 알파 블랜딩 on
 	m_Direct3D->TurnOnAlphaBlending();

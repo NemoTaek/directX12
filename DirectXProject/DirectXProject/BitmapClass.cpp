@@ -1,4 +1,5 @@
 #include "Stdafx.h"
+#include "TextureClass.h"
 #include "BitmapClass.h"
 
 #include <fstream>
@@ -8,7 +9,7 @@ BitmapClass::BitmapClass() {}
 BitmapClass::BitmapClass(const BitmapClass& other) {}
 BitmapClass:: ~BitmapClass() {}
 
-bool BitmapClass::Initialize(ID3D11Device* device, int screenWidth, int screenHeight, int bitmapWidth, int bitmapHeight)
+bool BitmapClass::Initialize(ID3D11Device* device, int screenWidth, int screenHeight, const WCHAR* textureFilename, int bitmapWidth, int bitmapHeight)
 {
 	// 화면 크기를 멤버 변수에 저장
 	m_screenWidth = screenWidth;
@@ -24,11 +25,14 @@ bool BitmapClass::Initialize(ID3D11Device* device, int screenWidth, int screenHe
 
 	if (!InitializeBuffers(device))	return false;
 
+	if (!LoadTexture(device, textureFilename))	return false;
+
 	return true;
 }
 
 void BitmapClass::Shutdown()
 {
+	ReleaseTexture();
 	ShutdownBuffers();
 }
 
@@ -43,6 +47,27 @@ bool BitmapClass::Render(ID3D11DeviceContext* deviceContext, int positionX, int 
 }
 
 int BitmapClass::GetIndexCount() { return m_indexCount; }
+
+ID3D11ShaderResourceView* BitmapClass::GetTexture() { return m_texture->GetTexture(); }
+
+bool BitmapClass::LoadTexture(ID3D11Device* device, const WCHAR* filename)
+{
+	m_texture = new TextureClass;
+	if (!m_texture)	return false;
+
+	return m_texture->Initialize(device, filename);
+}
+
+
+void BitmapClass::ReleaseTexture()
+{
+	if (m_texture)
+	{
+		m_texture->Shutdown();
+		delete m_texture;
+		m_texture = 0;
+	}
+}
 
 bool BitmapClass::InitializeBuffers(ID3D11Device* device)
 {

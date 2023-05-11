@@ -1,5 +1,7 @@
 #pragma once
 
+class TextureClass;
+
 // 2D 이미지를 다루기 위한 클래스
 class BitmapClass
 {
@@ -15,10 +17,11 @@ public:
 	BitmapClass(const BitmapClass&);
 	~BitmapClass();
 
-	bool Initialize(ID3D11Device*, int, int, int, int);
+	bool Initialize(ID3D11Device*, int, int, const WCHAR*, int, int);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext*, int, int);
 	int GetIndexCount();
+	ID3D11ShaderResourceView* GetTexture();
 
 private:
 	bool InitializeBuffers(ID3D11Device*);
@@ -26,9 +29,13 @@ private:
 	bool UpdateBuffers(ID3D11DeviceContext*, int, int);
 	void RenderBuffers(ID3D11DeviceContext*);
 
+	bool LoadTexture(ID3D11Device*, const WCHAR*);
+	void ReleaseTexture();
+
 private:
 	ID3D11Buffer* m_vertexBuffer = nullptr;
 	ID3D11Buffer* m_indexBuffer = nullptr;
+	TextureClass* m_texture = nullptr;
 	int m_vertexCount = 0;
 	int m_indexCount = 0;
 	int m_screenWidth = 0;

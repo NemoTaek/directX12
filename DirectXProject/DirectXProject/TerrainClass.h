@@ -21,7 +21,7 @@ private:
 		float tu, tv;
 		float nx, ny, nz;
 		float r, g, b;
-		int rIndex, gIndex, bIndex;
+		//int rIndex, gIndex, bIndex;
 	};
 
 	struct VectorType
@@ -47,13 +47,14 @@ public:
 	~TerrainClass();
 
 	// 지형 텍스처 대신 머터리얼 사용
-	bool Initialize(ID3D11Device*, const char*, const char*, const char*, const char*);
+	bool Initialize(ID3D11Device*, const char*, const WCHAR*, const char*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	bool RenderMaterials(ID3D11DeviceContext*, TerrainShaderClass*, XMMATRIX, XMMATRIX, XMMATRIX, XMFLOAT4, XMFLOAT4, XMFLOAT3);
 
 	int GetIndexCount();
 	ID3D11ShaderResourceView* GetTexture();
+	void GetTerrainSize(int&, int&);
 	int GetVertexCount();
 	void CopyVertexArray(void*);
 
