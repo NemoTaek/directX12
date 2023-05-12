@@ -229,6 +229,21 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// 래스터라이저 상태 설정
 	m_deviceContext->RSSetState(m_rasterState);
 
+	// 후면 컬링을 해제하는 래스터라이저 구조체 설정 (하늘 돔에서 사용)
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_NONE;	// 이부분을 컬링을 해제하는 것으로 수정
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+	// 래스터 구조체에서 잘리지 않는 래스터라이저 상태를 생성
+	if (FAILED(m_device->CreateRasterizerState(&rasterDesc, &m_rasterStateNoCulling)))	return false;
+
 	// 랜더링을 위해 뷰포트 설정
 	m_viewport.Width = (float)screenWidth;
 	m_viewport.Height = (float)screenHeight;
@@ -462,6 +477,16 @@ void D3DClass::TurnOffAlphaBlending()
 	blendFactor[3] = 0.0f;
 
 	m_deviceContext->OMSetBlendState(m_alphaDisableBlendingState, blendFactor, 0xffffffff);
+}
+
+void D3DClass::TurnOnCulling()
+{
+	m_deviceContext->RSSetState(m_rasterState);
+}
+
+void D3DClass::TurnOffCulling()
+{
+	m_deviceContext->RSSetState(m_rasterStateNoCulling);
 }
 
 ID3D11DepthStencilView* D3DClass::GetDepthStencilView() { return m_depthStencilView; }

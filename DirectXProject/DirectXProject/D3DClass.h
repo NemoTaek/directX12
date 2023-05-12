@@ -31,6 +31,10 @@ public:
 	void TurnOnAlphaBlending();
 	void TurnOffAlphaBlending();
 
+	// 표면 컬링 설정
+	void TurnOnCulling();
+	void TurnOffCulling();
+
 	ID3D11DepthStencilView* GetDepthStencilView();
 	void SetBackBufferRenderTarget();
 	void ResetViewport();
@@ -47,6 +51,7 @@ private:
 	ID3D11DepthStencilState* m_depthStencilState = nullptr;
 	ID3D11DepthStencilView* m_depthStencilView = nullptr;
 	ID3D11RasterizerState* m_rasterState = nullptr;
+	ID3D11RasterizerState* m_rasterStateNoCulling = nullptr;
 
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;

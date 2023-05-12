@@ -1,0 +1,30 @@
+// 꼭지점과 중심 색을 설정하여 그라디언트 색을 생성
+cbuffer GradientBuffer
+{
+	float4 apexColor;	// 꼭지점 색
+	float4 centerColor;	// 중심 색
+};
+
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float2 domePosition : TEXCOORD0;
+};
+
+float4 SkyDomePixelShader(PixelInputType input) : SV_TARGET
+{
+	float height;
+	float4 outputColor;
+
+	// 하늘 돔에서 위치
+	height = input.domePosition.y;
+
+	if(height < 0.0) {
+		height = 0.0f;
+	}
+
+	// 높이를 기준으로 꼭지점과 중심을 보정하여 그라디언트 색상 결정
+	outputColor = lerp(centerColor, apexColor, height);
+
+	return outputColor;
+}

@@ -15,8 +15,10 @@
 #include "LightClass.h"
 //#include "FrustumClass.h"
 //#include "QuadTreeClass.h"
-#include "TextureShaderClass.h"
-#include "MiniMap.h"
+//#include "TextureShaderClass.h"
+//#include "MiniMap.h"
+#include "SkyDomeClass.h"
+#include "SkyDomeShaderClass.h"
 
 ApplicationClass::ApplicationClass() {}
 ApplicationClass::ApplicationClass(const ApplicationClass& other) {}
@@ -128,17 +130,31 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	//	return false;
 	//}
 
-	m_TextureShader = new TextureShaderClass;
-	if (!m_TextureShader) { return false; }
-	if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+	//m_TextureShader = new TextureShaderClass;
+	//if (!m_TextureShader) { return false; }
+	//if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	//m_MiniMap = new MiniMapClass;
+	//if (!m_MiniMap) { return false; }
+	//if (!m_MiniMap->Initialize(m_Direct3D->GetDevice(), hwnd, screenWidth, screenHeight, baseViewMatrix, static_cast<float>(terrainWidth-1), static_cast<float>(terrainHeight - 1))) {
+	//	MessageBox(hwnd, L"Could not initialize the mini-map object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	m_SkyDome = new SkyDomeClass;
+	if (!m_SkyDome) { return false; }
+	if (!m_SkyDome->Initialize(m_Direct3D->GetDevice())) {
+		MessageBox(hwnd, L"Could not initialize the sky dome object", L"Error", MB_OK);
 		return false;
 	}
 
-	m_MiniMap = new MiniMapClass;
-	if (!m_MiniMap) { return false; }
-	if (!m_MiniMap->Initialize(m_Direct3D->GetDevice(), hwnd, screenWidth, screenHeight, baseViewMatrix, static_cast<float>(terrainWidth-1), static_cast<float>(terrainHeight - 1))) {
-		MessageBox(hwnd, L"Could not initialize the mini-map object", L"Error", MB_OK);
+	m_SkyDomeShader = new SkyDomeShaderClass;
+	if (!m_SkyDomeShader) { return false; }
+	if (!m_SkyDomeShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the sky dome shader object", L"Error", MB_OK);
 		return false;
 	}
 
@@ -147,17 +163,29 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 void ApplicationClass::Shutdown()
 {
-	if (m_MiniMap) {
-		m_MiniMap->Shutdown();
-		delete m_MiniMap;
-		m_MiniMap = 0;
+	if (m_SkyDomeShader) {
+		m_SkyDomeShader->Shutdown();
+		delete m_SkyDomeShader;
+		m_SkyDomeShader = 0;
 	}
 
-	if (m_TextureShader) {
-		m_TextureShader->Shutdown();
-		delete m_TextureShader;
-		m_TextureShader = 0;
+	if (m_SkyDome) {
+		m_SkyDome->Shutdown();
+		delete m_SkyDome;
+		m_SkyDome = 0;
 	}
+
+	//if (m_MiniMap) {
+	//	m_MiniMap->Shutdown();
+	//	delete m_MiniMap;
+	//	m_MiniMap = 0;
+	//}
+
+	//if (m_TextureShader) {
+	//	m_TextureShader->Shutdown();
+	//	delete m_TextureShader;
+	//	m_TextureShader = 0;
+	//}
 
 	//if (m_QuadTree) {
 	//	m_QuadTree->Shutdown();
@@ -311,7 +339,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 	if (!m_Text->SetCameraRotation(rotation, m_Direct3D->GetDeviceContext()))	return false;
 
 	// 미니맵에서 카메라 위치 업데이트
-	m_MiniMap->PositionUpdate(position.x, position.z);
+	//m_MiniMap->PositionUpdate(position.x, position.z);
 
 	return true;
 }
@@ -330,6 +358,27 @@ bool ApplicationClass::RenderGraphics()
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	// 여기부터 하늘 생성 코드
+	// 캐릭터는 항상 하늘 아래에 있기 때문에 카메라 위치를 중심으로 동작
+	// 먼저 컬링을 끄고, Z버퍼를 비활성화 하고, 하늘 돔을 렌더링한 후 되돌리는 과정을 거침
+	// 만약 Z버퍼를 Off 해야 거리에 상관없이 모든것을 덮어쓰는 백 버퍼에 하늘 돔 전체를 그릴 수 있음
+	// 그래서 백버퍼에 하늘돔을 그린 후 지형을 렌더링 하는 과정을 거침
+	XMFLOAT3 cameraPosition = m_Camera->GetPosition();
+	worldMatrix = XMMatrixTranslation(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+	m_Direct3D->TurnOffCulling();
+	m_Direct3D->TurnZBufferOff();
+
+	m_SkyDome->Render(m_Direct3D->GetDeviceContext());
+	if (!m_SkyDomeShader->Render(m_Direct3D->GetDeviceContext(), m_SkyDome->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_SkyDome->GetApexColor(), m_SkyDome->GetCenterColor()))	return false;
+
+	m_Direct3D->TurnOnCulling();
+	m_Direct3D->TurnZBufferOn();
+
+	// 세계 행렬 재설정
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+
 
 	// 지형 버퍼 렌더링
 	m_Terrain->Render(m_Direct3D->GetDeviceContext());
@@ -358,7 +407,7 @@ bool ApplicationClass::RenderGraphics()
 	m_Direct3D->TurnZBufferOff();
 
 	// 미니맵 렌더링
-	if (!m_MiniMap->Render(m_Direct3D->GetDeviceContext(), worldMatrix, orthoMatrix, m_TextureShader))	return false;
+	//if (!m_MiniMap->Render(m_Direct3D->GetDeviceContext(), worldMatrix, orthoMatrix, m_TextureShader))	return false;
 
 	// 알파 블랜딩 on
 	m_Direct3D->TurnOnAlphaBlending();

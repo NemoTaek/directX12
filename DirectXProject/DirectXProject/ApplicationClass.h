@@ -18,10 +18,12 @@ class FontShaderClass;
 class TerrainClass;
 class TerrainShaderClass;
 class LightClass;
-//class FrustumClass;
-//class QuadTreeClass;
-class TextureShaderClass;
-class MiniMapClass;
+//class FrustumClass;		// 절두체
+//class QuadTreeClass;		// 쿼드 트리(현재 시야에 보이는 부분만 렌더링)
+//class TextureShaderClass;
+//class MiniMapClass;		// 미니맵
+class SkyDomeClass;			// 하늘
+class SkyDomeShaderClass;	// 하늘
 
 class ApplicationClass
 {
@@ -54,6 +56,8 @@ private:
 	LightClass* m_Light = nullptr;
 	//FrustumClass* m_Frustum = nullptr;
 	//QuadTreeClass* m_QuadTree = nullptr;
-	TextureShaderClass* m_TextureShader = nullptr;
-	MiniMapClass* m_MiniMap = nullptr;
+	//TextureShaderClass* m_TextureShader = nullptr;
+	//MiniMapClass* m_MiniMap = nullptr;
+	SkyDomeClass* m_SkyDome = nullptr;
+	SkyDomeShaderClass* m_SkyDomeShader = nullptr;
 };

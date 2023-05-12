@@ -148,6 +148,8 @@
     <ClCompile Include="PositionClass.cpp" />
     <ClCompile Include="QuadTreeClass.cpp" />
     <ClCompile Include="ShaderManagerClass.cpp" />
+    <ClCompile Include="SkyDomeClass.cpp" />
+    <ClCompile Include="SkyDomeShaderClass.cpp" />
     <ClCompile Include="SoundClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
@@ -180,6 +182,8 @@
     <ClInclude Include="PositionClass.h" />
     <ClInclude Include="QuadTreeClass.h" />
     <ClInclude Include="ShaderManagerClass.h" />
+    <ClInclude Include="SkyDomeClass.h" />
+    <ClInclude Include="SkyDomeShaderClass.h" />
     <ClInclude Include="SoundClass.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />
@@ -196,6 +200,8 @@
     <None Include="Color.vs" />
     <None Include="Font.ps" />
     <None Include="Font.vs" />
+    <None Include="shader\SkyDome.ps" />
+    <None Include="shader\SkyDome.vs" />
     <None Include="shader\Terrain.ps" />
     <None Include="shader\Terrain.vs" />
     <None Include="shader\Texture.ps" />
