@@ -162,7 +162,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_SkyPlane = new SkyPlaneClass;
 	if (!m_SkyPlane) { return false; }
-	if (!m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"./Textures/cloud001.dds", L"./Textures/cloud002.dds")) {
+	if (!m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"./Textures/cloud002.dds", L"./Textures/perturb001.dds")) {
 		MessageBox(hwnd, L"Could not initialize the sky plane object", L"Error", MB_OK);
 		return false;
 	}
@@ -410,8 +410,8 @@ bool ApplicationClass::RenderGraphics()
 	m_Direct3D->EnableSecondBlendState();
 
 	m_SkyPlane->Render(m_Direct3D->GetDeviceContext());
-	if (!m_SkyPlaneShader->Render(m_Direct3D->GetDeviceContext(), m_SkyPlane->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_SkyPlane->GetCloudTexture1(), m_SkyPlane->GetCloudTexture2(), 
-		m_SkyPlane->GetTranslation(0), m_SkyPlane->GetTranslation(1), m_SkyPlane->GetTranslation(2), m_SkyPlane->GetTranslation(3), m_SkyPlane->GetBrightness()))	return false;
+	if (!m_SkyPlaneShader->Render(m_Direct3D->GetDeviceContext(), m_SkyPlane->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_SkyPlane->GetCloudTexture(), m_SkyPlane->GetPerturbTexture(), 
+		m_SkyPlane->GetTranslation(), m_SkyPlane->GetScale(), m_SkyPlane->GetBrightness()))	return false;
 
 	// 2차 블랜딩 off
 	m_Direct3D->TurnOffAlphaBlending();

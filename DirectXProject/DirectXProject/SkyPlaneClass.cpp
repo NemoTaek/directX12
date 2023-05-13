@@ -6,36 +6,26 @@ SkyPlaneClass::SkyPlaneClass() {}
 SkyPlaneClass::SkyPlaneClass(const SkyPlaneClass& other) {}
 SkyPlaneClass::~SkyPlaneClass() {}
 
-bool SkyPlaneClass::Initialize(ID3D11Device* device, const WCHAR* textureFilename1, const WCHAR* textureFilename2)
+bool SkyPlaneClass::Initialize(ID3D11Device* device, const WCHAR* cloudTextureFilename, const WCHAR* perturbTextureFilename)
 {
 	// 하늘 평면 매개변수 설정
-	int skyPlaneResolution = 10;	// 하늘 평면 해상도
-	int textureRepeat = 4;
+	int skyPlaneResolution = 50;	// 하늘 평면 해상도
+	int textureRepeat = 2;
 	float skyPlaneWidth = 10.0f;
 	float skyPlaneTop = 0.5f;
 	float skyPlaneBottom = 0.0f;
 
-	// 구름의 밝기 설정
+	// 구름의 변수 설정
 	m_brightness = 0.65f;
-
-	// 구름 변환 속도 설정
-	m_translationSpeed[0] = 0.0003f;	// 1번째 텍스처 X 변환 속도
-	m_translationSpeed[1] = 0.0f;		// 1번째 텍스처 Z 변환 속도
-	m_translationSpeed[2] = 0.00015f;	// 2번째 텍스처 X 변환 속도
-	m_translationSpeed[3] = 0.0f;		// 2번째 텍스처 Z 변환 속도
-
-	// 텍스처 변환 값 초기화
-	m_textureTranslation[0] = 0.0f;
-	m_textureTranslation[1] = 0.0f;
-	m_textureTranslation[2] = 0.0f;
-	m_textureTranslation[3] = 0.0f;
+	m_scale = 0.03f;
+	m_translation = 0.0f;
 
 	// 하늘 평면 생성
 	if (!InitializeSkyPlane(skyPlaneResolution, skyPlaneWidth, skyPlaneTop, skyPlaneBottom, textureRepeat))	return false;
 	if (!InitializeBuffers(device, skyPlaneResolution))	return false;
 
 	// 하늘 평면 텍스처 로드
-	if (!LoadTextures(device, textureFilename1, textureFilename2))	return false;
+	if (!LoadTextures(device, cloudTextureFilename, perturbTextureFilename))	return false;
 
 	return true;
 }
@@ -50,29 +40,23 @@ void SkyPlaneClass::Shutdown()
 void SkyPlaneClass::Frame()
 {
 	// 움직이는 구름을 표현하기 위해 변환 값 증가
-	m_textureTranslation[0] += m_translationSpeed[0];
-	m_textureTranslation[1] += m_translationSpeed[1];
-	m_textureTranslation[2] += m_translationSpeed[2];
-	m_textureTranslation[3] += m_translationSpeed[3];
-
-	// 값을 0~1 범위로 유지
-	if (m_textureTranslation[0] > 1.0f)	m_textureTranslation[0] -= 1.0f;
-	if (m_textureTranslation[1] > 1.0f)	m_textureTranslation[1] -= 1.0f;
-	if (m_textureTranslation[2] > 1.0f)	m_textureTranslation[2] -= 1.0f;
-	if (m_textureTranslation[3] > 1.0f)	m_textureTranslation[3] -= 1.0f;
+	m_translation += 0.0001f;
+	if (m_translation > 1.0f)	m_translation -= 1.0f;
 }
 
 void SkyPlaneClass::Render(ID3D11DeviceContext* deviceContext) { RenderBuffers(deviceContext); }
 
 int SkyPlaneClass::GetIndexCount() { return m_indexCount; }
 
-ID3D11ShaderResourceView* SkyPlaneClass::GetCloudTexture1() { return m_cloudTexture1->GetTexture(); }
+ID3D11ShaderResourceView* SkyPlaneClass::GetCloudTexture() { return m_cloudTexture->GetTexture(); }
 
-ID3D11ShaderResourceView* SkyPlaneClass::GetCloudTexture2() { return m_cloudTexture2->GetTexture(); }
+ID3D11ShaderResourceView* SkyPlaneClass::GetPerturbTexture() { return m_perturbTexture->GetTexture(); }
+
+float SkyPlaneClass::GetScale() { return m_scale; }
 
 float SkyPlaneClass::GetBrightness() { return m_brightness; }
 
-float SkyPlaneClass::GetTranslation(int index) { return m_textureTranslation[index]; }
+float SkyPlaneClass::GetTranslation() { return m_translation; }
 
 bool SkyPlaneClass::InitializeSkyPlane(int skyPlaneResolution, float skyPlaneWidth, float skyPlaneTop, float skyPlaneBottom, int textureRepeat)
 {
@@ -263,30 +247,30 @@ void SkyPlaneClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-bool SkyPlaneClass::LoadTextures(ID3D11Device* device, const WCHAR* textureFilename1, const WCHAR* textureFilename2)
+bool SkyPlaneClass::LoadTextures(ID3D11Device* device, const WCHAR* cloudTextureFilename, const WCHAR* perturbTextureFilename)
 {
-	m_cloudTexture1 = new TextureClass;
-	if (!m_cloudTexture1)	return false;
-	if (!m_cloudTexture1->Initialize(device, textureFilename1))	return false;
+	m_cloudTexture = new TextureClass;
+	if (!m_cloudTexture)	return false;
+	if (!m_cloudTexture->Initialize(device, cloudTextureFilename))	return false;
 
-	m_cloudTexture2 = new TextureClass;
-	if (!m_cloudTexture2)	return false;
-	if (!m_cloudTexture2->Initialize(device, textureFilename2))	return false;
+	m_perturbTexture = new TextureClass;
+	if (!m_perturbTexture)	return false;
+	if (!m_perturbTexture->Initialize(device, perturbTextureFilename))	return false;
 
 	return true;
 }
 
 void SkyPlaneClass::ReleaseTextures()
 {
-	if (m_cloudTexture1) {
-		m_cloudTexture1->Shutdown();
-		delete m_cloudTexture1;
-		m_cloudTexture1 = nullptr;
+	if (m_cloudTexture) {
+		m_cloudTexture->Shutdown();
+		delete m_cloudTexture;
+		m_cloudTexture = nullptr;
 	}
 
-	if (m_cloudTexture2) {
-		m_cloudTexture2->Shutdown();
-		delete m_cloudTexture2;
-		m_cloudTexture2 = nullptr;
+	if (m_perturbTexture) {
+		m_perturbTexture->Shutdown();
+		delete m_perturbTexture;
+		m_perturbTexture = nullptr;
 	}
 }

@@ -21,10 +21,10 @@ void SkyPlaneShaderClass::Shutdown()
 }
 
 bool SkyPlaneShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, 
-	ID3D11ShaderResourceView* texture1, ID3D11ShaderResourceView* texture2, float firstTranslationX, float firstTranslationZ, float secondTranslationX, float secondTranslationZ, float brightness)
+	ID3D11ShaderResourceView* cloudTexture, ID3D11ShaderResourceView* perturbTexture, float translation, float scale,float brightness)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture1, texture2, firstTranslationX, firstTranslationZ, secondTranslationX, secondTranslationZ, brightness))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, cloudTexture, perturbTexture, translation, scale, brightness))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -204,7 +204,7 @@ void SkyPlaneShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 }
 
 bool SkyPlaneShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	ID3D11ShaderResourceView* texture1, ID3D11ShaderResourceView* texture2, float firstTranslationX, float firstTranslationZ, float secondTranslationX, float secondTranslationZ, float brightness)
+	ID3D11ShaderResourceView* cloudTexture, ID3D11ShaderResourceView* perturbTexture, float translation, float scale, float brightness)
 {
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -229,19 +229,18 @@ bool SkyPlaneShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	if (FAILED(deviceContext->Map(m_skyBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
 	SkyBufferType* skyBufferPtr = (SkyBufferType*)mappedResource.pData;
 
-	skyBufferPtr->firstTranslationX = firstTranslationX;
-	skyBufferPtr->firstTranslationZ = firstTranslationZ;
-	skyBufferPtr->secondTranslationX = secondTranslationX;
-	skyBufferPtr->secondTranslationZ = secondTranslationZ;
-	skyBufferPtr->padding = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	skyBufferPtr->translation = translation;
+	skyBufferPtr->scale = scale;
+	skyBufferPtr->brightness = brightness;
+	skyBufferPtr->padding = 0.0f;
 
 	deviceContext->Unmap(m_skyBuffer, 0);
 	bufferNumber = 0;
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_skyBuffer);
 
 	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(0, 1, &texture1);
-	deviceContext->PSSetShaderResources(1, 1, &texture2);
+	deviceContext->PSSetShaderResources(0, 1, &cloudTexture);
+	deviceContext->PSSetShaderResources(1, 1, &perturbTexture);
 
 	return true;
 }
@@ -254,6 +253,9 @@ void SkyPlaneShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int i
 	// 삼각형을 그릴 정점셰이더와 픽셀셰이더 설정
 	deviceContext->VSSetShader(m_vertexShader, NULL, 0);
 	deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+
+	// 픽셀셰이더에서 샘플러 상태 설정
+	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
 
 	// 삼각형을 그린다
 	deviceContext->DrawIndexed(indexCount, 0, 0);

@@ -29,11 +29,12 @@ public:
 	void Frame();
 
 	int GetIndexCount();
-	ID3D11ShaderResourceView* GetCloudTexture1();
-	ID3D11ShaderResourceView* GetCloudTexture2();
+	ID3D11ShaderResourceView* GetCloudTexture();
+	ID3D11ShaderResourceView* GetPerturbTexture();
 
+	float GetScale();
 	float GetBrightness();
-	float GetTranslation(int);
+	float GetTranslation();
 
 private:
 	bool InitializeSkyPlane(int, float, float, float, int);
@@ -52,9 +53,9 @@ private:
 	int m_indexCount = 0;
 	ID3D11Buffer* m_vertexBuffer = nullptr;
 	ID3D11Buffer* m_indexBuffer = nullptr;
-	TextureClass* m_cloudTexture1 = nullptr;
-	TextureClass* m_cloudTexture2 = nullptr;
+	TextureClass* m_cloudTexture = nullptr;
+	TextureClass* m_perturbTexture = nullptr;
 	float m_brightness = 0.0f;
-	float m_translationSpeed[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	float m_textureTranslation[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	float m_scale = 0.0f;
+	float m_translation = 0.0f;
 };

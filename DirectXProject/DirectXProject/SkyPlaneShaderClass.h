@@ -12,12 +12,10 @@ private:
 
 	struct SkyBufferType
 	{
-		float firstTranslationX;
-		float firstTranslationZ;
-		float secondTranslationX;
-		float secondTranslationZ;
+		float translation;
+		float scale;
 		float brightness;
-		XMFLOAT3 padding;
+		float padding;
 	};
 
 public:
@@ -27,13 +25,13 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, float, float, float, float, float);
+	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, float, float, float);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, const WCHAR*, const WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, const WCHAR*);
-	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, float, float, float, float, float);
+	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, float, float, float);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:

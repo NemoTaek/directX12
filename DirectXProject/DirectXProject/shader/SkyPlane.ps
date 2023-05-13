@@ -1,15 +1,13 @@
-Texture2D cloudTexture1 : register(t0);
-Texture2D cloudTexture2 : register(t1);
+Texture2D cloudTexture : register(t0);
+Texture2D perturbTexture : register(t1);	// 노이즈 텍스쳐, perturb: 교란시키다
 SamplerState SampleType;
 
 cbuffer SkyBuffer
 {
-	float firstTranslationX;
-	float firstTranslationZ;
-	float secondTranslationX;
-	float secondTranslationZ;
+	float translation;
+	float scale;
 	float brightness;
-	float3 padding;
+	float padding;
 }
 
 struct PixelInputType
@@ -20,21 +18,16 @@ struct PixelInputType
 
 float4 SkyPlanePixelShader(PixelInputType input) : SV_TARGET
 {
-	float2 sampleLocation;
-	float4 textureColor1;
-	float4 textureColor2;
+	float4 perturbValue;	// 교란 값
 	float4 color;
 
-	sampleLocation.x = input.tex.x + firstTranslationX;
-	sampleLocation.y = input.tex.y + firstTranslationZ;
-	textureColor1 = cloudTexture1.Sample(SampleType, sampleLocation);
+	input.tex.x = input.tex.x + translation;
+	
+	perturbValue = perturbTexture.Sample(SampleType, input.tex);
+	perturbValue = perturbValue * scale;
+	perturbValue.xy = perturbValue.xy + input.tex.xy + translation;
 
-	sampleLocation.x = input.tex.x + secondTranslationX;
-	sampleLocation.y = input.tex.y + secondTranslationZ;
-	textureColor2 = cloudTexture2.Sample(SampleType, sampleLocation);
-
-	// 앞에서 설정한 텍스처 색을 보정하여 최종 색상 결정
-	color = lerp(textureColor1, textureColor2, 0.5f);
+	color = cloudTexture.Sample(SampleType, perturbValue.xy);
 	
 	// 밝기 값에 따라 구름 텍스처의 밝기 설정
 	color = color * brightness;
