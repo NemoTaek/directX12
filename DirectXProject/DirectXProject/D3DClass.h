@@ -35,6 +35,9 @@ public:
 	void TurnOnCulling();
 	void TurnOffCulling();
 
+	// 보조 혼합 상태 설정
+	void EnableSecondBlendState();
+
 	ID3D11DepthStencilView* GetDepthStencilView();
 	void SetBackBufferRenderTarget();
 	void ResetViewport();
@@ -60,6 +63,7 @@ private:
 	ID3D11DepthStencilState* m_depthDisabledStencilState = nullptr;
 	ID3D11BlendState* m_alphaEnableBlendingState = nullptr;
 	ID3D11BlendState* m_alphaDisableBlendingState = nullptr;
+	ID3D11BlendState* m_alphaBlendState2 = nullptr;
 
 	D3D11_VIEWPORT m_viewport;
 };

@@ -150,6 +150,8 @@
     <ClCompile Include="ShaderManagerClass.cpp" />
     <ClCompile Include="SkyDomeClass.cpp" />
     <ClCompile Include="SkyDomeShaderClass.cpp" />
+    <ClCompile Include="SkyPlaneClass.cpp" />
+    <ClCompile Include="SkyPlaneShaderClass.cpp" />
     <ClCompile Include="SoundClass.cpp" />
     <ClCompile Include="Stdafx.cpp" />
     <ClCompile Include="SystemClass.cpp" />
@@ -184,6 +186,8 @@
     <ClInclude Include="ShaderManagerClass.h" />
     <ClInclude Include="SkyDomeClass.h" />
     <ClInclude Include="SkyDomeShaderClass.h" />
+    <ClInclude Include="SkyPlaneClass.h" />
+    <ClInclude Include="SkyPlaneShaderClass.h" />
     <ClInclude Include="SoundClass.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="SystemClass.h" />
@@ -202,6 +206,8 @@
     <None Include="Font.vs" />
     <None Include="shader\SkyDome.ps" />
     <None Include="shader\SkyDome.vs" />
+    <None Include="shader\SkyPlane.ps" />
+    <None Include="shader\SkyPlane.vs" />
     <None Include="shader\Terrain.ps" />
     <None Include="shader\Terrain.vs" />
     <None Include="shader\Texture.ps" />

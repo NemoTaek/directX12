@@ -1,0 +1,43 @@
+Texture2D cloudTexture1 : register(t0);
+Texture2D cloudTexture2 : register(t1);
+SamplerState SampleType;
+
+cbuffer SkyBuffer
+{
+	float firstTranslationX;
+	float firstTranslationZ;
+	float secondTranslationX;
+	float secondTranslationZ;
+	float brightness;
+	float3 padding;
+}
+
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float2 tex : TEXCOORD0;
+};
+
+float4 SkyPlanePixelShader(PixelInputType input) : SV_TARGET
+{
+	float2 sampleLocation;
+	float4 textureColor1;
+	float4 textureColor2;
+	float4 color;
+
+	sampleLocation.x = input.tex.x + firstTranslationX;
+	sampleLocation.y = input.tex.y + firstTranslationZ;
+	textureColor1 = cloudTexture1.Sample(SampleType, sampleLocation);
+
+	sampleLocation.x = input.tex.x + secondTranslationX;
+	sampleLocation.y = input.tex.y + secondTranslationZ;
+	textureColor2 = cloudTexture2.Sample(SampleType, sampleLocation);
+
+	// 앞에서 설정한 텍스처 색을 보정하여 최종 색상 결정
+	color = lerp(textureColor1, textureColor2, 0.5f);
+	
+	// 밝기 값에 따라 구름 텍스처의 밝기 설정
+	color = color * brightness;
+
+	return color;
+}

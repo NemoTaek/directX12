@@ -304,12 +304,12 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// 블렌딩을 적용하지 않으면 src가 dest를 덮어쓴다
 	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
 	//blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	//blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 
 	// 파티클이 겹치면 서로의 색상을 더하면 additive 블렌딩 사용
 	// color = (1 * source) + (1 * destination)
 	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	//blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 
 	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
@@ -324,6 +324,19 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	blendStateDescription.RenderTarget[0].BlendEnable = FALSE;
 	if (FAILED(m_device->CreateBlendState(&blendStateDescription, &m_alphaDisableBlendingState)))	return false;
 
+	// 2차 알파블렌딩 상태 구조체 생성
+	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+	// 2차 알파블렌딩 상태 생성
+	if (FAILED(m_device->CreateBlendState(&blendStateDescription, &m_alphaBlendState2)))	return false;
+
 	return true;
 }
 
@@ -332,6 +345,11 @@ void D3DClass::Shutdown()
 	// 종료 전 윈도우모드로 설정하지 않으면 SwapChain을 해제할 때 예외가 발생한다.
 	if (m_swapChain) {
 		m_swapChain->SetFullscreenState(false, NULL);
+	}
+
+	if (m_alphaBlendState2) {
+		m_alphaBlendState2->Release();
+		m_alphaBlendState2 = 0;
 	}
 
 	if (m_alphaEnableBlendingState) {
@@ -487,6 +505,17 @@ void D3DClass::TurnOnCulling()
 void D3DClass::TurnOffCulling()
 {
 	m_deviceContext->RSSetState(m_rasterStateNoCulling);
+}
+
+void D3DClass::EnableSecondBlendState()
+{
+	float blendFactor[4];
+	blendFactor[0] = 0.0f;
+	blendFactor[1] = 0.0f;
+	blendFactor[2] = 0.0f;
+	blendFactor[3] = 0.0f;
+
+	m_deviceContext->OMSetBlendState(m_alphaBlendState2, blendFactor, 0xffffffff);
 }
 
 ID3D11DepthStencilView* D3DClass::GetDepthStencilView() { return m_depthStencilView; }

@@ -24,6 +24,8 @@ class LightClass;
 //class MiniMapClass;		// 미니맵
 class SkyDomeClass;			// 하늘
 class SkyDomeShaderClass;	// 하늘
+class SkyPlaneClass;		// 하늘 평면(여기서는 구름)
+class SkyPlaneShaderClass;	// 하늘 평면(여기서는 구름)
 
 class ApplicationClass
 {
@@ -60,4 +62,6 @@ private:
 	//MiniMapClass* m_MiniMap = nullptr;
 	SkyDomeClass* m_SkyDome = nullptr;
 	SkyDomeShaderClass* m_SkyDomeShader = nullptr;
+	SkyPlaneClass* m_SkyPlane = nullptr;
+	SkyPlaneShaderClass* m_SkyPlaneShader = nullptr;
 };

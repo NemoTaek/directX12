@@ -111,6 +111,12 @@
     <ClCompile Include="SkyDomeShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="SkyPlaneClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyPlaneShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraClass.h">
@@ -212,6 +218,12 @@
     <ClInclude Include="SkyDomeShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="SkyPlaneClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyPlaneShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Font.ps">
@@ -242,6 +254,12 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="shader\SkyDome.vs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\SkyPlane.ps">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\SkyPlane.vs">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

@@ -19,6 +19,8 @@
 //#include "MiniMap.h"
 #include "SkyDomeClass.h"
 #include "SkyDomeShaderClass.h"
+#include "SkyPlaneClass.h"
+#include "SkyPlaneShaderClass.h"
 
 ApplicationClass::ApplicationClass() {}
 ApplicationClass::ApplicationClass(const ApplicationClass& other) {}
@@ -158,11 +160,37 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	m_SkyPlane = new SkyPlaneClass;
+	if (!m_SkyPlane) { return false; }
+	if (!m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"./Textures/cloud001.dds", L"./Textures/cloud002.dds")) {
+		MessageBox(hwnd, L"Could not initialize the sky plane object", L"Error", MB_OK);
+		return false;
+	}
+
+	m_SkyPlaneShader = new SkyPlaneShaderClass;
+	if (!m_SkyPlaneShader) { return false; }
+	if (!m_SkyPlaneShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the sky plane shader object", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 void ApplicationClass::Shutdown()
 {
+	if (m_SkyPlaneShader) {
+		m_SkyPlaneShader->Shutdown();
+		delete m_SkyPlaneShader;
+		m_SkyPlaneShader = 0;
+	}
+
+	if (m_SkyPlane) {
+		m_SkyPlane->Shutdown();
+		delete m_SkyPlane;
+		m_SkyPlane = 0;
+	}
+
 	if (m_SkyDomeShader) {
 		m_SkyDomeShader->Shutdown();
 		delete m_SkyDomeShader;
@@ -304,6 +332,9 @@ bool ApplicationClass::Frame()
 	}
 	*/
 
+	// 하늘 평면 프레임 처리 수행
+	m_SkyPlane->Frame();
+
 	// 그래픽 렌더링
 	if (!RenderGraphics())	return false;
 
@@ -374,11 +405,21 @@ bool ApplicationClass::RenderGraphics()
 	if (!m_SkyDomeShader->Render(m_Direct3D->GetDeviceContext(), m_SkyDome->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_SkyDome->GetApexColor(), m_SkyDome->GetCenterColor()))	return false;
 
 	m_Direct3D->TurnOnCulling();
+
+	// 하늘 평면(구름)이 하늘 돔 색상과 혼합되도록 2차 블렌딩을 가능하도록 설정
+	m_Direct3D->EnableSecondBlendState();
+
+	m_SkyPlane->Render(m_Direct3D->GetDeviceContext());
+	if (!m_SkyPlaneShader->Render(m_Direct3D->GetDeviceContext(), m_SkyPlane->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_SkyPlane->GetCloudTexture1(), m_SkyPlane->GetCloudTexture2(), 
+		m_SkyPlane->GetTranslation(0), m_SkyPlane->GetTranslation(1), m_SkyPlane->GetTranslation(2), m_SkyPlane->GetTranslation(3), m_SkyPlane->GetBrightness()))	return false;
+
+	// 2차 블랜딩 off
+	m_Direct3D->TurnOffAlphaBlending();
+
 	m_Direct3D->TurnZBufferOn();
 
 	// 세계 행렬 재설정
 	m_Direct3D->GetWorldMatrix(worldMatrix);
-
 
 	// 지형 버퍼 렌더링
 	m_Terrain->Render(m_Direct3D->GetDeviceContext());
