@@ -1,4 +1,5 @@
-Texture2D shaderTexture;
+Texture2D shaderTexture : register(t0);
+Texture2D detailTexture : register(t1);
 SamplerState SampleType;
 
 cbuffer LightBuffer
@@ -18,9 +19,10 @@ cbuffer TextureInfoBuffer
 struct PixelInputType
 {
 	float4 position : SV_POSITION;
-	float2 tex : TEXCOORD0;
+	float4 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 	float4 color : COLOR;
+	float4 depthPosition: TEXCOORD1;	// 근접한 텍스처를 볼 때 선명하게 보이도록 픽셀의 깊이 변수 추가
 };
 
 float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
@@ -33,7 +35,25 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 	//float4 alphaValue;
 	//float4 blendColor;
 
-	textureColor = shaderTexture.Sample(SampleType, input.tex);
+	float depthValue;
+	float detailBrightness;
+	float4 detailColor;
+
+	textureColor = shaderTexture.Sample(SampleType, input.tex.xy);
+
+	// Z 픽셀 깊이를 균질 W 좌표로 나누어 픽셀의 깊이 값 세팅
+	depthValue = input.depthPosition.z / input.depthPosition.w;
+
+	// 깊이 값이 화면에 가까운지 체크하고, 근접하다면 디테일 텍스처 적용
+	if(depthValue < 0.9f) {
+		detailColor = detailTexture.Sample(SampleType, input.tex.zw);
+
+		// 디테일 텍스처 밝기 설정
+		detailBrightness = 1.8f;
+
+		// 바닥 텍스처와 디테일 텍스처 결합
+		textureColor = textureColor * detailColor * detailBrightness;
+	}
 
 	// 모든 픽셀에 대해 기본 출력 색상을 주변 광원 값으로 설정
 	color = ambientColor;

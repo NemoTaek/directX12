@@ -89,7 +89,7 @@ bool TextClass::SetVideoCardInfo(const char* videoCardName, int videoCardMemory,
 	strcat_s(dataString, videoCardName);
 
 	// 문장 정점 버퍼를 새 문자열 정보로 업데이트합니다.
-	if (!UpdateSentence(m_sentence1, dataString, 50, 10, 1.0f, 1.0f, 1.0f, deviceContext))	return false;
+	if (!UpdateSentence(m_sentence1, dataString, 0, 10, 1.0f, 1.0f, 1.0f, deviceContext))	return false;
 
 	// 버퍼 오버플로우를 막기 위해 메모리 값을 자릅니다.
 	if (videoCardMemory > 9999999)
@@ -106,7 +106,7 @@ bool TextClass::SetVideoCardInfo(const char* videoCardName, int videoCardMemory,
 	strcat_s(memoryString, " MB");
 
 	// 문장 정점 버퍼를 새 문자열 정보로 업데이트합니다.
-	if (!UpdateSentence(m_sentence2, memoryString, 50, 30, 1.0f, 1.0f, 1.0f, deviceContext))	return false;
+	if (!UpdateSentence(m_sentence2, memoryString, 0, 30, 1.0f, 1.0f, 1.0f, deviceContext))	return false;
 
 	return true;
 }
@@ -193,7 +193,7 @@ bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 	}
 
 	// 문장을 FPS 값으로 업데이트
-	if (!(UpdateSentence(m_sentence3, fpsString, 50, 70, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+	if (!(UpdateSentence(m_sentence3, fpsString, 0, 70, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
 
 	return true;
 }
@@ -212,7 +212,7 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 	strcat_s(cpuString, "%");
 
 	// 문장을 CPU 값으로 업데이트
-	if (!(UpdateSentence(m_sentence4, cpuString, 50, 90, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+	if (!(UpdateSentence(m_sentence4, cpuString, 0, 90, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
 
 	return true;
 }
@@ -241,21 +241,21 @@ bool TextClass::SetCameraPosition(XMFLOAT3 pos, ID3D11DeviceContext* deviceConte
 	strcpy_s(dataString, "X: ");
 	strcat_s(dataString, tempString);
 
-	if (!UpdateSentence(m_sentence5, dataString, 50, 130, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+	if (!UpdateSentence(m_sentence5, dataString, 0, 130, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
 
 	// Y 위치 문자열을 설정합니다.
 	_itoa_s(positionY, tempString, 10);
 	strcpy_s(dataString, "Y: ");
 	strcat_s(dataString, tempString);
 
-	if (!UpdateSentence(m_sentence6, dataString, 50, 150, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+	if (!UpdateSentence(m_sentence6, dataString, 0, 150, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
 
 	// Z 위치 문자열을 설정합니다.
 	_itoa_s(positionZ, tempString, 10);
 	strcpy_s(dataString, "Z: ");
 	strcat_s(dataString, tempString);
 
-	if (!UpdateSentence(m_sentence7, dataString, 50, 170, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+	if (!UpdateSentence(m_sentence7, dataString, 0, 170, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
 
 	return true;
 }
@@ -276,21 +276,21 @@ bool TextClass::SetCameraRotation(XMFLOAT3 rot, ID3D11DeviceContext* deviceConte
 	strcpy_s(dataString, "rX: ");
 	strcat_s(dataString, tempString);
 
-	if (!UpdateSentence(m_sentence8, dataString, 50, 210, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+	if (!UpdateSentence(m_sentence8, dataString, 0, 210, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
 
 	// Y 회전 문자열을 설정합니다.
 	_itoa_s(rotationY, tempString, 10);
 	strcpy_s(dataString, "rY: ");
 	strcat_s(dataString, tempString);
 
-	if (!UpdateSentence(m_sentence9, dataString, 50, 230, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+	if (!UpdateSentence(m_sentence9, dataString, 0, 230, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
 
 	// Z 회전 문자열을 설정합니다.
 	_itoa_s(rotationZ, tempString, 10);
 	strcpy_s(dataString, "rZ: ");
 	strcat_s(dataString, tempString);
 
-	if (!UpdateSentence(m_sentence10, dataString, 50, 250, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
+	if (!UpdateSentence(m_sentence10, dataString, 0, 250, 0.0f, 1.0f, 0.0f, deviceContext))	return false;
 
 	return true;
 }
@@ -307,7 +307,7 @@ bool TextClass::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
 	strcat_s(renderString, tempString);
 
 	// 문장을 FPS 값으로 업데이트
-	if (!(UpdateSentence(m_sentence11, renderString, 50, 300, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
+	if (!(UpdateSentence(m_sentence11, renderString, 0, 300, 0.0f, 1.0f, 0.0f, deviceContext)))	return false;
 
 	return true;
 }

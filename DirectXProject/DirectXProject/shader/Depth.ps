@@ -1,7 +1,7 @@
 struct PixelInputType
 {
 	float4 position : SV_POSITION;
-	float4 depthPosition : TEXTURE0;
+	float4 depthPosition : TEXCOORD0;
 };
 
 float4 DepthPixelShader(PixelInputType input) : SV_TARGET
@@ -12,7 +12,7 @@ float4 DepthPixelShader(PixelInputType input) : SV_TARGET
 	// 현재 픽셀의 깊이 값 세팅
 	depthValue = input.depthPosition.z / input.depthPosition.w;
 
-	color = float4(depthValue, depthValue, depthValue, 1.0f);
+	// color = float4(depthValue, depthValue, depthValue, 1.0f);
 
 	// 픽셀의 색상 설정
 	// 가까운 면부터 멀리있는 면까지 0.0f ~ 1.0f 범위
@@ -20,7 +20,7 @@ float4 DepthPixelShader(PixelInputType input) : SV_TARGET
 
 	// 예시를 쉽게 들기 위해 빨, 초, 파 순서로 깊이 버퍼에 색을 다르게 색칠
 	// 빨강: 0~90%, 초록: 90~92.5%, 파랑: 92.5~100%
-	/*
+	
 	if(depthValue < 0.9f)
 	{
 		color = float4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -33,7 +33,7 @@ float4 DepthPixelShader(PixelInputType input) : SV_TARGET
 	{
 		color = float4(0.0f, 0.0f, 1.0f, 1.0f);
 	}
-	*/
+	
 
 	return color;
 }

@@ -117,6 +117,15 @@
     <ClCompile Include="SkyPlaneShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="DepthShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTextureClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugWindowClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraClass.h">
@@ -224,6 +233,15 @@
     <ClInclude Include="SkyPlaneShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="DepthShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTextureClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugWindowClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Font.ps">
@@ -260,6 +278,12 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="shader\SkyPlane.vs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Depth.ps">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Depth.vs">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

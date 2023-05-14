@@ -24,10 +24,10 @@ void TerrainShaderClass::Shutdown()
 }
 
 bool TerrainShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor, XMFLOAT3 lightDirection, ID3D11ShaderResourceView* texture)
+	XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor, XMFLOAT3 lightDirection, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* detailTexture)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ambientColor, diffuseColor, lightDirection, texture))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ambientColor, diffuseColor, lightDirection, texture, detailTexture))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -74,7 +74,7 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 
 	polygonLayout[1].SemanticName = "TEXCOORD";
 	polygonLayout[1].SemanticIndex = 0;
-	polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+	polygonLayout[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	polygonLayout[1].InputSlot = 0;
 	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -153,28 +153,28 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
 	if (FAILED(device->CreateBuffer(&lightBufferDesc, NULL, &m_lightBuffer)))	return false;
 
-	// 픽셀 셰이더에있는 텍스처 정보 상수 버퍼 서술자 작성
-	D3D11_BUFFER_DESC textureInfoBufferDesc;
-	textureInfoBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	textureInfoBufferDesc.ByteWidth = sizeof(TextureInfoBufferType);
-	textureInfoBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	textureInfoBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	textureInfoBufferDesc.MiscFlags = 0;
-	textureInfoBufferDesc.StructureByteStride = 0;
+	//// 픽셀 셰이더에있는 텍스처 정보 상수 버퍼 서술자 작성
+	//D3D11_BUFFER_DESC textureInfoBufferDesc;
+	//textureInfoBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	//textureInfoBufferDesc.ByteWidth = sizeof(TextureInfoBufferType);
+	//textureInfoBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	//textureInfoBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	//textureInfoBufferDesc.MiscFlags = 0;
+	//textureInfoBufferDesc.StructureByteStride = 0;
 
-	// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
-	if (FAILED(device->CreateBuffer(&textureInfoBufferDesc, NULL, &m_textureInfoBuffer)))	return false;
+	//// 정점셰이더 상수버퍼에 접근할 수 있도록 상수버퍼 생성
+	//if (FAILED(device->CreateBuffer(&textureInfoBufferDesc, NULL, &m_textureInfoBuffer)))	return false;
 
 	return true;
 }
 
 void TerrainShaderClass::ShutdownShader()
 {
-	// 텍스처 정보 상수버퍼 해제
-	if (m_textureInfoBuffer) {
-		m_textureInfoBuffer->Release();
-		m_textureInfoBuffer = 0;
-	}
+	//// 텍스처 정보 상수버퍼 해제
+	//if (m_textureInfoBuffer) {
+	//	m_textureInfoBuffer->Release();
+	//	m_textureInfoBuffer = 0;
+	//}
 
 	// 광원 상수버퍼 해제
 	if (m_lightBuffer) {
@@ -247,7 +247,7 @@ void TerrainShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 }
 
 bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor, XMFLOAT3 lightDirection, ID3D11ShaderResourceView* texture)
+	XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor, XMFLOAT3 lightDirection, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* detailTexture)
 {
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -283,6 +283,7 @@ bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
 	deviceContext->PSSetShaderResources(0, 1, &texture);
+	deviceContext->PSSetShaderResources(1, 1, &detailTexture);
 
 	return true;
 }

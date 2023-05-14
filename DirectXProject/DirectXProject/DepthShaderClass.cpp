@@ -15,7 +15,7 @@ bool DepthShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	//WCHAR ps[] = L"PS.hlsl";
 	//result = InitializeShader(device, hwnd, vs, ps);
 	//return result;
-	return InitializeShader(device, hwnd, L"./Depth.vs", L"./Depth.ps");
+	return InitializeShader(device, hwnd, L"./shader/Depth.vs", L"./shader/Depth.ps");
 }
 
 void DepthShaderClass::Shutdown() 

@@ -14,7 +14,7 @@ struct VertexInputType
 struct PixelInputType
 {
 	float4 position : SV_POSITION;
-	float4 depthPosition : TEXTURE0;
+	float4 depthPosition : TEXCOORD0;
 };
 
 PixelInputType DepthVertexShader(VertexInputType input)

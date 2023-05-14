@@ -18,14 +18,21 @@ class FontShaderClass;
 class TerrainClass;
 class TerrainShaderClass;
 class LightClass;
+
 //class FrustumClass;		// 절두체
 //class QuadTreeClass;		// 쿼드 트리(현재 시야에 보이는 부분만 렌더링)
-//class TextureShaderClass;
+class TextureShaderClass;
+
 //class MiniMapClass;		// 미니맵
+
 class SkyDomeClass;			// 하늘
 class SkyDomeShaderClass;	// 하늘
 class SkyPlaneClass;		// 하늘 평면(여기서는 구름)
 class SkyPlaneShaderClass;	// 하늘 평면(여기서는 구름)
+
+class DebugWindowClass;
+class RenderTextureClass;
+class DepthShaderClass;
 
 class ApplicationClass
 {
@@ -41,6 +48,7 @@ public:
 private:
 	bool HandleInput(float);
 	bool RenderGraphics();
+	bool RenderSceneToTexture();
 
 private:
 	D3DClass* m_Direct3D = nullptr;
@@ -56,12 +64,19 @@ private:
 	TerrainClass* m_Terrain = nullptr;
 	TerrainShaderClass* m_TerrainShader = nullptr;
 	LightClass* m_Light = nullptr;
+
 	//FrustumClass* m_Frustum = nullptr;
 	//QuadTreeClass* m_QuadTree = nullptr;
-	//TextureShaderClass* m_TextureShader = nullptr;
+	TextureShaderClass* m_TextureShader = nullptr;
+	
 	//MiniMapClass* m_MiniMap = nullptr;
+
 	SkyDomeClass* m_SkyDome = nullptr;
 	SkyDomeShaderClass* m_SkyDomeShader = nullptr;
 	SkyPlaneClass* m_SkyPlane = nullptr;
 	SkyPlaneShaderClass* m_SkyPlaneShader = nullptr;
+
+	DebugWindowClass* m_DebugWindow = nullptr;
+	RenderTextureClass* m_RenderTexture = nullptr;
+	DepthShaderClass* m_DepthShader = nullptr;
 };

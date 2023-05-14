@@ -135,6 +135,8 @@
     <ClCompile Include="CpuClass.cpp" />
     <ClCompile Include="D3DClass.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="DebugWindowClass.cpp" />
+    <ClCompile Include="DepthShaderClass.cpp" />
     <ClCompile Include="FontClass.cpp" />
     <ClCompile Include="FontShaderClass.cpp" />
     <ClCompile Include="FpsClass.cpp" />
@@ -147,6 +149,7 @@
     <ClCompile Include="Model3DClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
     <ClCompile Include="QuadTreeClass.cpp" />
+    <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="ShaderManagerClass.cpp" />
     <ClCompile Include="SkyDomeClass.cpp" />
     <ClCompile Include="SkyDomeShaderClass.cpp" />
@@ -171,6 +174,8 @@
     <ClInclude Include="CpuClass.h" />
     <ClInclude Include="D3DClass.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="DebugWindowClass.h" />
+    <ClInclude Include="DepthShaderClass.h" />
     <ClInclude Include="DxDefine.h" />
     <ClInclude Include="FontClass.h" />
     <ClInclude Include="FontShaderClass.h" />
@@ -183,6 +188,7 @@
     <ClInclude Include="Model3DClass.h" />
     <ClInclude Include="PositionClass.h" />
     <ClInclude Include="QuadTreeClass.h" />
+    <ClInclude Include="RenderTextureClass.h" />
     <ClInclude Include="ShaderManagerClass.h" />
     <ClInclude Include="SkyDomeClass.h" />
     <ClInclude Include="SkyDomeShaderClass.h" />
@@ -204,6 +210,8 @@
     <None Include="Color.vs" />
     <None Include="Font.ps" />
     <None Include="Font.vs" />
+    <None Include="shader\Depth.ps" />
+    <None Include="shader\Depth.vs" />
     <None Include="shader\SkyDome.ps" />
     <None Include="shader\SkyDome.vs" />
     <None Include="shader\SkyPlane.ps" />
