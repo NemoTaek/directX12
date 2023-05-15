@@ -43,13 +43,13 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	// 2D UI 렌더링을 위해 카메라로 기본 뷰 행렬 초기화
 	XMMATRIX baseViewMatrix;
-	XMFLOAT3 camera = XMFLOAT3(0.0f, 0.0f, -10.0f);
+	XMFLOAT3 camera = XMFLOAT3(0.0f, 0.0f, -1.0f);
 	m_Camera->SetPosition(camera);
 	m_Camera->RenderBaseViewMatrix();
 	m_Camera->GetBaseViewMatrix(baseViewMatrix);
 
 	// 카메라 위치 설정
-	camera = XMFLOAT3(100.0f, 2.0f, 5.0f);
+	camera = XMFLOAT3(150.0f, 2.0f, 35.0f);
 	m_Camera->SetPosition(camera);
 
 	m_Input = new InputClass;
@@ -101,7 +101,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Terrain = new TerrainClass;
 	if (!m_Terrain) return false;
-	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap01.bmp", L"./Textures/dirt01.dds", "./Textures/colorm01.bmp", L"./Textures/detail001.dds")) {
+	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap.bmp", L"./Textures/grass.dds", L"./Textures/slope.dds", L"./Textures/rock.dds")) {
 		MessageBox(hwnd, L"Could not initialize the terrain object", L"Error", MB_OK);
 		return false;
 	}
@@ -155,33 +155,33 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	//	return false;
 	//}
 
-	//m_SkyDome = new SkyDomeClass;
-	//if (!m_SkyDome) { return false; }
-	//if (!m_SkyDome->Initialize(m_Direct3D->GetDevice())) {
-	//	MessageBox(hwnd, L"Could not initialize the sky dome object", L"Error", MB_OK);
-	//	return false;
-	//}
+	m_SkyDome = new SkyDomeClass;
+	if (!m_SkyDome) { return false; }
+	if (!m_SkyDome->Initialize(m_Direct3D->GetDevice())) {
+		MessageBox(hwnd, L"Could not initialize the sky dome object", L"Error", MB_OK);
+		return false;
+	}
 
-	//m_SkyDomeShader = new SkyDomeShaderClass;
-	//if (!m_SkyDomeShader) { return false; }
-	//if (!m_SkyDomeShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-	//	MessageBox(hwnd, L"Could not initialize the sky dome shader object", L"Error", MB_OK);
-	//	return false;
-	//}
+	m_SkyDomeShader = new SkyDomeShaderClass;
+	if (!m_SkyDomeShader) { return false; }
+	if (!m_SkyDomeShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the sky dome shader object", L"Error", MB_OK);
+		return false;
+	}
 
-	//m_SkyPlane = new SkyPlaneClass;
-	//if (!m_SkyPlane) { return false; }
-	//if (!m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"./Textures/cloud002.dds", L"./Textures/perturb001.dds")) {
-	//	MessageBox(hwnd, L"Could not initialize the sky plane object", L"Error", MB_OK);
-	//	return false;
-	//}
+	m_SkyPlane = new SkyPlaneClass;
+	if (!m_SkyPlane) { return false; }
+	if (!m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"./Textures/cloud002.dds", L"./Textures/perturb001.dds")) {
+		MessageBox(hwnd, L"Could not initialize the sky plane object", L"Error", MB_OK);
+		return false;
+	}
 
-	//m_SkyPlaneShader = new SkyPlaneShaderClass;
-	//if (!m_SkyPlaneShader) { return false; }
-	//if (!m_SkyPlaneShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-	//	MessageBox(hwnd, L"Could not initialize the sky plane shader object", L"Error", MB_OK);
-	//	return false;
-	//}
+	m_SkyPlaneShader = new SkyPlaneShaderClass;
+	if (!m_SkyPlaneShader) { return false; }
+	if (!m_SkyPlaneShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the sky plane shader object", L"Error", MB_OK);
+		return false;
+	}
 
 	m_DebugWindow = new DebugWindowClass;
 	if (!m_DebugWindow) { return false; }
@@ -227,29 +227,29 @@ void ApplicationClass::Shutdown()
 		m_DebugWindow = 0;
 	}
 
-	//if (m_SkyPlaneShader) {
-	//	m_SkyPlaneShader->Shutdown();
-	//	delete m_SkyPlaneShader;
-	//	m_SkyPlaneShader = 0;
-	//}
+	if (m_SkyPlaneShader) {
+		m_SkyPlaneShader->Shutdown();
+		delete m_SkyPlaneShader;
+		m_SkyPlaneShader = 0;
+	}
 
-	//if (m_SkyPlane) {
-	//	m_SkyPlane->Shutdown();
-	//	delete m_SkyPlane;
-	//	m_SkyPlane = 0;
-	//}
+	if (m_SkyPlane) {
+		m_SkyPlane->Shutdown();
+		delete m_SkyPlane;
+		m_SkyPlane = 0;
+	}
 
-	//if (m_SkyDomeShader) {
-	//	m_SkyDomeShader->Shutdown();
-	//	delete m_SkyDomeShader;
-	//	m_SkyDomeShader = 0;
-	//}
+	if (m_SkyDomeShader) {
+		m_SkyDomeShader->Shutdown();
+		delete m_SkyDomeShader;
+		m_SkyDomeShader = 0;
+	}
 
-	//if (m_SkyDome) {
-	//	m_SkyDome->Shutdown();
-	//	delete m_SkyDome;
-	//	m_SkyDome = 0;
-	//}
+	if (m_SkyDome) {
+		m_SkyDome->Shutdown();
+		delete m_SkyDome;
+		m_SkyDome = 0;
+	}
 
 	//if (m_MiniMap) {
 	//	m_MiniMap->Shutdown();
@@ -381,7 +381,7 @@ bool ApplicationClass::Frame()
 	*/
 
 	// 하늘 평면 프레임 처리 수행
-	//m_SkyPlane->Frame();
+	m_SkyPlane->Frame();
 
 	// 그래픽 렌더링
 	if (!RenderGraphics())	return false;
@@ -400,12 +400,14 @@ bool ApplicationClass::HandleInput(float frameTime)
 	// 입력 처리
 	m_Position->TurnLeft(m_Input->IsLeftArrowPressed());
 	m_Position->TurnRight(m_Input->IsRightArrowPressed());
-	m_Position->MoveForward(m_Input->IsUpArrowPressed());
-	m_Position->MoveBackward(m_Input->IsDownArrowPressed());
-	m_Position->MoveUpward(m_Input->IsAPressed());
-	m_Position->MoveDownward(m_Input->IsZPressed());
-	m_Position->LookUpward(m_Input->IsPageUpPressed());
-	m_Position->LookDownward(m_Input->IsPageDownPressed());
+	m_Position->LookUpward(m_Input->IsUpArrowPressed());
+	m_Position->LookDownward(m_Input->IsDownArrowPressed());
+	m_Position->MoveForward(m_Input->IsWPressed());
+	m_Position->MoveLeft(m_Input->IsAPressed());
+	m_Position->MoveBackward(m_Input->IsSPressed());
+	m_Position->MoveRight(m_Input->IsDPressed());
+	m_Position->MoveUpward(m_Input->IsPgUpPressed());
+	m_Position->MoveDownward(m_Input->IsPgDnPressed());
 
 	// 시점의 위치와 회전을 가져온 후 카메라 위치 설정
 	m_Position->GetPosition(position);
@@ -426,7 +428,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 bool ApplicationClass::RenderGraphics()
 {
 	// 먼저 장면을 텍스처로 렌더링
-	if (!RenderSceneToTexture())	return false;
+	//if (!RenderSceneToTexture())	return false;
 
 	// Scene을 그리기 위해 버퍼 삭제
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
@@ -442,7 +444,6 @@ bool ApplicationClass::RenderGraphics()
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 	m_Camera->GetBaseViewMatrix(baseViewMatrix);
 
-	/*
 	// 여기부터 하늘 생성 코드
 	// 캐릭터는 항상 하늘 아래에 있기 때문에 카메라 위치를 중심으로 동작
 	// 먼저 컬링을 끄고, Z버퍼를 비활성화 하고, 하늘 돔을 렌더링한 후 되돌리는 과정을 거침
@@ -473,7 +474,6 @@ bool ApplicationClass::RenderGraphics()
 
 	// 세계 행렬 재설정
 	m_Direct3D->GetWorldMatrix(worldMatrix);
-	*/
 
 	// 지형 버퍼 렌더링
 	m_Terrain->Render(m_Direct3D->GetDeviceContext());
@@ -489,7 +489,7 @@ bool ApplicationClass::RenderGraphics()
 	//if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
 
 	// 지형 셰이더를 사용하여 모델 렌더링
-	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture(), m_Terrain->GetDetailMapTexture()))	return false;
+	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetFlatTexture(), m_Terrain->GetSlopeTexture(), m_Terrain->GetScarpTexture()))	return false;
 	//if (!m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
 
 	// 쿼드 트리 및 지형 셰이더를 사용하여 지형 렌더링
@@ -505,10 +505,10 @@ bool ApplicationClass::RenderGraphics()
 	//if (!m_MiniMap->Render(m_Direct3D->GetDeviceContext(), worldMatrix, orthoMatrix, m_TextureShader))	return false;
 
 	// 디버그 창
-	if (!m_DebugWindow->Render(m_Direct3D->GetDeviceContext(), 100, 100))	return false;
+	//if (!m_DebugWindow->Render(m_Direct3D->GetDeviceContext(), 100, 100))	return false;
 
 	// 텍스처 셰이더와 텍스처 리소스로 렌더링을 사용하여 비트맵 모델 렌더링
-	m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DebugWindow->GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, m_RenderTexture->GetShaderResourceView());
+	//m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DebugWindow->GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, m_RenderTexture->GetShaderResourceView());
 
 	// 알파 블랜딩 on
 	m_Direct3D->TurnOnAlphaBlending();

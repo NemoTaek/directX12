@@ -17,6 +17,8 @@ public:
 
 	void MoveForward(bool);
 	void MoveBackward(bool);
+	void MoveLeft(bool);
+	void MoveRight(bool);
 	void MoveUpward(bool);
 	void MoveDownward(bool);
 	void TurnLeft(bool);

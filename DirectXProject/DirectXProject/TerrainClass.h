@@ -1,6 +1,6 @@
 #pragma once
 
-const int TEXTURE_REPEAT = 16;
+const int TEXTURE_REPEAT = 32;
 class TextureClass;
 class TerrainShaderClass;
 
@@ -10,9 +10,9 @@ private:
 	struct VertexType
 	{
 		XMFLOAT3 position;
-		XMFLOAT4 texture;
+		XMFLOAT2 texture;	// 일반 텍스쳐는 XMFLOAT2, 디테일 텍스쳐는 XMFLOAT4
 		XMFLOAT3 normal;
-		XMFLOAT4 color;
+		//XMFLOAT4 color;
 	};
 
 	struct HeightMapType
@@ -20,7 +20,7 @@ private:
 		float x, y, z;
 		float tu, tv;
 		float nx, ny, nz;
-		float r, g, b;
+		//float r, g, b;
 		//int rIndex, gIndex, bIndex;
 	};
 
@@ -47,7 +47,7 @@ public:
 	~TerrainClass();
 
 	// 지형 텍스처 대신 머터리얼 사용
-	bool Initialize(ID3D11Device*, const char*, const WCHAR*, const char*, const WCHAR*);
+	bool Initialize(ID3D11Device*, const char*, const WCHAR*, const WCHAR*, const WCHAR*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	bool RenderMaterials(ID3D11DeviceContext*, TerrainShaderClass*, XMMATRIX, XMMATRIX, XMMATRIX, XMFLOAT4, XMFLOAT4, XMFLOAT3);
@@ -55,6 +55,9 @@ public:
 	int GetIndexCount();
 	ID3D11ShaderResourceView* GetTexture();
 	ID3D11ShaderResourceView* GetDetailMapTexture();
+	ID3D11ShaderResourceView* GetFlatTexture();
+	ID3D11ShaderResourceView* GetSlopeTexture();
+	ID3D11ShaderResourceView* GetScarpTexture();
 
 	void GetTerrainSize(int&, int&);
 	int GetVertexCount();
@@ -68,7 +71,7 @@ private:
 
 	// 지형 텍스처
 	void CalculateTextureCoordinates();
-	bool LoadTexture(ID3D11Device*, const WCHAR*, const WCHAR*);
+	bool LoadTexture(ID3D11Device*, const WCHAR*, const WCHAR*, const WCHAR*);
 	void ReleaseTexture();
 
 	// 지형 컬러 맵핑
@@ -94,6 +97,9 @@ private:
 	HeightMapType* m_heightMap = nullptr;
 	TextureClass* m_texture = nullptr;
 	TextureClass* m_detailTexture = nullptr;
+	TextureClass* m_flatTexture = nullptr;
+	TextureClass* m_slopeTexture = nullptr;
+	TextureClass* m_scarpTexture = nullptr;
 	VertexType* m_vertices = nullptr;
 
 	int m_textureCount = 0;

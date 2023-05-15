@@ -10,7 +10,7 @@ struct VertexInputType
     float4 position : POSITION;
 	float4 tex : TEXCOORD0;
     float3 normal : NORMAL;
-	float4 color : COLOR;
+	// float4 color : COLOR;
 };
 
 struct PixelInputType
@@ -18,8 +18,8 @@ struct PixelInputType
     float4 position : SV_POSITION;
 	float4 tex: TEXCOORD0;
     float3 normal : NORMAL;
-	float4 color : COLOR;
-	float4 depthPosition: TEXCOORD1;	// 근접한 텍스처를 볼 때 선명하게 보이도록 픽셀의 깊이 변수 추가
+	// float4 color : COLOR;
+	// float4 depthPosition: TEXCOORD1;	// 근접한 텍스처를 볼 때 선명하게 보이도록 픽셀의 깊이 변수 추가
 };
 
 PixelInputType TerrainVertexShader(VertexInputType input)
@@ -42,10 +42,10 @@ PixelInputType TerrainVertexShader(VertexInputType input)
 	output.normal = normalize(output.normal);
 
 	// 픽셀 쉐이더에 컬러 맵의 색상 전달
-	output.color = input.color;
+	// output.color = input.color;
 
 	// 깊이 값 계산을 위해 위치 값 저장
-	output.depthPosition = output.position;
+	// output.depthPosition = output.position;
 
 	return output;
 }

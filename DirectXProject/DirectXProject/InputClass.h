@@ -17,10 +17,13 @@ public:
 	bool IsDownArrowPressed();
 	bool IsLeftArrowPressed();
 	bool IsRightArrowPressed();
+	bool IsWPressed();
 	bool IsAPressed();
-	bool IsZPressed();
-	bool IsPageUpPressed();
-	bool IsPageDownPressed();
+	bool IsSPressed();
+	bool IsDPressed();
+	bool IsPgUpPressed();
+	bool IsPgDnPressed();
+	bool IsSpacePressed();
 
 private:
 	bool ReadKeyboard();

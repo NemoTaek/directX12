@@ -1,5 +1,9 @@
-Texture2D shaderTexture : register(t0);
-Texture2D detailTexture : register(t1);
+// Texture2D shaderTexture : register(t0);
+// Texture2D detailTexture : register(t1);	// 디테일 맵
+
+Texture2D flatTexture : register(t0);	// 평지
+Texture2D slopeTexture : register(t1);	// 완만한 경사
+Texture2D scarpTexture : register(t2);	// 급경사
 SamplerState SampleType;
 
 cbuffer LightBuffer
@@ -19,22 +23,88 @@ cbuffer TextureInfoBuffer
 struct PixelInputType
 {
 	float4 position : SV_POSITION;
-	float4 tex : TEXCOORD0;
+	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float4 color : COLOR;
-	float4 depthPosition: TEXCOORD1;	// 근접한 텍스처를 볼 때 선명하게 보이도록 픽셀의 깊이 변수 추가
+	// float4 color : COLOR;
+	// float4 depthPosition: TEXCOORD1;	// 근접한 텍스처를 볼 때 선명하게 보이도록 픽셀의 깊이 변수 추가
 };
 
 float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 {
 	float4 textureColor;
-	//float4 textureColor2;
 	float3 lightDir;
 	float lightIntensity;
 	float4 color;
-	//float4 alphaValue;
-	//float4 blendColor;
 
+	// 기울기 텍스처
+	float4 flatColor;
+	float4 slopeColor;
+	float4 scarpColor;
+	float slope;
+	float blendAmount;
+
+	flatColor = flatTexture.Sample(SampleType, input.tex);
+	slopeColor = slopeTexture.Sample(SampleType, input.tex);
+	scarpColor = scarpTexture.Sample(SampleType, input.tex);
+
+	// 기울기 계산
+	slope = 1.0f - input.normal.y;
+
+	// 높이에 따라 사용할 텍스처 결정
+	if(slope < 0.2) {
+		blendAmount = slope / 0.2f;
+		textureColor = lerp(flatColor, slopeColor, blendAmount);
+	} else if(slope >= 0.2 && slope < 0.7) {
+		blendAmount = (slope - 0.2f) * (1.0f / (0.7f - 0.2f));
+		textureColor = lerp(slopeColor, scarpColor, blendAmount);
+	} else if (slope >= 0.7) {
+		textureColor = scarpColor;
+	}
+
+	// 빛 방향은 실제와 반대방향
+	lightDir = -lightDirection;
+
+	// 현재 픽셀의 빛의 양 계산
+	lightIntensity = saturate(dot(input.normal, lightDir));
+	if(lightIntensity > 0.0f) {
+		color = (diffuseColor * lightIntensity);
+	}
+	color = saturate(color);
+	
+	// 텍스처 픽셀과 빛을 곱하여 색상 계산
+	color = color * textureColor;
+
+	// 컬러 맵 값을 조합하여 최종 색상 계산
+	// color = saturate(color * input.color * 2.0f);
+
+	return color;
+
+
+
+	// 지형 블렌딩
+	/*
+	float4 textureColor2;
+	float4 alphaValue;
+	float4 blendColor;
+
+	if(useAlpha) {
+		textureColor1 = shaderTexture1.Sample(SampleType, input.tex);
+		textureColor2 = shaderTexture2.Sample(SampleType, input.tex);
+
+		// 알파 블렌딩 값 샘플링
+		alphaValue = alphaMap.Sample(SampleType, input.tex);
+
+		// 알파 값을 계산하여 블렌딩 색상 계산
+		blendColor = (alphaValue * textureColor2) + ((1.0 - alphaValue) * textureColor1);
+	} else {
+		// 알파 블렌딩을 적용 안한다면 일반 텍스처로 색상 사용
+		blendColor = shaderTexture1.Sample(SampleType, input.tex);
+	}
+	*/
+
+
+	// 디테일 맵
+	/*
 	float depthValue;
 	float detailBrightness;
 	float4 detailColor;
@@ -57,38 +127,5 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 
 	// 모든 픽셀에 대해 기본 출력 색상을 주변 광원 값으로 설정
 	color = ambientColor;
-
-	// 빛 방향은 실제와 반대방향
-	lightDir = -lightDirection;
-
-	// 현재 픽셀의 빛의 양 계산
-	lightIntensity = saturate(dot(input.normal, lightDir));
-	if(lightIntensity > 0.0f) {
-		color += (diffuseColor * lightIntensity);
-	}
-	color = saturate(color);
-
-	/*
-	if(useAlpha) {
-		textureColor1 = shaderTexture1.Sample(SampleType, input.tex);
-		textureColor2 = shaderTexture2.Sample(SampleType, input.tex);
-
-		// 알파 블렌딩 값 샘플링
-		alphaValue = alphaMap.Sample(SampleType, input.tex);
-
-		// 알파 값을 계산하여 블렌딩 색상 계산
-		blendColor = (alphaValue * textureColor2) + ((1.0 - alphaValue) * textureColor1);
-	} else {
-		// 알파 블렌딩을 적용 안한다면 일반 텍스처로 색상 사용
-		blendColor = shaderTexture1.Sample(SampleType, input.tex);
-	}
 	*/
-
-	// 텍스처 픽셀과 빛을 곱하여 색상 계산
-	color = color * textureColor;
-
-	// 컬러 맵 값을 조합하여 최종 색상 계산
-	color = saturate(color * input.color * 2.0f);
-
-	return color;
 }

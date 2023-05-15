@@ -71,6 +71,62 @@ void PositionClass::MoveBackward(bool keydown)
 	m_position.z -= cosf(radians) * m_backwardSpeed;
 }
 
+void PositionClass::MoveLeft(bool keydown)
+{
+	// 키를 누르면 카메라가 오른쪽으로 회전하는 속도가 증가합니다.
+	if (keydown)
+	{
+		m_leftSpeed += m_frameTime * 0.001f;
+
+		if (m_leftSpeed > (m_frameTime * 0.03f))
+		{
+			m_leftSpeed = m_frameTime * 0.03f;
+		}
+	}
+	else
+	{
+		m_leftSpeed -= m_frameTime * 0.0007f;
+
+		if (m_leftSpeed < 0.0f)
+		{
+			m_leftSpeed = 0.0f;
+		}
+	}
+
+	float radians = m_rotation.y * 0.0174532925f;
+
+	m_position.x -= cosf(radians) * m_leftSpeed;
+	m_position.z -= -sinf(radians) * m_leftSpeed;
+}
+
+void PositionClass::MoveRight(bool keydown)
+{
+	// 키를 누르면 카메라가 오른쪽으로 회전하는 속도가 증가합니다.
+	if (keydown)
+	{
+		m_rightSpeed += m_frameTime * 0.001f;
+
+		if (m_rightSpeed > (m_frameTime * 0.03f))
+		{
+			m_rightSpeed = m_frameTime * 0.03f;
+		}
+	}
+	else
+	{
+		m_rightSpeed -= m_frameTime * 0.0007f;
+
+		if (m_rightSpeed < 0.0f)
+		{
+			m_rightSpeed = 0.0f;
+		}
+	}
+
+	float radians = m_rotation.y * 0.0174532925f;
+
+	m_position.x += cosf(radians) * m_rightSpeed;
+	m_position.z += -sinf(radians) * m_rightSpeed;
+}
+
 void PositionClass::MoveUpward(bool keydown)
 {
 	// 키를 누르면 카메라가 오른쪽으로 회전하는 속도가 증가합니다.

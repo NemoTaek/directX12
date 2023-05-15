@@ -10,7 +10,7 @@ TerrainClass::TerrainClass() {}
 TerrainClass::TerrainClass(const TerrainClass& other) {}
 TerrainClass::~TerrainClass() {}
 
-bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename, const WCHAR* textureFilename, const char* colorMapFilename, const WCHAR* detailMapFilename)
+bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename, const WCHAR* flatTextureFilename, const WCHAR* slopeTextureFilename, const WCHAR* scarpTextureFilename)
 {
 	// 지형의 너비와 높이 맵 로드
 	if (!LoadHeightMap(heightMapFilename))	return false;
@@ -25,10 +25,10 @@ bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilenam
 	CalculateTextureCoordinates();
 
 	// 지형 텍스처 로드
-	if (!LoadTexture(device, textureFilename, detailMapFilename))	return false;
+	if (!LoadTexture(device, flatTextureFilename, slopeTextureFilename, scarpTextureFilename))	return false;
 
 	// 컬러 맵을 지형에 로드
-	if (!LoadColorMap(colorMapFilename))	return false;
+	//if (!LoadColorMap(colorMapFilename))	return false;
 
 	// 지형에 대한 머터리얼 그룹 로드
 	//if (!LoadMaterialFile(materialsFilename, materialMapFilename, device))	return false;
@@ -52,6 +52,12 @@ int TerrainClass::GetIndexCount() { return m_indexCount; }
 ID3D11ShaderResourceView* TerrainClass::GetTexture() { return m_texture->GetTexture(); }
 
 ID3D11ShaderResourceView* TerrainClass::GetDetailMapTexture() { return m_detailTexture->GetTexture(); }
+
+ID3D11ShaderResourceView* TerrainClass::GetFlatTexture() { return m_flatTexture->GetTexture(); }
+
+ID3D11ShaderResourceView* TerrainClass::GetSlopeTexture() { return m_slopeTexture->GetTexture(); }
+
+ID3D11ShaderResourceView* TerrainClass::GetScarpTexture() { return m_scarpTexture->GetTexture(); }
 
 void TerrainClass::GetTerrainSize(int& width, int& height)
 {
@@ -306,19 +312,32 @@ void TerrainClass::CalculateTextureCoordinates()
 	}
 }
 
-bool TerrainClass::LoadTexture(ID3D11Device* device, const WCHAR* filename, const WCHAR* detailMapFilename)
+bool TerrainClass::LoadTexture(ID3D11Device* device, const WCHAR* flatTextureFilename, const WCHAR* slopeTextureFilename, const WCHAR* scarpTextureFilename)
 {
-	m_texture = new TextureClass;
-	if (!m_texture)	return false;
-	if (!m_texture->Initialize(device, filename))	return false;
+	//m_texture = new TextureClass;
+	//if (!m_texture)	return false;
+	//if (!m_texture->Initialize(device, filename))	return false;
 
-	m_detailTexture = new TextureClass;
-	if (!m_detailTexture)	return false;
-	if (!m_detailTexture->Initialize(device, detailMapFilename))	return false;
+	//m_detailTexture = new TextureClass;
+	//if (!m_detailTexture)	return false;
+	//if (!m_detailTexture->Initialize(device, detailMapFilename))	return false;
+
+	m_flatTexture = new TextureClass;
+	if (!m_flatTexture)	return false;
+	if (!m_flatTexture->Initialize(device, flatTextureFilename))	return false;
+
+	m_slopeTexture = new TextureClass;
+	if (!m_slopeTexture)	return false;
+	if (!m_slopeTexture->Initialize(device, slopeTextureFilename))	return false;
+
+	m_scarpTexture = new TextureClass;
+	if (!m_scarpTexture)	return false;
+	if (!m_scarpTexture->Initialize(device, scarpTextureFilename))	return false;
 
 	return true;
 }
 
+/*
 bool TerrainClass::LoadColorMap(const char* colorMapfilename)
 {
 	// 컬러 맵 파일 오픈
@@ -374,6 +393,7 @@ bool TerrainClass::LoadColorMap(const char* colorMapfilename)
 
 	return true;
 }
+*/
 
 /*
 bool TerrainClass::LoadMaterialFile(const char* filename, const char* materialMapFilename, ID3D11Device* device)
@@ -674,8 +694,9 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexLeftTop].x, m_heightMap[indexLeftTop].y, m_heightMap[indexLeftTop].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftTop].nx, m_heightMap[indexLeftTop].ny, m_heightMap[indexLeftTop].nz);
-			m_vertices[index].texture = XMFLOAT4(tu, tv, 0.0f, 0.0f);
-			m_vertices[index].color = XMFLOAT4(m_heightMap[indexLeftTop].r, m_heightMap[indexLeftTop].g, m_heightMap[indexLeftTop].b, 1.0f);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//m_vertices[index].texture = XMFLOAT4(tu, tv, 0.0f, 0.0f);
+			//m_vertices[index].color = XMFLOAT4(m_heightMap[indexLeftTop].r, m_heightMap[indexLeftTop].g, m_heightMap[indexLeftTop].b, 1.0f);
 			indices[index] = index;
 			index++;
 
@@ -687,8 +708,9 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
-			m_vertices[index].texture = XMFLOAT4(tu, tv, 1.0f, 0.0f);
-			m_vertices[index].color = XMFLOAT4(m_heightMap[indexRightTop].r, m_heightMap[indexRightTop].g, m_heightMap[indexRightTop].b, 1.0f);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//m_vertices[index].texture = XMFLOAT4(tu, tv, 1.0f, 0.0f);
+			//m_vertices[index].color = XMFLOAT4(m_heightMap[indexRightTop].r, m_heightMap[indexRightTop].g, m_heightMap[indexRightTop].b, 1.0f);
 			indices[index] = index;
 			index++;
 
@@ -698,8 +720,9 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
-			m_vertices[index].texture = XMFLOAT4(tu, tv, 0.0f, 1.0f);
-			m_vertices[index].color = XMFLOAT4(m_heightMap[indexLeftBottom].r, m_heightMap[indexLeftBottom].g, m_heightMap[indexLeftBottom].b, 1.0f);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//m_vertices[index].texture = XMFLOAT4(tu, tv, 0.0f, 1.0f);
+			//m_vertices[index].color = XMFLOAT4(m_heightMap[indexLeftBottom].r, m_heightMap[indexLeftBottom].g, m_heightMap[indexLeftBottom].b, 1.0f);
 			indices[index] = index;
 			index++;
 
@@ -709,8 +732,9 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexLeftBottom].x, m_heightMap[indexLeftBottom].y, m_heightMap[indexLeftBottom].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexLeftBottom].nx, m_heightMap[indexLeftBottom].ny, m_heightMap[indexLeftBottom].nz);
-			m_vertices[index].texture = XMFLOAT4(tu, tv, 0.0f, 1.0f);
-			m_vertices[index].color = XMFLOAT4(m_heightMap[indexLeftBottom].r, m_heightMap[indexLeftBottom].g, m_heightMap[indexLeftBottom].b, 1.0f);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//m_vertices[index].texture = XMFLOAT4(tu, tv, 0.0f, 1.0f);
+			//m_vertices[index].color = XMFLOAT4(m_heightMap[indexLeftBottom].r, m_heightMap[indexLeftBottom].g, m_heightMap[indexLeftBottom].b, 1.0f);
 			indices[index] = index;
 			index++;
 
@@ -722,8 +746,9 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexRightTop].x, m_heightMap[indexRightTop].y, m_heightMap[indexRightTop].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexRightTop].nx, m_heightMap[indexRightTop].ny, m_heightMap[indexRightTop].nz);
-			m_vertices[index].texture = XMFLOAT4(tu, tv, 1.0f, 0.0f);
-			m_vertices[index].color = XMFLOAT4(m_heightMap[indexRightTop].r, m_heightMap[indexRightTop].g, m_heightMap[indexRightTop].b, 1.0f);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//m_vertices[index].texture = XMFLOAT4(tu, tv, 1.0f, 0.0f);
+			//m_vertices[index].color = XMFLOAT4(m_heightMap[indexRightTop].r, m_heightMap[indexRightTop].g, m_heightMap[indexRightTop].b, 1.0f);
 			indices[index] = index;
 			index++;
 
@@ -734,8 +759,9 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 
 			m_vertices[index].position = XMFLOAT3(m_heightMap[indexRightBottom].x, m_heightMap[indexRightBottom].y, m_heightMap[indexRightBottom].z);
 			m_vertices[index].normal = XMFLOAT3(m_heightMap[indexRightBottom].nx, m_heightMap[indexRightBottom].ny, m_heightMap[indexRightBottom].nz);
-			m_vertices[index].texture = XMFLOAT4(tu, tv, 1.0f, 1.0f);
-			m_vertices[index].color = XMFLOAT4(m_heightMap[indexRightBottom].r, m_heightMap[indexRightBottom].g, m_heightMap[indexRightBottom].b, 1.0f);
+			m_vertices[index].texture = XMFLOAT2(tu, tv);
+			//m_vertices[index].texture = XMFLOAT4(tu, tv, 1.0f, 1.0f);
+			//m_vertices[index].color = XMFLOAT4(m_heightMap[indexRightBottom].r, m_heightMap[indexRightBottom].g, m_heightMap[indexRightBottom].b, 1.0f);
 			indices[index] = index;
 			index++;
 		}
@@ -800,16 +826,34 @@ void TerrainClass::ShutdownHeightMap()
 
 void TerrainClass::ReleaseTexture()
 {
-	if (m_detailTexture) {
-		m_detailTexture->Shutdown();
-		delete m_detailTexture;
-		m_detailTexture = 0;
+	//if (m_detailTexture) {
+	//	m_detailTexture->Shutdown();
+	//	delete m_detailTexture;
+	//	m_detailTexture = 0;
+	//}
+
+	//if (m_texture) {
+	//	m_texture->Shutdown();
+	//	delete m_texture;
+	//	m_texture = 0;
+	//}
+
+	if (m_scarpTexture) {
+		m_scarpTexture->Shutdown();
+		delete m_scarpTexture;
+		m_scarpTexture = 0;
 	}
 
-	if (m_texture) {
-		m_texture->Shutdown();
-		delete m_texture;
-		m_texture = 0;
+	if (m_slopeTexture) {
+		m_slopeTexture->Shutdown();
+		delete m_slopeTexture;
+		m_slopeTexture = 0;
+	}
+
+	if (m_flatTexture) {
+		m_flatTexture->Shutdown();
+		delete m_flatTexture;
+		m_flatTexture = 0;
 	}
 }
 
