@@ -15,11 +15,13 @@ public:
 
 	void Render();
 	void GetViewMatrix(XMMATRIX&);
+	
+	void GenerateBaseViewMatrix();
 	void GetBaseViewMatrix(XMMATRIX&);
 	void RenderBaseViewMatrix();
 
 	void RenderReflection(float);
-	XMMATRIX GetReflectionViewMatrix();
+	void GetReflectionViewMatrix(XMMATRIX&);
 
 private:
 	XMFLOAT3 m_position;

@@ -15,7 +15,7 @@ bool ReflectionShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	//WCHAR ps[] = L"PS.hlsl";
 	//result = InitializeShader(device, hwnd, vs, ps);
 	//return result;
-	return InitializeShader(device, hwnd, L"./Water.vs", L"./Water.ps");
+	return InitializeShader(device, hwnd, L"./shader/Reflection.vs", L"./shader/Reflection.ps");
 }
 
 void ReflectionShaderClass::Shutdown()
@@ -24,11 +24,11 @@ void ReflectionShaderClass::Shutdown()
 }
 
 // 마지막 매개변수를 단일 텍스쳐 일때는 texture, 다중 텍스쳐 일때는 textureArray
-bool ReflectionShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, XMMATRIX reflectionMatrix, 
-	ID3D11ShaderResourceView* reflectionTexture, ID3D11ShaderResourceView* refractionTexture, ID3D11ShaderResourceView* normalTexture, float waterTranslation, float reflectRefractScale)
+bool ReflectionShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, 
+	ID3D11ShaderResourceView* colorTexture, ID3D11ShaderResourceView* normalTexture, XMFLOAT4 lightDiffuseColor, XMFLOAT3 lightDirection, float colorTextureBrightness, XMFLOAT4 clipPlane)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, reflectionMatrix, reflectionTexture, refractionTexture, normalTexture, waterTranslation, reflectRefractScale))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, colorTexture, normalTexture, lightDiffuseColor, lightDirection, colorTextureBrightness, clipPlane))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -41,7 +41,7 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 
 	// 정점셰이더 코드 컴파일
 	ID3D10Blob* vertexShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "WaterVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
+	if (FAILED(D3DCompileFromFile(vsFilename, NULL, NULL, "ReflectionVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage))) {
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, vsFilename); }
 		else { MessageBox(hwnd, vsFilename, L"Missing Vertex Shader File", MB_OK); }
 		return false;
@@ -49,7 +49,7 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 
 	// 픽셀셰이더 코드 컴파일
 	ID3D10Blob* pixelShaderBuffer = nullptr;
-	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "WaterPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
+	if (FAILED(D3DCompileFromFile(psFilename, NULL, NULL, "ReflectionPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage))) {
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, psFilename); }
 		else { MessageBox(hwnd, psFilename, L"Missing Pixel Shader File", MB_OK); }
 		return false;
@@ -63,7 +63,7 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 
 	// 정점 입력 레이아웃 구조체 설정
 	// ModelClass와 셰이더의 VertexType 구조와 일치해야한다.
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[6];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -79,6 +79,38 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
+
+	polygonLayout[2].SemanticName = "NORMAL";
+	polygonLayout[2].SemanticIndex = 0;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[2].InputSlot = 0;
+	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[2].InstanceDataStepRate = 0;
+
+	polygonLayout[3].SemanticName = "TANGENT";
+	polygonLayout[3].SemanticIndex = 0;
+	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[3].InputSlot = 0;
+	polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[3].InstanceDataStepRate = 0;
+
+	polygonLayout[4].SemanticName = "BINORMAL";
+	polygonLayout[4].SemanticIndex = 0;
+	polygonLayout[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[4].InputSlot = 0;
+	polygonLayout[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[4].InstanceDataStepRate = 0;
+
+	polygonLayout[5].SemanticName = "COLOR";
+	polygonLayout[5].SemanticIndex = 0;
+	polygonLayout[5].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	polygonLayout[5].InputSlot = 0;
+	polygonLayout[5].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[5].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[5].InstanceDataStepRate = 0;
 
 	// 레이아웃 요소 수
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -107,11 +139,12 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 	if (FAILED(device->CreateBuffer(&constantBufferDesc, NULL, &m_constantBuffer)))	return false;
 
 	// 텍스쳐 샘플러 상태 구조체 설정
+	// address를 clamp로 수정
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	samplerDesc.MipLODBias = 0.0f;
 	samplerDesc.MaxAnisotropy = 1;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
@@ -126,28 +159,28 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 	if (FAILED(device->CreateSamplerState(&samplerDesc, &m_sampleState)))	return false;
 
 	// 반사 버퍼 구조체 설정
-	D3D11_BUFFER_DESC reflectionBufferDesc;
-	reflectionBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	reflectionBufferDesc.ByteWidth = sizeof(ReflectionBufferType);
-	reflectionBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	reflectionBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	reflectionBufferDesc.MiscFlags = 0;
-	reflectionBufferDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC clipPlaneBufferDesc;
+	clipPlaneBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	clipPlaneBufferDesc.ByteWidth = sizeof(ClipPlaneBufferType);
+	clipPlaneBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	clipPlaneBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	clipPlaneBufferDesc.MiscFlags = 0;
+	clipPlaneBufferDesc.StructureByteStride = 0;
 
 	// 반사 버퍼 생성
-	if (FAILED(device->CreateBuffer(&reflectionBufferDesc, NULL, &m_reflectionBuffer)))	return false;
+	if (FAILED(device->CreateBuffer(&clipPlaneBufferDesc, NULL, &m_clipPlaneBuffer)))	return false;
 
 	// 물 버퍼 구조체 설정
-	D3D11_BUFFER_DESC waterBufferDesc;
-	waterBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	waterBufferDesc.ByteWidth = sizeof(WaterBufferType);
-	waterBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	waterBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	waterBufferDesc.MiscFlags = 0;
-	waterBufferDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC lightBufferDesc;
+	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
+	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightBufferDesc.MiscFlags = 0;
+	lightBufferDesc.StructureByteStride = 0;
 
 	// 물 버퍼 생성
-	if (FAILED(device->CreateBuffer(&waterBufferDesc, NULL, &m_waterBuffer)))	return false;
+	if (FAILED(device->CreateBuffer(&lightBufferDesc, NULL, &m_lightBuffer)))	return false;
 
 	return true;
 }
@@ -155,15 +188,15 @@ bool ReflectionShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, co
 void ReflectionShaderClass::ShutdownShader()
 {
 	// 물 버퍼 해제
-	if (m_waterBuffer) {
-		m_waterBuffer->Release();
-		m_waterBuffer = 0;
+	if (m_lightBuffer) {
+		m_lightBuffer->Release();
+		m_lightBuffer = 0;
 	}
 
 	// 반사 버퍼 해제
-	if (m_reflectionBuffer) {
-		m_reflectionBuffer->Release();
-		m_reflectionBuffer = 0;
+	if (m_clipPlaneBuffer) {
+		m_clipPlaneBuffer->Release();
+		m_clipPlaneBuffer = 0;
 	}
 
 	// 샘플러 상태 해제
@@ -230,62 +263,56 @@ void ReflectionShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, H
 	MessageBox(hwnd, L"Error compiling shader.", shaderFilename, MB_OK);
 }
 
-bool ReflectionShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, XMMATRIX reflectionMatrix,
-	ID3D11ShaderResourceView* reflectionTexture, ID3D11ShaderResourceView* refractionTexture, ID3D11ShaderResourceView* normalTexture, float waterTranslation, float reflectRefractScale)
+bool ReflectionShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, 
+	ID3D11ShaderResourceView* colorTexture, ID3D11ShaderResourceView* normalTexture, XMFLOAT4 lightDiffuseColor, XMFLOAT3 lightDirection, float colorTextureBrightness, XMFLOAT4 clipPlane)
 {
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	viewMatrix = XMMatrixTranspose(viewMatrix);
 	projectionMatrix = XMMatrixTranspose(projectionMatrix);
-	reflectionMatrix = XMMatrixTranspose(reflectionMatrix);
 
 	// 상수 버퍼 자원에 자료를 올릴 수 있도록 포인터 생성
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	if (FAILED(deviceContext->Map(m_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	ConstantBufferType* matrixPtr = (ConstantBufferType*)mappedResource.pData;
+	ConstantBufferType* constantPtr = (ConstantBufferType*)mappedResource.pData;
 
 	// 상수버퍼에 행렬 복사
-	matrixPtr->world = worldMatrix;
-	matrixPtr->view = viewMatrix;
-	matrixPtr->projection = projectionMatrix;
+	constantPtr->world = worldMatrix;
+	constantPtr->view = viewMatrix;
+	constantPtr->projection = projectionMatrix;
 
 	// 상수버퍼 메모리 해제
 	deviceContext->Unmap(m_constantBuffer, 0);
-	unsigned bufferNumber = 0;
+	unsigned int bufferNumber = 0;
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_constantBuffer);
 
-	if (FAILED(deviceContext->Map(m_reflectionBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	ReflectionBufferType* reflectionPtr = (ReflectionBufferType*)mappedResource.pData;
+	if (FAILED(deviceContext->Map(m_clipPlaneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	ClipPlaneBufferType* clipPlanePtr = (ClipPlaneBufferType*)mappedResource.pData;
 
 	// 상수버퍼에 클리핑 평면 복사
-	reflectionPtr->reflectionMatrix = reflectionMatrix;
+	clipPlanePtr->clipPlane = clipPlane;
 
 	// 상수버퍼 메모리 해제
-	deviceContext->Unmap(m_reflectionBuffer, 0);
+	deviceContext->Unmap(m_clipPlaneBuffer, 0);
 	bufferNumber = 1;
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_reflectionBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_clipPlaneBuffer);
 
-	// 반사 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(0, 1, &reflectionTexture);
-
-	// 굴절 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(1, 1, &refractionTexture);
-
-	// 노말 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(2, 1, &normalTexture);
-
-	if (FAILED(deviceContext->Map(m_waterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
-	WaterBufferType* waterPtr = (WaterBufferType*)mappedResource.pData;
+	if (FAILED(deviceContext->Map(m_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
+	LightBufferType* lightPtr = (LightBufferType*)mappedResource.pData;
 
 	// 상수버퍼에 클리핑 평면 복사
-	waterPtr->waterTranslation = waterTranslation;
-	waterPtr->reflectRefractScale = reflectRefractScale;
-	waterPtr->padding = XMFLOAT2(0.0f, 0.0f);
+	lightPtr->lightDiffuseColor = lightDiffuseColor;
+	lightPtr->lightDirection = lightDirection;
+	lightPtr->colorTextureBrightness = colorTextureBrightness;
 
 	// 상수버퍼 메모리 해제
-	deviceContext->Unmap(m_waterBuffer, 0);
+	deviceContext->Unmap(m_lightBuffer, 0);
 	bufferNumber = 0;
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_waterBuffer);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
+
+	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
+	deviceContext->PSSetShaderResources(0, 1, &colorTexture);
+	deviceContext->PSSetShaderResources(1, 1, &normalTexture);
 
 	return true;
 }

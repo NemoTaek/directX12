@@ -3,14 +3,15 @@ cbuffer MatrixBuffer
 	matrix worldMatrix;
 	matrix viewMatrix;
 	matrix projectionMatrix;
+	matrix reflectionMatrix;
 };
 
-// 반사 효과를 위한 반사 뷰 행렬
-// 이 반사는 조명 반사가 아닌 거울로 비춘것과 같은 반사 효과로
-// 반사 화면을 텍스쳐에 그리고 보여질 곳과 혼합하여 렌더링
-cbuffer ReflectionBuffer
+cbuffer CamNormBuffer
 {
-	matrix reflectionMatrix;
+	float3 cameraPosition;
+	float padding1;
+	float2 normalMapTiling;
+	float2 padding2;
 };
 
 struct VertexInputType
@@ -22,9 +23,11 @@ struct VertexInputType
 struct PixelInputType
 {
 	float4 position : SV_POSITION;
-	float2 tex : TEXCOORD0;
-	float4 reflectionPosition : TEXCOORD1;	// 반사
-	float4 refractionPosition : TEXCOORD2;	// 굴절
+	float4 reflectionPosition : TEXCOORD0;	// 반사
+	float4 refractionPosition : TEXCOORD1;	// 굴절
+	float3 viewDirection : TEXCOORD2;
+	float2 tex1 : TEXCOORD3;
+	float2 tex2 : TEXCOORD4;
 };
 
 PixelInputType WaterVertexShader(VertexInputType input)
@@ -32,6 +35,7 @@ PixelInputType WaterVertexShader(VertexInputType input)
 	PixelInputType output;
 	matrix reflectProjectWorld;
 	matrix viewProjectWorld;
+	float4 worldPosition;
 
 	// 올바르게 행렬 연산을 하기 위하여 position 벡터를 w까지 있는 4성분이 있는 것으로 사용한다.
 	input.position.w = 1.0f;
@@ -40,9 +44,6 @@ PixelInputType WaterVertexShader(VertexInputType input)
 	output.position = mul(input.position, worldMatrix);
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);
-
-	// 픽셀 쉐이더의 텍스처 좌표를 저장한다.
-	output.tex = input.tex;
 
 	// 반사 투영세계 행렬 생성
 	reflectProjectWorld = mul(reflectionMatrix, projectionMatrix);
@@ -57,6 +58,17 @@ PixelInputType WaterVertexShader(VertexInputType input)
 
 	// 굴절 행렬에 대한 입력 위치 계산
 	output.refractionPosition = mul(input.position, viewProjectWorld);
+
+	// 세계 정점 위치 계산
+	worldPosition = mul(input.position, worldMatrix);
+
+	// 카메라 위치와 세계 정점 위치를 기준으로 시야 방향 결정
+	output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
+	output.viewDirection = normalize(output.viewDirection);
+
+	// 물길에 법선 맵을 타일링
+	output.tex1 = input.tex / normalMapTiling.x;
+	output.tex2 = input.tex / normalMapTiling.y;
 
 	return output;
 }

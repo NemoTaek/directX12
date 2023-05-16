@@ -15,15 +15,18 @@
 #include "LightClass.h"
 //#include "FrustumClass.h"
 //#include "QuadTreeClass.h"
-#include "TextureShaderClass.h"
+//#include "TextureShaderClass.h"
 //#include "MiniMap.h"
 #include "SkyDomeClass.h"
 #include "SkyDomeShaderClass.h"
 #include "SkyPlaneClass.h"
 #include "SkyPlaneShaderClass.h"
-#include "DebugWindowClass.h"
+//#include "DebugWindowClass.h"
 #include "RenderTextureClass.h"
-#include "DepthShaderClass.h"
+//#include "DepthShaderClass.h"
+#include "ReflectionShaderClass.h"
+#include "WaterClass.h"
+#include "WaterShaderClass.h"
 
 ApplicationClass::ApplicationClass() {}
 ApplicationClass::ApplicationClass(const ApplicationClass& other) {}
@@ -43,14 +46,15 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	// 2D UI 렌더링을 위해 카메라로 기본 뷰 행렬 초기화
 	XMMATRIX baseViewMatrix;
-	XMFLOAT3 camera = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	XMFLOAT3 camera = XMFLOAT3(0.0f, 0.0f, -10.0f);
 	m_Camera->SetPosition(camera);
-	m_Camera->RenderBaseViewMatrix();
+	//m_Camera->RenderBaseViewMatrix();
+	m_Camera->GenerateBaseViewMatrix();
 	m_Camera->GetBaseViewMatrix(baseViewMatrix);
 
 	// 카메라 위치 설정
-	camera = XMFLOAT3(150.0f, 2.0f, 35.0f);
-	m_Camera->SetPosition(camera);
+	//camera = XMFLOAT3(150.0f, 2.0f, 35.0f);
+	//m_Camera->SetPosition(camera);
 
 	m_Input = new InputClass;
 	if (!m_Input) return false;
@@ -68,7 +72,8 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Position = new PositionClass;
 	if (!m_Position) return false;
-	m_Position->SetPosition(camera);
+	m_Position->SetPosition(XMFLOAT3(280.379f, 24.5225f, 367.018f));
+	m_Position->SetRotation(XMFLOAT3(19.6834f, 222.013f, 0.0f));
 
 	m_Fps = new FpsClass;
 	if (!m_Fps) return false;
@@ -101,13 +106,13 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Terrain = new TerrainClass;
 	if (!m_Terrain) return false;
-	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/heightmap.bmp", L"./Textures/grass.dds", L"./Textures/slope.dds", L"./Textures/rock.dds")) {
+	if (!m_Terrain->Initialize(m_Direct3D->GetDevice(), "./Textures/hm.bmp", "./Textures/cm.bmp", 20.0f, L"./Textures/dirt.dds", L"./Textures/normal.dds")) {
 		MessageBox(hwnd, L"Could not initialize the terrain object", L"Error", MB_OK);
 		return false;
 	}
-	int terrainWidth = 0;
-	int terrainHeight = 0;
-	m_Terrain->GetTerrainSize(terrainWidth, terrainHeight);
+	//int terrainWidth = 0;
+	//int terrainHeight = 0;
+	//m_Terrain->GetTerrainSize(terrainWidth, terrainHeight);
 
 	// 비디오 카드 정보
 	char cardName[128] = { 0, };
@@ -127,9 +132,9 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Light = new LightClass;
 	if (!m_Light) return false;
-	m_Light->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
+	//m_Light->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(-0.5f, -1.0f, 0.0f);
+	m_Light->SetDirection(0.5f, -0.75f, 0.25f);
 
 	//m_Frustum = new FrustumClass;
 	//if (!m_Frustum) return false;
@@ -141,12 +146,12 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	//	return false;
 	//}
 
-	m_TextureShader = new TextureShaderClass;
-	if (!m_TextureShader) { return false; }
-	if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-		return false;
-	}
+	//m_TextureShader = new TextureShaderClass;
+	//if (!m_TextureShader) { return false; }
+	//if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	//m_MiniMap = new MiniMapClass;
 	//if (!m_MiniMap) { return false; }
@@ -171,7 +176,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_SkyPlane = new SkyPlaneClass;
 	if (!m_SkyPlane) { return false; }
-	if (!m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"./Textures/cloud002.dds", L"./Textures/perturb001.dds")) {
+	if (!m_SkyPlane->Initialize(m_Direct3D->GetDevice(), L"./Textures/cloud001.dds", L"./Textures/perturb001.dds")) {
 		MessageBox(hwnd, L"Could not initialize the sky plane object", L"Error", MB_OK);
 		return false;
 	}
@@ -183,24 +188,59 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
-	m_DebugWindow = new DebugWindowClass;
-	if (!m_DebugWindow) { return false; }
-	if (!m_DebugWindow->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, 256, 256)) {
-		MessageBox(hwnd, L"Could not initialize the debug window bitmap object", L"Error", MB_OK);
+	//m_DebugWindow = new DebugWindowClass;
+	//if (!m_DebugWindow) { return false; }
+	//if (!m_DebugWindow->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, 256, 256)) {
+	//	MessageBox(hwnd, L"Could not initialize the debug window bitmap object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	//m_RenderTexture = new RenderTextureClass;
+	//if (!m_RenderTexture) { return false; }
+	//if (!m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) {
+	//	MessageBox(hwnd, L"Could not initialize the render to texture object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	//m_DepthShader = new DepthShaderClass;
+	//if (!m_DepthShader) { return false; }
+	//if (!m_DepthShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+	//	MessageBox(hwnd, L"Could not initialize the depth shader object", L"Error", MB_OK);
+	//	return false;
+	//}
+
+	m_RefractionTexture = new RenderTextureClass;
+	if (!m_RefractionTexture) { return false; }
+	if (!m_RefractionTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) {
+		MessageBox(hwnd, L"Could not initialize the refraction render to texture object", L"Error", MB_OK);
 		return false;
 	}
 
-	m_RenderTexture = new RenderTextureClass;
-	if (!m_RenderTexture) { return false; }
-	if (!m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) {
-		MessageBox(hwnd, L"Could not initialize the render to texture object", L"Error", MB_OK);
+	m_ReflectionTexture = new RenderTextureClass;
+	if (!m_ReflectionTexture) { return false; }
+	if (!m_ReflectionTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) {
+		MessageBox(hwnd, L"Could not initialize the reflaction render to texture object", L"Error", MB_OK);
 		return false;
 	}
 
-	m_DepthShader = new DepthShaderClass;
-	if (!m_DepthShader) { return false; }
-	if (!m_DepthShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-		MessageBox(hwnd, L"Could not initialize the depth shader object", L"Error", MB_OK);
+	m_ReflectionShader = new ReflectionShaderClass;
+	if (!m_ReflectionShader) { return false; }
+	if (!m_ReflectionShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the reflection shader object", L"Error", MB_OK);
+		return false;
+	}
+
+	m_Water = new WaterClass;
+	if (!m_Water) { return false; }
+	if (!m_Water->Initialize(m_Direct3D->GetDevice(), L"./Textures/waternormal.dds", 3.75f, 110.0f)) {
+		MessageBox(hwnd, L"Could not initialize the water object", L"Error", MB_OK);
+		return false;
+	}
+
+	m_WaterShader = new WaterShaderClass;
+	if (!m_WaterShader) { return false; }
+	if (!m_WaterShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the water shader object", L"Error", MB_OK);
 		return false;
 	}
 
@@ -209,23 +249,53 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 void ApplicationClass::Shutdown()
 {
-	if (m_DepthShader) {
-		m_DepthShader->Shutdown();
-		delete m_DepthShader;
-		m_DepthShader = 0;
+	if (m_WaterShader) {
+		m_WaterShader->Shutdown();
+		delete m_WaterShader;
+		m_WaterShader = 0;
 	}
 
-	if (m_RenderTexture) {
-		m_RenderTexture->Shutdown();
-		delete m_RenderTexture;
-		m_RenderTexture = 0;
+	if (m_Water) {
+		m_Water->Shutdown();
+		delete m_Water;
+		m_Water = 0;
 	}
 
-	if (m_DebugWindow) {
-		m_DebugWindow->Shutdown();
-		delete m_DebugWindow;
-		m_DebugWindow = 0;
+	if (m_ReflectionShader) {
+		m_ReflectionShader->Shutdown();
+		delete m_ReflectionShader;
+		m_ReflectionShader = 0;
 	}
+
+	if (m_ReflectionTexture) {
+		m_ReflectionTexture->Shutdown();
+		delete m_ReflectionTexture;
+		m_ReflectionTexture = 0;
+	}
+
+	if (m_RefractionTexture) {
+		m_RefractionTexture->Shutdown();
+		delete m_RefractionTexture;
+		m_RefractionTexture = 0;
+	}
+
+	//if (m_DepthShader) {
+	//	m_DepthShader->Shutdown();
+	//	delete m_DepthShader;
+	//	m_DepthShader = 0;
+	//}
+
+	//if (m_RenderTexture) {
+	//	m_RenderTexture->Shutdown();
+	//	delete m_RenderTexture;
+	//	m_RenderTexture = 0;
+	//}
+
+	//if (m_DebugWindow) {
+	//	m_DebugWindow->Shutdown();
+	//	delete m_DebugWindow;
+	//	m_DebugWindow = 0;
+	//}
 
 	if (m_SkyPlaneShader) {
 		m_SkyPlaneShader->Shutdown();
@@ -257,11 +327,11 @@ void ApplicationClass::Shutdown()
 	//	m_MiniMap = 0;
 	//}
 
-	if (m_TextureShader) {
-		m_TextureShader->Shutdown();
-		delete m_TextureShader;
-		m_TextureShader = 0;
-	}
+	//if (m_TextureShader) {
+	//	m_TextureShader->Shutdown();
+	//	delete m_TextureShader;
+	//	m_TextureShader = 0;
+	//}
 
 	//if (m_QuadTree) {
 	//	m_QuadTree->Shutdown();
@@ -383,6 +453,13 @@ bool ApplicationClass::Frame()
 	// 하늘 평면 프레임 처리 수행
 	m_SkyPlane->Frame();
 
+	// 물 프레임 처리 수행
+	m_Water->Frame();
+
+	// 굴절 및 반사를 텍스처에 렌더링
+	RenderRefractionToTexture();
+	RenderReflectionToTexture();
+
 	// 그래픽 렌더링
 	if (!RenderGraphics())	return false;
 
@@ -437,12 +514,13 @@ bool ApplicationClass::RenderGraphics()
 	m_Camera->Render();
 
 	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, baseViewMatrix;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, baseViewMatrix, reflectionViewMatrix;
 	m_Direct3D->GetWorldMatrix(worldMatrix);
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 	m_Camera->GetBaseViewMatrix(baseViewMatrix);
+	m_Camera->GetReflectionViewMatrix(reflectionViewMatrix);
 
 	// 여기부터 하늘 생성 코드
 	// 캐릭터는 항상 하늘 아래에 있기 때문에 카메라 위치를 중심으로 동작
@@ -489,8 +567,17 @@ bool ApplicationClass::RenderGraphics()
 	//if (!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix))	return false;
 
 	// 지형 셰이더를 사용하여 모델 렌더링
-	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetFlatTexture(), m_Terrain->GetSlopeTexture(), m_Terrain->GetScarpTexture()))	return false;
+	//if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetFlatTexture(), m_Terrain->GetSlopeTexture(), m_Terrain->GetScarpTexture()))	return false;
 	//if (!m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
+	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Terrain->GetColorTexture(), m_Terrain->GetNormalTexture(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), 2.0f))	return false;
+
+	// 물이 있는 위치로 이동 후 렌더링
+	worldMatrix = XMMatrixTranslation(240.0f, m_Water->GetWaterHeight(), 250.0f);
+	m_Water->Render(m_Direct3D->GetDeviceContext());
+	m_WaterShader->Render(m_Direct3D->GetDeviceContext(), m_Water->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, reflectionViewMatrix,
+		m_RefractionTexture->GetShaderResourceView(), m_ReflectionTexture->GetShaderResourceView(), m_Water->GetTexture(), m_Camera->GetPosition(), m_Water->GetNormalMapTiling(),
+		m_Water->GetWaterTranslation(), m_Water->GetReflectRefractScale(), m_Water->GetRefractionTint(), m_Light->GetDirection(), m_Water->GetSpecularShiness());
+	m_Direct3D->GetWorldMatrix(worldMatrix);
 
 	// 쿼드 트리 및 지형 셰이더를 사용하여 지형 렌더링
 	//m_QuadTree->Render(m_Frustum, m_Direct3D->GetDeviceContext(), m_TerrainShader);
@@ -528,6 +615,7 @@ bool ApplicationClass::RenderGraphics()
 	return true;
 }
 
+/*
 bool ApplicationClass::RenderSceneToTexture()
 {
 	// 렌더링 대상을 RTT로 설정
@@ -559,4 +647,98 @@ bool ApplicationClass::RenderSceneToTexture()
 	m_Direct3D->ResetViewport();
 
 	return true;
+}
+*/
+
+void ApplicationClass::RenderRefractionToTexture()
+{
+	// 물 위 높이에 따라 클리핑 면을 설정하여 굴절을 만들기 위해 위에 있는 모든 것을 클리핑
+	XMFLOAT4 clipPlane = XMFLOAT4(0.0f, -1.0f, 0.0f, m_Water->GetWaterHeight() + 0.1f);
+
+	// 렌더링 대상을 RTT로 설정
+	m_RefractionTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// RTT 초기화
+	m_RefractionTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬 생성
+	m_Camera->Render();
+
+	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	// 지형 버퍼 렌더링
+	m_Terrain->Render(m_Direct3D->GetDeviceContext());
+
+	// 반사 셰이더를 사용하여 지형 렌더링하여 굴절효과 생성
+	m_ReflectionShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Terrain->GetColorTexture(), m_Terrain->GetNormalTexture(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), 2.0f, clipPlane);
+
+	// 렌더링 대상을 다시 원래 백버퍼로 설정
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// 뷰포트를 원본으로 다시 설정
+	m_Direct3D->ResetViewport();
+}
+
+void ApplicationClass::RenderReflectionToTexture()
+{
+	// 물 밑에 있는 물체의 높이를 기준으로 클리핑면 설정
+	XMFLOAT4 clipPlane = XMFLOAT4(0.0f, 1.0f, 0.0f, -m_Water->GetWaterHeight());
+
+	// 렌더링 대상을 RTT로 설정
+	m_ReflectionTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// RTT 초기화
+	m_ReflectionTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	// 카메라의 위치에 따라 뷰 행렬 생성
+	m_Camera->RenderReflection(m_Water->GetWaterHeight());
+
+	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
+	XMMATRIX worldMatrix, reflectionViewMatrix, projectionMatrix, orthoMatrix;
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetReflectionViewMatrix(reflectionViewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	// 카메라 위치를 얻은 후, 반사된 카메라 위치를 뒤집는다
+	XMFLOAT3 cameraPosition = m_Camera->GetPosition();
+	cameraPosition.y = -cameraPosition.y + (m_Water->GetWaterHeight() * 2.0f);
+
+	// 반사된 하늘 풍경 렌더링
+	worldMatrix = XMMatrixTranslation(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+	m_Direct3D->TurnOffCulling();
+	m_Direct3D->TurnZBufferOff();
+
+	m_SkyDome->Render(m_Direct3D->GetDeviceContext());
+	m_SkyDomeShader->Render(m_Direct3D->GetDeviceContext(), m_SkyDome->GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix, m_SkyDome->GetApexColor(), m_SkyDome->GetCenterColor());
+
+	m_Direct3D->TurnOnCulling();
+	m_Direct3D->EnableSecondBlendState();
+
+	m_SkyPlane->Render(m_Direct3D->GetDeviceContext());
+	m_SkyPlaneShader->Render(m_Direct3D->GetDeviceContext(), m_SkyPlane->GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix, m_SkyPlane->GetCloudTexture(), m_SkyPlane->GetPerturbTexture(),
+		m_SkyPlane->GetTranslation(), m_SkyPlane->GetScale(), m_SkyPlane->GetBrightness());
+
+	m_Direct3D->TurnOffAlphaBlending();
+	m_Direct3D->TurnZBufferOn();
+
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+
+	// 지형 버퍼 렌더링
+	m_Terrain->Render(m_Direct3D->GetDeviceContext());
+
+	// 반사 셰이더를 사용하여 지형 렌더링하여 굴절효과 생성
+	m_ReflectionShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix, m_Terrain->GetColorTexture(), m_Terrain->GetNormalTexture(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), 2.0f, clipPlane);
+
+	// 렌더링 대상을 다시 원래 백버퍼로 설정
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// 뷰포트를 원본으로 다시 설정
+	m_Direct3D->ResetViewport();
 }

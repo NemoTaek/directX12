@@ -149,6 +149,7 @@
     <ClCompile Include="Model3DClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
     <ClCompile Include="QuadTreeClass.cpp" />
+    <ClCompile Include="ReflectionShaderClass.cpp" />
     <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="ShaderManagerClass.cpp" />
     <ClCompile Include="SkyDomeClass.cpp" />
@@ -164,6 +165,8 @@
     <ClCompile Include="TextureClass.cpp" />
     <ClCompile Include="TextureShaderClass.cpp" />
     <ClCompile Include="TimeClass.cpp" />
+    <ClCompile Include="WaterClass.cpp" />
+    <ClCompile Include="WaterShaderClass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ApplicationClass.h" />
@@ -188,6 +191,7 @@
     <ClInclude Include="Model3DClass.h" />
     <ClInclude Include="PositionClass.h" />
     <ClInclude Include="QuadTreeClass.h" />
+    <ClInclude Include="ReflectionShaderClass.h" />
     <ClInclude Include="RenderTextureClass.h" />
     <ClInclude Include="ShaderManagerClass.h" />
     <ClInclude Include="SkyDomeClass.h" />
@@ -204,6 +208,8 @@
     <ClInclude Include="TextureClass.h" />
     <ClInclude Include="TextureShaderClass.h" />
     <ClInclude Include="TimerClass.h" />
+    <ClInclude Include="WaterClass.h" />
+    <ClInclude Include="WaterShaderClass.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Color.ps" />
@@ -212,6 +218,8 @@
     <None Include="Font.vs" />
     <None Include="shader\Depth.ps" />
     <None Include="shader\Depth.vs" />
+    <None Include="shader\Reflection.ps" />
+    <None Include="shader\Reflection.vs" />
     <None Include="shader\SkyDome.ps" />
     <None Include="shader\SkyDome.vs" />
     <None Include="shader\SkyPlane.ps" />
@@ -220,6 +228,8 @@
     <None Include="shader\Terrain.vs" />
     <None Include="shader\Texture.ps" />
     <None Include="shader\Texture.vs" />
+    <None Include="shader\Water.ps" />
+    <None Include="shader\Water.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

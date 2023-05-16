@@ -8,17 +8,21 @@ cbuffer MatrixBuffer
 struct VertexInputType
 {
     float4 position : POSITION;
-	float4 tex : TEXCOORD0;
-    float3 normal : NORMAL;
-	// float4 color : COLOR;
+	float2 tex : TEXCOORD0;
+	float3 normal : NORMAL;
+	float3 tangent : TANGENT;
+	float3 binormal : BINORMAL;
+	float4 color : COLOR;
 };
 
 struct PixelInputType
 {
     float4 position : SV_POSITION;
-	float4 tex: TEXCOORD0;
-    float3 normal : NORMAL;
-	// float4 color : COLOR;
+    float2 tex : TEXCOORD0;
+   	float3 normal : NORMAL;
+	float3 tangent : TANGENT;
+	float3 binormal : BINORMAL;
+	float4 color : COLOR;
 	// float4 depthPosition: TEXCOORD1;	// 근접한 텍스처를 볼 때 선명하게 보이도록 픽셀의 깊이 변수 추가
 };
 
@@ -41,8 +45,15 @@ PixelInputType TerrainVertexShader(VertexInputType input)
 	output.normal = mul(input.normal, (float3x3)worldMatrix);
 	output.normal = normalize(output.normal);
 
+	// 법선 벡터에 대한 tangent 벡터와 binormal 벡터 계싼
+	output.tangent = mul(input.tangent, (float3x3)worldMatrix);
+	output.tangent = normalize(output.tangent);
+
+	output.binormal = mul(input.binormal, (float3x3)worldMatrix);
+	output.binormal = normalize(output.binormal);
+
 	// 픽셀 쉐이더에 컬러 맵의 색상 전달
-	// output.color = input.color;
+	output.color = input.color;
 
 	// 깊이 값 계산을 위해 위치 값 저장
 	// output.depthPosition = output.position;

@@ -126,6 +126,15 @@
     <ClCompile Include="DebugWindowClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="ReflectionShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="WaterClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="WaterShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraClass.h">
@@ -242,6 +251,15 @@
     <ClInclude Include="DebugWindowClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="ReflectionShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="WaterClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="WaterShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Font.ps">
@@ -284,6 +302,18 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="shader\Depth.vs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Reflection.ps">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Reflection.vs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Water.ps">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Water.vs">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

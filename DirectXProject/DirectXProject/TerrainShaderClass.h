@@ -12,10 +12,14 @@ private:
 
 	struct LightBufferType
 	{
-		XMFLOAT4 ambientColor;
-		XMFLOAT4 diffuseColor;
+		XMFLOAT4 lightDiffuseColor;
 		XMFLOAT3 lightDirection;
-		float padding;
+		float colorTextureBrightness;
+
+		//XMFLOAT4 ambientColor;
+		//XMFLOAT4 diffuseColor;
+		//XMFLOAT3 lightDirection;
+		//float padding;
 	};
 
 	struct TextureInfoBufferType
@@ -31,8 +35,8 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, XMFLOAT4, XMFLOAT4, XMFLOAT3, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*);
-	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, XMFLOAT4, XMFLOAT4, XMFLOAT3, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*);
+	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, XMFLOAT4, XMFLOAT3, float);
+	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, XMFLOAT4, XMFLOAT3, float);
 	bool SetShaderTextures(ID3D11DeviceContext*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, bool);
 	void RenderShader(ID3D11DeviceContext*, int);
 

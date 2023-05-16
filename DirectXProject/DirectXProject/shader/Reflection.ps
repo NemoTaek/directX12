@@ -1,34 +1,51 @@
-Texture2D shaderTexture;
+Texture2D colorTexture : register(t0);
+Texture2D normalTexture : register(t1);
 SamplerState SampleType;
-Texture2D reflectionTexture;
+
+cbuffer LightBuffer
+{
+	float4 lightDiffuseColor;
+	float3 lightDirection;
+	float colorTextureBrightness;
+};
 
 struct PixelInputType
 {
-	float4 position : SV_POSITION;
+	float4 position : POSITION;
 	float2 tex : TEXCOORD0;
-	float4 reflectionPosition : TEXCOORD1;
+	float3 normal : NORMAL;
+	float3 tangent : TANGENT;
+	float3 binormal : BINORMAL;
+	float4 color : COLOR;
+	float clip : SV_ClipDistance0;
 };
 
 float4 ReflectionPixelShader(PixelInputType input) : SV_TARGET
 {
 	float4 textureColor;
-	float2 reflectTexCoord;
-	float4 reflectionColor;
+	float3 lightDir;
+	float4 bumpMap;
+	float3 bumpNormal;
+	float lightIntensity;
 	float4 color;
 
-	textureColor = shaderTexture.Sample(SampleType, input.tex);
+	// 빛 방향은 실제와 반대방향
+	lightDir = -lightDirection;
 
-	// 투사된 반사 텍스쳐 좌표 계산
-	// 이 값은 0~1 사이로 표현되어야 하기 때문에 적절하게 계산해야 함
-	reflectTexCoord.x = input.reflectionPosition.x / input.reflectionPosition.w / 2.0f + 0.5f;
-	reflectTexCoord.y = -input.reflectionPosition.y / input.reflectionPosition.w / 2.0f + 0.5f;
+	textureColor = colorTexture.Sample(SampleType, input.tex);
+	textureColor = saturate(input.color * textureColor * colorTextureBrightness);
 
-	// 투영된 텍스처 좌표를 사용하여 반사 텍스처에서 텍스처 픽셀을 샘플링
-	reflectionColor = reflectionTexture.Sample(SampleType, reflectTexCoord);
+	// 범프 맵과 범프 법선 계산
+	bumpMap = normalTexture.Sample(SampleType, input.tex);
+	bumpMap = (bumpMap * 2.0f) - 1.0f;
+	bumpNormal = input.normal + (bumpMap.x * input.tangent) + (bumpMap.y * input.binormal);
+	bumpNormal = normalize(bumpNormal);
 
-	// 블렌드 효과를 위해 두 텍스처 간에 선형 보간을 수행
-	// lerp(x, y, s): x*(1-s) + y*s 수식을 기반으로 계산
-	color = lerp(textureColor, reflectionColor, 1.0f);
+	// 현재 픽셀의 빛의 양 계산
+	lightIntensity = saturate(dot(bumpNormal, lightDir));
+
+	color = saturate(lightDiffuseColor * lightIntensity);
+	color = color * textureColor;
 
 	return color;
 }

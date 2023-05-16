@@ -1,17 +1,20 @@
 // Texture2D shaderTexture : register(t0);
 // Texture2D detailTexture : register(t1);	// 디테일 맵
 
-Texture2D flatTexture : register(t0);	// 평지
-Texture2D slopeTexture : register(t1);	// 완만한 경사
-Texture2D scarpTexture : register(t2);	// 급경사
+// Texture2D flatTexture : register(t0);	// 평지
+// Texture2D slopeTexture : register(t1);	// 완만한 경사
+// Texture2D scarpTexture : register(t2);	// 급경사
+
+Texture2D colorTexture : register(t0);		// 컬러 맵
+Texture2D normalTexture : register(t1);		// 노말 맵
+
 SamplerState SampleType;
 
 cbuffer LightBuffer
 {
-	float4 ambientColor;
-	float4 diffuseColor;
+	float4 lightDiffuseColor;
 	float3 lightDirection;
-	float padding;
+	float colorTextureBrightness;
 }
 
 cbuffer TextureInfoBuffer
@@ -24,8 +27,10 @@ struct PixelInputType
 {
 	float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
-	float3 normal : NORMAL;
-	// float4 color : COLOR;
+   	float3 normal : NORMAL;
+	float3 tangent : TANGENT;
+	float3 binormal : BINORMAL;
+	float4 color : COLOR;
 	// float4 depthPosition: TEXCOORD1;	// 근접한 텍스처를 볼 때 선명하게 보이도록 픽셀의 깊이 변수 추가
 };
 
@@ -36,6 +41,30 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 	float lightIntensity;
 	float4 color;
 
+	float4 bumpMap;
+    float3 bumpNormal;
+
+	// 빛 방향은 실제와 반대방향
+	lightDir = -lightDirection;
+
+    textureColor = colorTexture.Sample(SampleType, input.tex);
+	textureColor = saturate(input.color * textureColor * colorTextureBrightness);
+
+	// 법선 맵을 사용하여 범프 맵을 계산
+	bumpMap = normalTexture.Sample(SampleType, input.tex);
+	bumpMap = (bumpMap * 2.0f) - 1.0f;
+	bumpNormal = input.normal + bumpMap.x * input.tangent + bumpMap.y * input.binormal;
+	bumpNormal = normalize(bumpNormal);
+    lightIntensity = saturate(dot(bumpNormal, lightDir));
+    
+	// 첫 번째 범프 매핑 된 픽셀 색상을 계산
+	color = saturate(lightDiffuseColor * lightIntensity);
+    color = color * textureColor;
+
+    return color;
+
+
+	/*
 	// 기울기 텍스처
 	float4 flatColor;
 	float4 slopeColor;
@@ -78,7 +107,7 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 	// color = saturate(color * input.color * 2.0f);
 
 	return color;
-
+	*/
 
 
 	// 지형 블렌딩

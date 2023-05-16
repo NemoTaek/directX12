@@ -15,10 +15,10 @@ bool SkyDomeClass::Initialize(ID3D11Device* device)
 	if (!InitializeBuffers(device))	return false;
 
 	// 하늘 꼭대기 색상 설정
-	m_apexColor = XMFLOAT4(0.0f, 0.15f, 0.66f, 1.0f);
+	m_apexColor = XMFLOAT4(0.0f, 0.145f, 0.667f, 1.0f);
 
 	// 하늘 중심 색상 설정
-	m_centerColor = XMFLOAT4(0.81f, 0.38f, 0.66f, 1.0f);
+	m_centerColor = XMFLOAT4(0.02f, 0.365f, 0.886f, 1.0f);
 
 	return true;
 }

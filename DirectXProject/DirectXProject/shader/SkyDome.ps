@@ -24,6 +24,7 @@ float4 SkyDomePixelShader(PixelInputType input) : SV_TARGET
 	}
 
 	// 높이를 기준으로 꼭지점과 중심을 보정하여 그라디언트 색상 결정
+	// lerp(x, y, s): x*(1-s) + y*s 수식을 기반으로 계산
 	outputColor = lerp(centerColor, apexColor, height);
 
 	return outputColor;

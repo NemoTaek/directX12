@@ -23,11 +23,11 @@ void TerrainShaderClass::Shutdown()
 	ShutdownShader();
 }
 
-bool TerrainShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor, XMFLOAT3 lightDirection, ID3D11ShaderResourceView* flatTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* scarpTexture)
+bool TerrainShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, 
+	ID3D11ShaderResourceView* colorTexture, ID3D11ShaderResourceView* normalTexture, XMFLOAT4 lightDiffuseColor, XMFLOAT3 lightDirection, float colorTextureBrightness)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ambientColor, diffuseColor, lightDirection, flatTexture, slopeTexture, scarpTexture))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, colorTexture, normalTexture, lightDiffuseColor, lightDirection, colorTextureBrightness))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -63,7 +63,7 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 
 	// 정점 입력 레이아웃 구조체 설정
 	// ModelClass와 셰이더의 VertexType 구조와 일치해야한다.
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[6];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -88,13 +88,29 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[2].InstanceDataStepRate = 0;
 
-	//polygonLayout[3].SemanticName = "COLOR";
-	//polygonLayout[3].SemanticIndex = 0;
-	//polygonLayout[3].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	//polygonLayout[3].InputSlot = 0;
-	//polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	//polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	//polygonLayout[3].InstanceDataStepRate = 0;
+	polygonLayout[3].SemanticName = "TANGENT";
+	polygonLayout[3].SemanticIndex = 0;
+	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[3].InputSlot = 0;
+	polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[3].InstanceDataStepRate = 0;
+
+	polygonLayout[4].SemanticName = "BINORMAL";
+	polygonLayout[4].SemanticIndex = 0;
+	polygonLayout[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[4].InputSlot = 0;
+	polygonLayout[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[4].InstanceDataStepRate = 0;
+
+	polygonLayout[5].SemanticName = "COLOR";
+	polygonLayout[5].SemanticIndex = 0;
+	polygonLayout[5].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	polygonLayout[5].InputSlot = 0;
+	polygonLayout[5].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[5].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[5].InstanceDataStepRate = 0;
 
 	// 레이아웃 요소 수
 	UINT numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -247,7 +263,7 @@ void TerrainShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 }
 
 bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor, XMFLOAT3 lightDirection, ID3D11ShaderResourceView* flatTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* scarpTexture)
+	ID3D11ShaderResourceView* colorTexture, ID3D11ShaderResourceView* normalTexture, XMFLOAT4 lightDiffuseColor, XMFLOAT3 lightDirection, float colorTextureBrightness)
 {
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -272,19 +288,17 @@ bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	if (FAILED(deviceContext->Map(m_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
 	LightBufferType* lightBufferPtr = (LightBufferType*)mappedResource.pData;
 
-	lightBufferPtr->ambientColor = ambientColor;
-	lightBufferPtr->diffuseColor = diffuseColor;
+	lightBufferPtr->lightDiffuseColor = lightDiffuseColor;
 	lightBufferPtr->lightDirection = lightDirection;
-	lightBufferPtr->padding = 0.0f;
+	lightBufferPtr->colorTextureBrightness = colorTextureBrightness;
 
 	deviceContext->Unmap(m_lightBuffer, 0);
 	bufferNumber = 0;
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
 
 	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(0, 1, &flatTexture);
-	deviceContext->PSSetShaderResources(1, 1, &slopeTexture);
-	deviceContext->PSSetShaderResources(2, 1, &scarpTexture);
+	deviceContext->PSSetShaderResources(0, 1, &colorTexture);
+	deviceContext->PSSetShaderResources(1, 1, &normalTexture);
 
 	return true;
 }
