@@ -23,11 +23,12 @@ void TerrainShaderClass::Shutdown()
 	ShutdownShader();
 }
 
-bool TerrainShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, 
-	ID3D11ShaderResourceView* colorTexture, ID3D11ShaderResourceView* normalTexture, XMFLOAT4 lightDiffuseColor, XMFLOAT3 lightDirection, float colorTextureBrightness)
+bool TerrainShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, XMFLOAT3 lightDirection,
+	ID3D11ShaderResourceView* colorTexture1, ID3D11ShaderResourceView* colorTexture2, ID3D11ShaderResourceView* colorTexture3, ID3D11ShaderResourceView* colorTexture4, 
+	ID3D11ShaderResourceView* alphaTexture, ID3D11ShaderResourceView* normalMap1, ID3D11ShaderResourceView* normalMap2)
 {
 	// 렌더링에 사용할 셰이더 매개변수 설정
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, colorTexture, normalTexture, lightDiffuseColor, lightDirection, colorTextureBrightness))	return false;
+	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, lightDirection, colorTexture1, colorTexture2, colorTexture3, colorTexture4, alphaTexture, normalMap1, normalMap2))	return false;
 
 	RenderShader(deviceContext, indexCount);
 
@@ -104,9 +105,9 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	polygonLayout[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[4].InstanceDataStepRate = 0;
 
-	polygonLayout[5].SemanticName = "COLOR";
-	polygonLayout[5].SemanticIndex = 0;
-	polygonLayout[5].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	polygonLayout[5].SemanticName = "TEXCOORD";
+	polygonLayout[5].SemanticIndex = 1;
+	polygonLayout[5].Format = DXGI_FORMAT_R32G32_FLOAT;
 	polygonLayout[5].InputSlot = 0;
 	polygonLayout[5].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[5].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -141,9 +142,9 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	// 텍스쳐 샘플러 상태 서술자 설정
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	samplerDesc.MipLODBias = 0.0f;
 	samplerDesc.MaxAnisotropy = 1;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
@@ -262,8 +263,9 @@ void TerrainShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	MessageBox(hwnd, L"Error compiling shader.", shaderFilename, MB_OK);
 }
 
-bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	ID3D11ShaderResourceView* colorTexture, ID3D11ShaderResourceView* normalTexture, XMFLOAT4 lightDiffuseColor, XMFLOAT3 lightDirection, float colorTextureBrightness)
+bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, XMFLOAT3 lightDirection,
+	ID3D11ShaderResourceView* colorTexture1, ID3D11ShaderResourceView* colorTexture2, ID3D11ShaderResourceView* colorTexture3, ID3D11ShaderResourceView* colorTexture4,
+	ID3D11ShaderResourceView* alphaTexture, ID3D11ShaderResourceView* normalMap1, ID3D11ShaderResourceView* normalMap2)
 {
 	// 셰이더에서 사용할 수 있도록 전치행렬화
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -288,17 +290,21 @@ bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	if (FAILED(deviceContext->Map(m_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))	return false;
 	LightBufferType* lightBufferPtr = (LightBufferType*)mappedResource.pData;
 
-	lightBufferPtr->lightDiffuseColor = lightDiffuseColor;
 	lightBufferPtr->lightDirection = lightDirection;
-	lightBufferPtr->colorTextureBrightness = colorTextureBrightness;
+	lightBufferPtr->padding = 0.0f;
 
 	deviceContext->Unmap(m_lightBuffer, 0);
 	bufferNumber = 0;
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
 
 	// 픽셀셰이더에서 셰이더 텍스쳐 리소스 설정
-	deviceContext->PSSetShaderResources(0, 1, &colorTexture);
-	deviceContext->PSSetShaderResources(1, 1, &normalTexture);
+	deviceContext->PSSetShaderResources(0, 1, &colorTexture1);
+	deviceContext->PSSetShaderResources(1, 1, &colorTexture2);
+	deviceContext->PSSetShaderResources(2, 1, &colorTexture3);
+	deviceContext->PSSetShaderResources(3, 1, &colorTexture4);
+	deviceContext->PSSetShaderResources(4, 1, &alphaTexture);
+	deviceContext->PSSetShaderResources(5, 1, &normalMap1);
+	deviceContext->PSSetShaderResources(6, 1, &normalMap2);
 
 	return true;
 }

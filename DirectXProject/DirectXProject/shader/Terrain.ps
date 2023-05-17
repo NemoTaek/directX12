@@ -5,16 +5,22 @@
 // Texture2D slopeTexture : register(t1);	// 완만한 경사
 // Texture2D scarpTexture : register(t2);	// 급경사
 
-Texture2D colorTexture : register(t0);		// 컬러 맵
-Texture2D normalTexture : register(t1);		// 노말 맵
+Texture2D colorTexture1 : register(t0);
+Texture2D colorTexture2 : register(t1);
+Texture2D colorTexture3 : register(t2);
+Texture2D colorTexture4 : register(t3);
+Texture2D alphaTexture : register(t4);
+Texture2D normalMap1 : register(t5);
+Texture2D normalMap2 : register(t6);
 
 SamplerState SampleType;
 
 cbuffer LightBuffer
 {
-	float4 lightDiffuseColor;
+	// float4 lightDiffuseColor;
 	float3 lightDirection;
-	float colorTextureBrightness;
+	// float colorTextureBrightness;
+	float padding;
 }
 
 cbuffer TextureInfoBuffer
@@ -30,36 +36,62 @@ struct PixelInputType
    	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
-	float4 color : COLOR;
+	// float4 color : COLOR;
 	// float4 depthPosition: TEXCOORD1;	// 근접한 텍스처를 볼 때 선명하게 보이도록 픽셀의 깊이 변수 추가
+	float2 tex2 : TEXCOORD1;
 };
 
 float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 {
-	float4 textureColor;
+	float4 textureColor1;
+	float4 textureColor2;
+	float4 textureColor3;
+	float4 textureColor4;
 	float3 lightDir;
-	float lightIntensity;
+	float lightIntensity1;
+	float lightIntensity2;
 	float4 color;
 
 	float4 bumpMap;
     float3 bumpNormal;
+	float4 alphaMap;
+	float4 baseColor;
 
 	// 빛 방향은 실제와 반대방향
 	lightDir = -lightDirection;
 
-    textureColor = colorTexture.Sample(SampleType, input.tex);
-	textureColor = saturate(input.color * textureColor * colorTextureBrightness);
-
 	// 법선 맵을 사용하여 범프 맵을 계산
-	bumpMap = normalTexture.Sample(SampleType, input.tex);
+	bumpMap = normalMap1.Sample(SampleType, input.tex);
 	bumpMap = (bumpMap * 2.0f) - 1.0f;
 	bumpNormal = input.normal + bumpMap.x * input.tangent + bumpMap.y * input.binormal;
 	bumpNormal = normalize(bumpNormal);
-    lightIntensity = saturate(dot(bumpNormal, lightDir));
-    
-	// 첫 번째 범프 매핑 된 픽셀 색상을 계산
-	color = saturate(lightDiffuseColor * lightIntensity);
-    color = color * textureColor;
+    lightIntensity1 = saturate(dot(bumpNormal, lightDir));
+
+	bumpMap = normalMap2.Sample(SampleType, input.tex);
+	bumpMap = (bumpMap * 2.0f) - 1.0f;
+	bumpNormal = input.normal + bumpMap.x * input.tangent + bumpMap.y * input.binormal;
+	bumpNormal = normalize(bumpNormal);
+    lightIntensity2 = saturate(dot(bumpNormal, lightDir));
+
+	// 색상 텍스처를 샘플링하고, 각각의 텍스처에 범프맵 추가
+	textureColor1 = colorTexture1.Sample(SampleType, input.tex);
+	textureColor1 = saturate(lightIntensity1 * textureColor1);
+	textureColor2 = colorTexture2.Sample(SampleType, input.tex);
+	textureColor2 = saturate(lightIntensity1 * textureColor2);
+	textureColor3 = colorTexture3.Sample(SampleType, input.tex);
+	textureColor3 = saturate(lightIntensity1 * textureColor3);
+	textureColor4 = colorTexture4.Sample(SampleType, input.tex);
+	textureColor4 = saturate(lightIntensity2 * textureColor4);
+
+	alphaMap = alphaTexture.Sample(SampleType, input.tex2);
+
+	// 기본 색상 설정
+	baseColor = textureColor1;
+
+	// 알파맵의 r, g, b를 사용하여 레이어 추가
+	color = lerp(baseColor, textureColor2, alphaMap.r);
+	color = lerp(color, textureColor3, alphaMap.g);
+	color = lerp(color, textureColor4, alphaMap.b);
 
     return color;
 

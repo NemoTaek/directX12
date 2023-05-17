@@ -18,6 +18,7 @@ class FontShaderClass;
 class TerrainClass;
 class TerrainShaderClass;
 class LightClass;
+class TextureClass;
 
 //class FrustumClass;		// 절두체
 //class QuadTreeClass;		// 쿼드 트리(현재 시야에 보이는 부분만 렌더링)
@@ -31,12 +32,12 @@ class SkyPlaneClass;		// 하늘 평면(여기서는 구름)
 class SkyPlaneShaderClass;	// 하늘 평면(여기서는 구름)
 
 //class DebugWindowClass;
-class RenderTextureClass;
+//class RenderTextureClass;
 //class DepthShaderClass;
 
-class ReflectionShaderClass;
-class WaterClass;
-class WaterShaderClass;
+//class ReflectionShaderClass;
+//class WaterClass;
+//class WaterShaderClass;
 
 
 
@@ -88,9 +89,17 @@ private:
 	//RenderTextureClass* m_RenderTexture = nullptr;
 	//DepthShaderClass* m_DepthShader = nullptr;
 
-	RenderTextureClass* m_RefractionTexture = nullptr;
-	RenderTextureClass* m_ReflectionTexture = nullptr;
-	ReflectionShaderClass* m_ReflectionShader = nullptr;
-	WaterClass* m_Water = nullptr;
-	WaterShaderClass* m_WaterShader = nullptr;
+	//RenderTextureClass* m_RefractionTexture = nullptr;
+	//RenderTextureClass* m_ReflectionTexture = nullptr;
+	//ReflectionShaderClass* m_ReflectionShader = nullptr;
+	//WaterClass* m_Water = nullptr;
+	//WaterShaderClass* m_WaterShader = nullptr;
+
+	TextureClass* m_ColorTexture1 = nullptr;
+	TextureClass* m_ColorTexture2 = nullptr;
+	TextureClass* m_ColorTexture3 = nullptr;
+	TextureClass* m_ColorTexture4 = nullptr;
+	TextureClass* m_AlphaTexture = nullptr;
+	TextureClass* m_NormalTexture1 = nullptr;
+	TextureClass* m_NormalTexture2 = nullptr;
 };

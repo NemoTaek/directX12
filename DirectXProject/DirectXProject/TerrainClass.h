@@ -14,7 +14,8 @@ private:
 		XMFLOAT3 normal;
 		XMFLOAT3 tangent;
 		XMFLOAT3 binormal;
-		XMFLOAT4 color;
+		//XMFLOAT4 color;
+		XMFLOAT2 texture2;
 	};
 
 	struct HeightMapType
@@ -22,7 +23,7 @@ private:
 		float x, y, z;
 		//float tu, tv;
 		float nx, ny, nz;
-		float r, g, b;
+		//float r, g, b;
 		//int rIndex, gIndex, bIndex;
 	};
 
@@ -38,7 +39,8 @@ private:
 		float nx, ny, nz;
 		float tx, ty, tz;
 		float bx, by, bz;
-		float r, g, b;
+		//float r, g, b;
+		float tu2, tv2;
 	};
 
 	struct TempVertexType
@@ -66,7 +68,7 @@ public:
 	~TerrainClass();
 
 	// 지형 텍스처 대신 머터리얼 사용
-	bool Initialize(ID3D11Device*, const char*, const char*, float, const WCHAR*, const WCHAR*);
+	bool Initialize(ID3D11Device*, const char*, float);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	bool RenderMaterials(ID3D11DeviceContext*, TerrainShaderClass*, XMMATRIX, XMMATRIX, XMMATRIX, XMFLOAT4, XMFLOAT4, XMFLOAT3);
@@ -95,7 +97,7 @@ private:
 	void NormalizeHeightMap();
 	bool CalculateNormals();
 	void ReduceHeightMap(float);
-	void ShutdownHeightMap();
+	void ReleaseHeightMap();
 
 	// 지형 텍스처
 	void CalculateTextureCoordinates();
@@ -117,7 +119,7 @@ private:
 	void ReleaseMaterials();
 
 	bool InitializeBuffers(ID3D11Device*);
-	void ShutdownBuffers();
+	void ReleaseBuffers();
 	void RenderBuffers(ID3D11DeviceContext*);
 
 private:

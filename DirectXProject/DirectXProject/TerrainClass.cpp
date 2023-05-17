@@ -10,16 +10,16 @@ TerrainClass::TerrainClass() {}
 TerrainClass::TerrainClass(const TerrainClass& other) {}
 TerrainClass::~TerrainClass() {}
 
-bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename, const char* colorMapFilename, float flattenAmount, const WCHAR* colorTextureFilename, const WCHAR* normalTextureFilename)
+bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilename, float maximumHeight)
 {
 	// 지형의 너비와 높이 맵 로드
 	if (!LoadHeightMap(heightMapFilename))	return false;
 
 	// 지형의 컬러 맵 로드
-	if (!LoadColorMap(colorMapFilename))	return false;
+	//if (!LoadColorMap(colorMapFilename))	return false;
 
 	// 높이 맵의 높이 축소
-	ReduceHeightMap(flattenAmount);
+	ReduceHeightMap(maximumHeight);
 
 	// 높이 맵의 높이 정규화
 	//NormalizeHeightMap();
@@ -40,7 +40,7 @@ bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilenam
 	if (!InitializeBuffers(device))	return false;
 
 	// 지형 텍스처 로드
-	if (!LoadTexture(device, colorTextureFilename, normalTextureFilename))	return false;
+	//if (!LoadTexture(device, colorTextureFilename, normalTextureFilename))	return false;
 
 	// 지형에 대한 머터리얼 그룹 로드
 	//if (!LoadMaterialFile(materialsFilename, materialMapFilename, device))	return false;
@@ -50,11 +50,11 @@ bool TerrainClass::Initialize(ID3D11Device* device, const char* heightMapFilenam
 
 void TerrainClass::Shutdown()
 {
-	ReleaseTexture();
-	ShutdownBuffers();
+	//ReleaseTexture();
+	ReleaseBuffers();
 	ReleaseModel();
 	//ReleaseMaterials();
-	ShutdownHeightMap();
+	ReleaseHeightMap();
 }
 
 
@@ -127,7 +127,7 @@ bool TerrainClass::LoadHeightMap(const char* heightMapFilename)
 			unsigned char height = bitmapImage[bufferPosition];
 
 			// 높이 맵 배열의 정점 위치에 대한 인덱스
-			int index = (m_terrainHeight * i) + j;
+			int index = (m_terrainWidth * i) + j;
 
 			m_heightMap[index].x = static_cast<float>(j);
 			m_heightMap[index].y = static_cast<float>(height);
@@ -159,7 +159,7 @@ void TerrainClass::ReduceHeightMap(float value)
 	for (int i = 0; i < m_terrainHeight; i++) {
 		for (int j = 0; j < m_terrainWidth; j++) {
 			// 높이 맵 배열의 정점 위치에 대한 인덱스
-			int index = (m_terrainHeight * i) + j;
+			int index = (m_terrainWidth * i) + j;
 			m_heightMap[index].y /= value;
 		}
 	}
@@ -189,9 +189,9 @@ bool TerrainClass::CalculateNormals()
 	// 모든 면을 살펴보고 법선 벡터 계산 
 	for (int i = 0; i < m_terrainHeight - 1; i++) {
 		for (int j = 0; j < m_terrainWidth - 1; j++) {
-			index1 = (m_terrainHeight * i) + j;
-			index2 = (m_terrainHeight * i) + (j + 1);
-			index3 = (m_terrainHeight * (i + 1)) + j;
+			index1 = (m_terrainWidth * i) + j;
+			index2 = (m_terrainWidth * i) + (j + 1);
+			index3 = (m_terrainWidth * (i + 1)) + j;
 
 			// 면에서 3개의 꼭지점을 가져옴
 			vertex1[0] = m_heightMap[index1].x;
@@ -215,7 +215,7 @@ bool TerrainClass::CalculateNormals()
 			vector2[1] = vertex3[1] - vertex2[1];
 			vector2[2] = vertex3[2] - vertex2[2];
 
-			index = ((m_terrainHeight - 1) * i) + j;
+			index = ((m_terrainWidth - 1) * i) + j;
 			
 			// 법선을 구하기 위해 두 벡터의 외적 계산
 			normals[index].x = (vector1[1] * vector2[2]) - (vector1[2] * vector2[1]);
@@ -239,7 +239,7 @@ bool TerrainClass::CalculateNormals()
 
 			// 좌하 면
 			if ((j - 1) >= 0 && (i - 1) >= 0) {
-				index = ((m_terrainHeight - 1) * (i - 1)) + (j - 1);
+				index = ((m_terrainWidth - 1) * (i - 1)) + (j - 1);
 				sum[0] += normals[index].x;
 				sum[1] += normals[index].y;
 				sum[2] += normals[index].z;
@@ -248,7 +248,7 @@ bool TerrainClass::CalculateNormals()
 
 			// 우하 면
 			if (j < (m_terrainWidth - 1) && (i - 1) >= 0) {
-				index = ((m_terrainHeight - 1) * (i - 1)) + j;
+				index = ((m_terrainWidth - 1) * (i - 1)) + j;
 				sum[0] += normals[index].x;
 				sum[1] += normals[index].y;
 				sum[2] += normals[index].z;
@@ -257,7 +257,7 @@ bool TerrainClass::CalculateNormals()
 
 			// 좌상 면
 			if ((j - 1) >= 0 && i < (m_terrainHeight - 1)) {
-				index = ((m_terrainHeight - 1) * i) + (j - 1);
+				index = ((m_terrainWidth - 1) * i) + (j - 1);
 				sum[0] += normals[index].x;
 				sum[1] += normals[index].y;
 				sum[2] += normals[index].z;
@@ -266,7 +266,7 @@ bool TerrainClass::CalculateNormals()
 
 			// 우상 면
 			if (j < (m_terrainWidth - 1) && i < (m_terrainHeight - 1)) {
-				index = ((m_terrainHeight - 1) * i) + j;
+				index = ((m_terrainWidth - 1) * i) + j;
 				sum[0] += normals[index].x;
 				sum[1] += normals[index].y;
 				sum[2] += normals[index].z;
@@ -282,7 +282,7 @@ bool TerrainClass::CalculateNormals()
 			length = static_cast<float>(sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2])));
 
 			// 높이 맵 배열의 정점 위치에 대한 인덱스
-			index = (m_terrainHeight * i) + j;
+			index = (m_terrainWidth * i) + j;
 
 			// 현재 정점의 최종 공유 법선을 표준화하여 높이 맵 배열에 저장
 			m_heightMap[index].nx = (sum[0] / length);
@@ -304,15 +304,24 @@ bool TerrainClass::BuildModel()
 	m_model = new ModelType[m_vertexCount];
 	if (!m_model)	return false;
 
+	// 텍스처의 알파맵의 증가 크기 설정
+	float incrementSize = 1.0f / 31.0f;
+
+	// 텍스처 증가 초기화
+	float tu2Left = 0.0f;
+	float tu2Right = incrementSize;
+	float tv2Bottom = 1.0f;
+	float tv2Top = 1.0f - incrementSize;
+
 	// 높이 맵 지형 데이터로 지형 모델을 로드합니다.
 	int index = 0;
 
 	for (int i = 0; i < (m_terrainHeight - 1); i++) {
 		for (int j = 0; j < (m_terrainWidth - 1); j++) {
-			int indexLeftBottom = (m_terrainHeight * i) + j;
-			int indexRightBottom = (m_terrainHeight * i) + (j + 1);
-			int indexLeftTop = (m_terrainHeight * (i + 1)) + j;
-			int indexRightTop = (m_terrainHeight * (i + 1)) + (j + 1);
+			int indexLeftBottom = (m_terrainWidth * i) + j;
+			int indexRightBottom = (m_terrainWidth * i) + (j + 1);
+			int indexLeftTop = (m_terrainWidth * (i + 1)) + j;
+			int indexRightTop = (m_terrainWidth * (i + 1)) + (j + 1);
 
 			// 좌상
 			m_model[index].x = m_heightMap[indexLeftTop].x;
@@ -323,9 +332,11 @@ bool TerrainClass::BuildModel()
 			m_model[index].nz = m_heightMap[indexLeftTop].nz;
 			m_model[index].tu = 0.0f;
 			m_model[index].tv = 0.0f;
-			m_model[index].r = m_heightMap[indexLeftTop].r;
-			m_model[index].g = m_heightMap[indexLeftTop].g;
-			m_model[index].b = m_heightMap[indexLeftTop].b;
+			//m_model[index].r = m_heightMap[indexLeftTop].r;
+			//m_model[index].g = m_heightMap[indexLeftTop].g;
+			//m_model[index].b = m_heightMap[indexLeftTop].b;
+			m_model[index].tu2 = tu2Left;
+			m_model[index].tv2 = tv2Top;
 			index++;
 
 			// 우상
@@ -337,9 +348,11 @@ bool TerrainClass::BuildModel()
 			m_model[index].nz = m_heightMap[indexRightTop].nz;
 			m_model[index].tu = 1.0f;
 			m_model[index].tv = 0.0f;
-			m_model[index].r = m_heightMap[indexRightTop].r;
-			m_model[index].g = m_heightMap[indexRightTop].g;
-			m_model[index].b = m_heightMap[indexRightTop].b;
+			//m_model[index].r = m_heightMap[indexRightTop].r;
+			//m_model[index].g = m_heightMap[indexRightTop].g;
+			//m_model[index].b = m_heightMap[indexRightTop].b;
+			m_model[index].tu2 = tu2Right;
+			m_model[index].tv2 = tv2Top;
 			index++;
 
 			// 좌하
@@ -351,9 +364,11 @@ bool TerrainClass::BuildModel()
 			m_model[index].nz = m_heightMap[indexLeftBottom].nz;
 			m_model[index].tu = 0.0f;
 			m_model[index].tv = 1.0f;
-			m_model[index].r = m_heightMap[indexLeftBottom].r;
-			m_model[index].g = m_heightMap[indexLeftBottom].g;
-			m_model[index].b = m_heightMap[indexLeftBottom].b;
+			//m_model[index].r = m_heightMap[indexLeftBottom].r;
+			//m_model[index].g = m_heightMap[indexLeftBottom].g;
+			//m_model[index].b = m_heightMap[indexLeftBottom].b;
+			m_model[index].tu2 = tu2Left;
+			m_model[index].tv2 = tv2Bottom;
 			index++;
 
 			// 좌하
@@ -365,9 +380,11 @@ bool TerrainClass::BuildModel()
 			m_model[index].nz = m_heightMap[indexLeftBottom].nz;
 			m_model[index].tu = 0.0f;
 			m_model[index].tv = 1.0f;
-			m_model[index].r = m_heightMap[indexLeftBottom].r;
-			m_model[index].g = m_heightMap[indexLeftBottom].g;
-			m_model[index].b = m_heightMap[indexLeftBottom].b;
+			//m_model[index].r = m_heightMap[indexLeftBottom].r;
+			//m_model[index].g = m_heightMap[indexLeftBottom].g;
+			//m_model[index].b = m_heightMap[indexLeftBottom].b;
+			m_model[index].tu2 = tu2Left;
+			m_model[index].tv2 = tv2Bottom;
 			index++;
 
 			// 우상
@@ -379,9 +396,11 @@ bool TerrainClass::BuildModel()
 			m_model[index].nz = m_heightMap[indexRightTop].nz;
 			m_model[index].tu = 1.0f;
 			m_model[index].tv = 0.0f;
-			m_model[index].r = m_heightMap[indexRightTop].r;
-			m_model[index].g = m_heightMap[indexRightTop].g;
-			m_model[index].b = m_heightMap[indexRightTop].b;
+			//m_model[index].r = m_heightMap[indexRightTop].r;
+			//m_model[index].g = m_heightMap[indexRightTop].g;
+			//m_model[index].b = m_heightMap[indexRightTop].b;
+			m_model[index].tu2 = tu2Right;
+			m_model[index].tv2 = tv2Top;
 			index++;
 
 			// 우하
@@ -393,11 +412,25 @@ bool TerrainClass::BuildModel()
 			m_model[index].nz = m_heightMap[indexRightBottom].nz;
 			m_model[index].tu = 1.0f;
 			m_model[index].tv = 1.0f;
-			m_model[index].r = m_heightMap[indexRightBottom].r;
-			m_model[index].g = m_heightMap[indexRightBottom].g;
-			m_model[index].b = m_heightMap[indexRightBottom].b;
+			//m_model[index].r = m_heightMap[indexRightBottom].r;
+			//m_model[index].g = m_heightMap[indexRightBottom].g;
+			//m_model[index].b = m_heightMap[indexRightBottom].b;
+			m_model[index].tu2 = tu2Right;
+			m_model[index].tv2 = tv2Bottom;
 			index++;
+
+			// 알파맵에 대해 tu 텍스처 좌표 증가
+			tu2Left += incrementSize;
+			tu2Right += incrementSize;
 		}
+
+		// 알파맵에 대해 tu 텍스처 좌표 재설정
+		tu2Left = 0.0f;
+		tu2Right = incrementSize;
+
+		// 알파맵에 대해 tv 텍스처 좌표 감소
+		tv2Top -= incrementSize;
+		tv2Bottom -= incrementSize;
 	}
 
 	return true;
@@ -602,6 +635,7 @@ bool TerrainClass::LoadTexture(ID3D11Device* device, const WCHAR* colorTexturefi
 	return true;
 }
 
+/*
 bool TerrainClass::LoadColorMap(const char* colorMapfilename)
 {
 	// 컬러 맵 파일 오픈
@@ -657,6 +691,7 @@ bool TerrainClass::LoadColorMap(const char* colorMapfilename)
 
 	return true;
 }
+*/
 
 /*
 bool TerrainClass::LoadMaterialFile(const char* filename, const char* materialMapFilename, ID3D11Device* device)
@@ -949,7 +984,8 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 		m_vertices[i].normal = XMFLOAT3(m_model[i].nx, m_model[i].ny, m_model[i].nz);
 		m_vertices[i].tangent = XMFLOAT3(m_model[i].tx, m_model[i].ty, m_model[i].tz);
 		m_vertices[i].binormal = XMFLOAT3(m_model[i].bx, m_model[i].by, m_model[i].bz);
-		m_vertices[i].color = XMFLOAT4(m_model[i].r, m_model[i].g, m_model[i].b, 1.0f);
+		//m_vertices[i].color = XMFLOAT4(m_model[i].r, m_model[i].g, m_model[i].b, 1.0f);
+		m_vertices[i].texture2 = XMFLOAT2(m_model[i].tu2, m_model[i].tv2);
 
 		indices[i] = i;
 	}
@@ -1094,7 +1130,7 @@ int TerrainClass::GetVertexCount() { return m_vertexCount; }
 
 void TerrainClass::CopyVertexArray(void* vertexList) { memcpy(vertexList, m_vertices, sizeof(VertexType) * m_vertexCount); }
 
-void TerrainClass::ShutdownHeightMap()
+void TerrainClass::ReleaseHeightMap()
 {
 	if (m_heightMap) {
 		delete[] m_heightMap;
@@ -1191,7 +1227,7 @@ void TerrainClass::ReleaseMaterials()
 	}
 }
 
-void TerrainClass::ShutdownBuffers()
+void TerrainClass::ReleaseBuffers()
 {
 	//if (m_vertices) {
 	//	delete[] m_vertices;
