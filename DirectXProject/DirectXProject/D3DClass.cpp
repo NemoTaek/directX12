@@ -337,6 +337,20 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// 2차 알파블렌딩 상태 생성
 	if (FAILED(m_device->CreateBlendState(&blendStateDescription, &m_alphaBlendState2)))	return false;
 
+	// 2차 알파 혼합 상태 구조체를 설정합니다.
+	blendStateDescription.AlphaToCoverageEnable = TRUE;
+	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+	//  2차 알파 혼합 상태 생성
+	if (FAILED(m_device->CreateBlendState(&blendStateDescription, &m_alphaEnableBlendingState2)))	return false;
+
 	return true;
 }
 
@@ -345,6 +359,12 @@ void D3DClass::Shutdown()
 	// 종료 전 윈도우모드로 설정하지 않으면 SwapChain을 해제할 때 예외가 발생한다.
 	if (m_swapChain) {
 		m_swapChain->SetFullscreenState(false, NULL);
+	}
+
+	if (m_alphaEnableBlendingState2)
+	{
+		m_alphaEnableBlendingState2->Release();
+		m_alphaEnableBlendingState2 = 0;
 	}
 
 	if (m_alphaBlendState2) {
@@ -527,3 +547,12 @@ void D3DClass::SetBackBufferRenderTarget()
 }
 
 void D3DClass::ResetViewport() { m_deviceContext->RSSetViewports(1, &m_viewport); }
+
+void D3DClass::EnableAlphaToCoverageBlending()
+{
+	// 블렌드 인수를 설정합니다.
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// 알파 블렌딩을 켭니다.
+	m_deviceContext->OMSetBlendState(m_alphaEnableBlendingState2, blendFactor, 0xffffffff);
+}

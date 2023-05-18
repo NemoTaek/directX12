@@ -19,7 +19,7 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	// 폰트 객체 생성 및 초기화
 	m_font = new FontClass;
 	if (!m_font) return false;
-	if (!(m_font->Initialize(device, "./data/fontdata.txt", L"./Textures/font.dds"))) {
+	if (!(m_font->Initialize(device, "./data/font01.txt", L"./Textures/font01.dds"))) {
 		MessageBox(hwnd, L"Could not initialize font object", L"Error", MB_OK);
 		return false;
 	}

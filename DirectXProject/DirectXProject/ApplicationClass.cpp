@@ -16,7 +16,7 @@
 #include "TextureClass.h"
 //#include "FrustumClass.h"
 //#include "QuadTreeClass.h"
-//#include "TextureShaderClass.h"
+#include "TextureShaderClass.h"
 //#include "MiniMap.h"
 #include "SkyDomeClass.h"
 #include "SkyDomeShaderClass.h"
@@ -28,6 +28,9 @@
 //#include "ReflectionShaderClass.h"
 //#include "WaterClass.h"
 //#include "WaterShaderClass.h"
+#include "Model3DClass.h"
+#include "FoliageClass.h"
+#include "FoliageShaderClass.h"
 
 ApplicationClass::ApplicationClass() {}
 ApplicationClass::ApplicationClass(const ApplicationClass& other) {}
@@ -73,8 +76,8 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_Position = new PositionClass;
 	if (!m_Position) return false;
-	m_Position->SetPosition(XMFLOAT3(14.0f, 13.0f, 10.0f));
-	m_Position->SetRotation(XMFLOAT3(25.0f, 0.0f, 0.0f));
+	m_Position->SetPosition(XMFLOAT3(0.0f, 1.5f, -4.0f));
+	m_Position->SetRotation(XMFLOAT3(15.0f, 0.0f, 0.0f));
 
 	m_Fps = new FpsClass;
 	if (!m_Fps) return false;
@@ -147,12 +150,12 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	//	return false;
 	//}
 
-	//m_TextureShader = new TextureShaderClass;
-	//if (!m_TextureShader) { return false; }
-	//if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
-	//	MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-	//	return false;
-	//}
+	m_TextureShader = new TextureShaderClass;
+	if (!m_TextureShader) { return false; }
+	if (!m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+		return false;
+	}
 
 	//m_MiniMap = new MiniMapClass;
 	//if (!m_MiniMap) { return false; }
@@ -245,52 +248,21 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	//	return false;
 	//}
 
-	m_ColorTexture1 = new TextureClass;
-	if (!m_ColorTexture1) { return false; }
-	if (!m_ColorTexture1->Initialize(m_Direct3D->GetDevice(), L"./Textures/dirt001.dds")) {
-		MessageBox(hwnd, L"Could not initialize the render to texture object", L"Error", MB_OK);
+	m_GroundModel = new Model3DClass;
+	if (!m_GroundModel->Initialize(m_Direct3D->GetDevice(), L"./data/plane01.txt", L"./Textures/rock015.dds")) {
+		MessageBox(hwnd, L"Could not initialize the ground model object", L"Error", MB_OK);
 		return false;
 	}
 
-	m_ColorTexture2 = new TextureClass;
-	if (!m_ColorTexture2) { return false; }
-	if (!m_ColorTexture2->Initialize(m_Direct3D->GetDevice(), L"./Textures/dirt004.dds")) {
-		MessageBox(hwnd, L"Could not initialize the render to texture object", L"Error", MB_OK);
+	m_Foliage = new FoliageClass;
+	if (!m_Foliage->Initialize(m_Direct3D->GetDevice(), L"./Textures/grass.dds", 500)) {
+		MessageBox(hwnd, L"Could not initialize the foliage model object", L"Error", MB_OK);
 		return false;
 	}
 
-	m_ColorTexture3 = new TextureClass;
-	if (!m_ColorTexture3) { return false; }
-	if (!m_ColorTexture3->Initialize(m_Direct3D->GetDevice(), L"./Textures/dirt002.dds")) {
-		MessageBox(hwnd, L"Could not initialize the render to texture object", L"Error", MB_OK);
-		return false;
-	}
-
-	m_ColorTexture4 = new TextureClass;
-	if (!m_ColorTexture4) { return false; }
-	if (!m_ColorTexture4->Initialize(m_Direct3D->GetDevice(), L"./Textures/stone001.dds")) {
-		MessageBox(hwnd, L"Could not initialize the render to texture object", L"Error", MB_OK);
-		return false;
-	}
-
-	m_AlphaTexture = new TextureClass;
-	if (!m_AlphaTexture) { return false; }
-	if (!m_AlphaTexture->Initialize(m_Direct3D->GetDevice(), L"./Textures/alpha001.dds")) {
-		MessageBox(hwnd, L"Could not initialize the render to texture object", L"Error", MB_OK);
-		return false;
-	}
-
-	m_NormalTexture1 = new TextureClass;
-	if (!m_NormalTexture1) { return false; }
-	if (!m_NormalTexture1->Initialize(m_Direct3D->GetDevice(), L"./Textures/normal001.dds")) {
-		MessageBox(hwnd, L"Could not initialize the render to texture object", L"Error", MB_OK);
-		return false;
-	}
-
-	m_NormalTexture2 = new TextureClass;
-	if (!m_NormalTexture2) { return false; }
-	if (!m_NormalTexture2->Initialize(m_Direct3D->GetDevice(), L"./Textures/normal002.dds")) {
-		MessageBox(hwnd, L"Could not initialize the render to texture object", L"Error", MB_OK);
+	m_FoliageShader = new FoliageShaderClass;
+	if (!m_FoliageShader->Initialize(m_Direct3D->GetDevice(), hwnd)) {
+		MessageBox(hwnd, L"Could not initialize the foliage shader object", L"Error", MB_OK);
 		return false;
 	}
 
@@ -299,46 +271,22 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 void ApplicationClass::Shutdown()
 {
-	if (m_NormalTexture2) {
-		m_NormalTexture2->Shutdown();
-		delete m_NormalTexture2;
-		m_NormalTexture2 = 0;
+	if (m_FoliageShader) {
+		m_FoliageShader->Shutdown();
+		delete m_FoliageShader;
+		m_FoliageShader = 0;
 	}
 
-	if (m_NormalTexture1) {
-		m_NormalTexture1->Shutdown();
-		delete m_NormalTexture1;
-		m_NormalTexture1 = 0;
+	if (m_Foliage) {
+		m_Foliage->Shutdown();
+		delete m_Foliage;
+		m_Foliage = 0;
 	}
 
-	if (m_AlphaTexture) {
-		m_AlphaTexture->Shutdown();
-		delete m_AlphaTexture;
-		m_AlphaTexture = 0;
-	}
-
-	if (m_ColorTexture4) {
-		m_ColorTexture4->Shutdown();
-		delete m_ColorTexture4;
-		m_ColorTexture4 = 0;
-	}
-
-	if (m_ColorTexture3) {
-		m_ColorTexture3->Shutdown();
-		delete m_ColorTexture3;
-		m_ColorTexture3 = 0;
-	}
-
-	if (m_ColorTexture2) {
-		m_ColorTexture2->Shutdown();
-		delete m_ColorTexture2;
-		m_ColorTexture2 = 0;
-	}
-
-	if (m_ColorTexture1) {
-		m_ColorTexture1->Shutdown();
-		delete m_ColorTexture1;
-		m_ColorTexture1 = 0;
+	if (m_GroundModel) {
+		m_GroundModel->Shutdown();
+		delete m_GroundModel;
+		m_GroundModel = 0;
 	}
 
 	//if (m_WaterShader) {
@@ -419,11 +367,11 @@ void ApplicationClass::Shutdown()
 	//	m_MiniMap = 0;
 	//}
 
-	//if (m_TextureShader) {
-	//	m_TextureShader->Shutdown();
-	//	delete m_TextureShader;
-	//	m_TextureShader = 0;
-	//}
+	if (m_TextureShader) {
+		m_TextureShader->Shutdown();
+		delete m_TextureShader;
+		m_TextureShader = 0;
+	}
 
 	//if (m_QuadTree) {
 	//	m_QuadTree->Shutdown();
@@ -552,6 +500,12 @@ bool ApplicationClass::Frame()
 	//RenderRefractionToTexture();
 	//RenderReflectionToTexture();
 
+	// 카메라 현재 위치 가져옴
+	XMFLOAT3 position = m_Camera->GetPosition();
+
+	// 단풍에 대한 프레임 처리 수행
+	if (!m_Foliage->Frame(position, m_Direct3D->GetDeviceContext())) return false;
+
 	// 그래픽 렌더링
 	if (!RenderGraphics())	return false;
 
@@ -600,20 +554,21 @@ bool ApplicationClass::RenderGraphics()
 	//if (!RenderSceneToTexture())	return false;
 
 	// Scene을 그리기 위해 버퍼 삭제
-	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+	m_Direct3D->BeginScene(0.0f, 0.65f, 1.0f, 1.0f);
 
 	// 카메라의 위치에 따라 뷰 행렬 생성
 	m_Camera->Render();
 
 	// 카메라 및 Direct3D 객체에서 월드, 뷰, 투영 행렬을 가져온다
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, baseViewMatrix, reflectionViewMatrix;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, baseViewMatrix;
 	m_Direct3D->GetWorldMatrix(worldMatrix);
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 	m_Camera->GetBaseViewMatrix(baseViewMatrix);
-	m_Camera->GetReflectionViewMatrix(reflectionViewMatrix);
+	//m_Camera->GetReflectionViewMatrix(reflectionViewMatrix);
 
+	
 	// 여기부터 하늘 생성 코드
 	// 캐릭터는 항상 하늘 아래에 있기 때문에 카메라 위치를 중심으로 동작
 	// 먼저 컬링을 끄고, Z버퍼를 비활성화 하고, 하늘 돔을 렌더링한 후 되돌리는 과정을 거침
@@ -644,9 +599,10 @@ bool ApplicationClass::RenderGraphics()
 
 	// 세계 행렬 재설정
 	m_Direct3D->GetWorldMatrix(worldMatrix);
+	
 
 	// 지형 버퍼 렌더링
-	m_Terrain->Render(m_Direct3D->GetDeviceContext());
+	//m_Terrain->Render(m_Direct3D->GetDeviceContext());
 
 	// 머터리얼을 사용한 지형 버퍼 렌더링
 	// 여기서는 셰이더가 매개변수로 들어가 그 안에서 다 처리 가능하기 때문에 여기서는 따로 셰이더 처리를 하지 않음
@@ -662,7 +618,7 @@ bool ApplicationClass::RenderGraphics()
 	//if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetFlatTexture(), m_Terrain->GetSlopeTexture(), m_Terrain->GetScarpTexture()))	return false;
 	//if (!m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetTexture()))	return false;
 	//if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Terrain->GetColorTexture(), m_Terrain->GetNormalTexture(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), 2.0f))	return false;
-	if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetDirection(), m_ColorTexture1->GetTexture(), m_ColorTexture2->GetTexture(), m_ColorTexture3->GetTexture(), m_ColorTexture4->GetTexture(), m_AlphaTexture->GetTexture(), m_NormalTexture1->GetTexture(), m_NormalTexture2->GetTexture()))	return false;
+	//if (!m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetDirection(), m_ColorTexture1->GetTexture(), m_ColorTexture2->GetTexture(), m_ColorTexture3->GetTexture(), m_ColorTexture4->GetTexture(), m_AlphaTexture->GetTexture(), m_NormalTexture1->GetTexture(), m_NormalTexture2->GetTexture()))	return false;
 
 	// 물이 있는 위치로 이동 후 렌더링
 	//worldMatrix = XMMatrixTranslation(240.0f, m_Water->GetWaterHeight(), 250.0f);
@@ -677,6 +633,13 @@ bool ApplicationClass::RenderGraphics()
 
 	// 시야에 렌더링 된 삼각형 수 출력
 	//if (!m_Text->SetRenderCount(m_QuadTree->GetDrawCount(), m_Direct3D->GetDeviceContext()))	return false;
+
+	// 그라운드 및 단풍 렌더링
+	m_GroundModel->Render(m_Direct3D->GetDeviceContext());
+	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_GroundModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_GroundModel->GetColorTexture()))	return false;
+	m_Direct3D->EnableAlphaToCoverageBlending();
+	m_Foliage->Render(m_Direct3D->GetDeviceContext());
+	if (!m_FoliageShader->Render(m_Direct3D->GetDeviceContext(), m_Foliage->GetVertexCount(), m_Foliage->GetInstanceCount(), viewMatrix, projectionMatrix, m_Foliage->GetTexture()))	return false;
 
 	// 2D 렌더링을 위해 Z 버퍼 OFF
 	m_Direct3D->TurnZBufferOff();

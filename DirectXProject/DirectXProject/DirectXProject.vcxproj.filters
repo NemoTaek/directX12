@@ -135,6 +135,12 @@
     <ClCompile Include="WaterShaderClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="FoliageClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FoliageShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraClass.h">
@@ -260,6 +266,12 @@
     <ClInclude Include="WaterShaderClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="FoliageClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FoliageShaderClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Font.ps">
@@ -314,6 +326,12 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="shader\Water.vs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Foliage.ps">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="shader\Foliage.vs">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

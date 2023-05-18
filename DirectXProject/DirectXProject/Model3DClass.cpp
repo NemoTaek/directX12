@@ -37,6 +37,7 @@ int Model3DClass::GetIndexCount() { return m_indexCount; }
 ID3D11ShaderResourceView* Model3DClass::GetTexture() { return m_texture->GetTexture(); }
 ID3D11ShaderResourceView* Model3DClass::GetTexture2() { return m_texture2->GetTexture(); }
 ID3D11ShaderResourceView* Model3DClass::GetTexture3() { return m_texture3->GetTexture(); }
+ID3D11ShaderResourceView* Model3DClass::GetColorTexture() { return m_colorTexture->GetTexture(); }
 
 //ID3D11ShaderResourceView** Model3DClass::GetTextureArray() { return m_textureArray->GetTextureArray(); }
 
@@ -54,7 +55,7 @@ bool Model3DClass::InitializeBuffers(ID3D11Device* device)
 	for (int i = 0; i < m_vertexCount; i++) {
 		vertices[i].position = XMFLOAT3(m_model3D[i].x, m_model3D[i].y, m_model3D[i].z);
 		vertices[i].texture = XMFLOAT2(m_model3D[i].tu, m_model3D[i].tv);
-		vertices[i].normal = XMFLOAT3(m_model3D[i].nx, m_model3D[i].ny, m_model3D[i].nz);
+		//vertices[i].normal = XMFLOAT3(m_model3D[i].nx, m_model3D[i].ny, m_model3D[i].nz);
 		//vertices[i].tangent = XMFLOAT3(m_model3D[i].tx, m_model3D[i].ty, m_model3D[i].tz);
 		//vertices[i].binormal = XMFLOAT3(m_model3D[i].bx, m_model3D[i].by, m_model3D[i].bz);
 

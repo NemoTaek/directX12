@@ -48,6 +48,7 @@ public:
 	ID3D11ShaderResourceView* GetTexture();
 	ID3D11ShaderResourceView* GetTexture2();
 	ID3D11ShaderResourceView* GetTexture3();
+	ID3D11ShaderResourceView* GetColorTexture();
 	//ID3D11ShaderResourceView** GetTextureArray();
 
 	void SetPosition(float, float, float);
@@ -77,6 +78,7 @@ private:
 	TextureClass* m_texture = nullptr;
 	TextureClass* m_texture2 = nullptr;
 	TextureClass* m_texture3 = nullptr;
+	TextureClass* m_colorTexture = nullptr;
 	//TextureArrayClass* m_textureArray = nullptr;
 	ModelType* m_model3D = nullptr;
 	XMFLOAT3 m_position = XMFLOAT3(0.0f, 0.0f, 0.0f);

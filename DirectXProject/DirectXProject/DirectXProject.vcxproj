@@ -137,6 +137,8 @@
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DebugWindowClass.cpp" />
     <ClCompile Include="DepthShaderClass.cpp" />
+    <ClCompile Include="FoliageClass.cpp" />
+    <ClCompile Include="FoliageShaderClass.cpp" />
     <ClCompile Include="FontClass.cpp" />
     <ClCompile Include="FontShaderClass.cpp" />
     <ClCompile Include="FpsClass.cpp" />
@@ -180,6 +182,8 @@
     <ClInclude Include="DebugWindowClass.h" />
     <ClInclude Include="DepthShaderClass.h" />
     <ClInclude Include="DxDefine.h" />
+    <ClInclude Include="FoliageClass.h" />
+    <ClInclude Include="FoliageShaderClass.h" />
     <ClInclude Include="FontClass.h" />
     <ClInclude Include="FontShaderClass.h" />
     <ClInclude Include="FpsClass.h" />
@@ -218,6 +222,8 @@
     <None Include="Font.vs" />
     <None Include="shader\Depth.ps" />
     <None Include="shader\Depth.vs" />
+    <None Include="shader\Foliage.ps" />
+    <None Include="shader\Foliage.vs" />
     <None Include="shader\Reflection.ps" />
     <None Include="shader\Reflection.vs" />
     <None Include="shader\SkyDome.ps" />

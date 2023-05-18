@@ -22,7 +22,7 @@ class TextureClass;
 
 //class FrustumClass;		// 절두체
 //class QuadTreeClass;		// 쿼드 트리(현재 시야에 보이는 부분만 렌더링)
-//class TextureShaderClass;
+class TextureShaderClass;
 
 //class MiniMapClass;		// 미니맵
 
@@ -39,7 +39,9 @@ class SkyPlaneShaderClass;	// 하늘 평면(여기서는 구름)
 //class WaterClass;
 //class WaterShaderClass;
 
-
+class Model3DClass;
+class FoliageClass;			// 단풍
+class FoliageShaderClass;	// 단풍
 
 class ApplicationClass
 {
@@ -76,7 +78,7 @@ private:
 
 	//FrustumClass* m_Frustum = nullptr;
 	//QuadTreeClass* m_QuadTree = nullptr;
-	//TextureShaderClass* m_TextureShader = nullptr;
+	TextureShaderClass* m_TextureShader = nullptr;
 	
 	//MiniMapClass* m_MiniMap = nullptr;
 
@@ -95,11 +97,15 @@ private:
 	//WaterClass* m_Water = nullptr;
 	//WaterShaderClass* m_WaterShader = nullptr;
 
-	TextureClass* m_ColorTexture1 = nullptr;
-	TextureClass* m_ColorTexture2 = nullptr;
-	TextureClass* m_ColorTexture3 = nullptr;
-	TextureClass* m_ColorTexture4 = nullptr;
-	TextureClass* m_AlphaTexture = nullptr;
-	TextureClass* m_NormalTexture1 = nullptr;
-	TextureClass* m_NormalTexture2 = nullptr;
+	//TextureClass* m_ColorTexture1 = nullptr;
+	//TextureClass* m_ColorTexture2 = nullptr;
+	//TextureClass* m_ColorTexture3 = nullptr;
+	//TextureClass* m_ColorTexture4 = nullptr;
+	//TextureClass* m_AlphaTexture = nullptr;
+	//TextureClass* m_NormalTexture1 = nullptr;
+	//TextureClass* m_NormalTexture2 = nullptr;
+
+	Model3DClass* m_GroundModel = nullptr;
+	FoliageClass* m_Foliage = nullptr;
+	FoliageShaderClass* m_FoliageShader = nullptr;
 };

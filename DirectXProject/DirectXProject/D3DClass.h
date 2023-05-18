@@ -42,6 +42,8 @@ public:
 	void SetBackBufferRenderTarget();
 	void ResetViewport();
 
+	void EnableAlphaToCoverageBlending();
+
 private:
 	bool m_vsync_enabled = false;
 	int m_videoCardMemory = 0;
@@ -64,6 +66,7 @@ private:
 	ID3D11BlendState* m_alphaEnableBlendingState = nullptr;
 	ID3D11BlendState* m_alphaDisableBlendingState = nullptr;
 	ID3D11BlendState* m_alphaBlendState2 = nullptr;
+	ID3D11BlendState* m_alphaEnableBlendingState2 = nullptr;
 
 	D3D11_VIEWPORT m_viewport;
 };
